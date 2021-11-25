@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "target": "ES5"
+  },
+  "include": ["src/**/*.ph", "src/**/*.ts", "src/*.d.ts"],
+  "filesGlob": ["./src/**/*.ts"]
+}
