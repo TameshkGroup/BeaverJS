@@ -1,58 +1,68 @@
-import Input from './Input'
-import { PHE } from './PHE'
+import { HTML, PHE } from './PHE'
+import _ from 'lodash'
 
-function HTML(str: TemplateStringsArray, ...a: any[]) {
-    console.log(' HTML FMT items ', a)
-    const s = str.reduce((acm, str, i) => [...acm, str, a[i]], [])
-    return s
-}
 
 export class App extends PHE {
     constructor(elementSelector: string) {
         super(elementSelector)
+        console.log(-1, 'constructor')
         //this.$$ctx.name = "ok";
     }
+    $$ctx = {}
 
-    ctx: { name: string; counter: number; obj: { c: number } }
+    // declare ctx: {
+    //     obj: { c: { d: number } },
+    //     c: number
+    // }
 
     template() {
-        //return `the: <div text="counter"></div> <div text="name"></div> <div text="obj.c"></div> <Input/> ${this.ctx.counter}`;
+        //console.log(1, 'template requested')
         return HTML`
-        <div style="width: 100px; height: 20px; background-color: green;color:white">
-            ${this.ctx?.obj?.c}
-            <span>${new Input()}</span>
+        <div @click="this.reset()" style="width: 100px; height: 20px; background-color: green;color:white">
+            {{obj.c.d}}
+            <span>{{c}}</span>
+            {{obj.c.d}}
         </div>`
     }
 
-    mounted() {
-        console.log('$$ctx', this.$$ctx)
-        console.log('ctx', this.ctx)
-        //this.ctx.name = "name1";
-        this.ctx.name = '__O|O__'
-
-        this.ctx.obj = { c: 0 }
-
-        //@ts-ignore
-        this.name = '10'
-
-        //this.ctx = { name: "", counter: 1 };
-
-        let counter = 0
-        setInterval(() => {
-            this.ctx.counter = counter
-            this.ctx.obj.c = counter * 2
-            console.log('$$ctx', this.$$ctx);
-            counter++
-        }, 1000)
-
-        console.log('$$ctx', this.$$ctx)
-        console.log('ctx', this.ctx)
+    reset() {
+        this.ctx.obj.c.d = 0
     }
 
-    //   get id(){
+    beforeMount() {
+        console.log(0, 'before mount')
+        console.log('beforeMount', 'App')
+        this.ctx.obj = { c: { d: 1 } }
+    }
 
-    //   }
-    //   set id(value: string){
+    mounted() {
+        //console.log('$$ctx', this.$$ctx)
+        //console.log('111ctx', this.ctx)
+        //this.ctx.name = "name1";
+        //this.ctx.obj = {}
+        //console.log(' $$ctx: 1 ', this.$$ctx.obj.c.d)
+        //console.log(' ctx:   1 ', this.ctx.obj.c.d)
+        //this.ctx.obj = { c: { d: 3 } }
+        this.ctx.c = 1
+        console.log(' $$ctx: 2 ', this.ctx.obj.c.d)
+        console.log(' ctx:   2', this.ctx.c) //this.ctx.obj.c.d)
 
-    //   }
+        //this.ctx.watch('ok')
+
+        this.ctx.c = 2
+        //this.ctx.obj.c.d = 12
+        console.log(' ctx:   3', this.ctx.c) // this.ctx.obj.c.d)
+
+        this.ctx.obj.c.d++
+        let counter = this.ctx.obj.c.d
+        // setInterval(() => {
+        //     counter++
+
+        //     //this.ctx.counter = counter
+        //     //console.log('counter', this.ctx.obj.c)
+        //     //if (this.ctx.obj.c) this.ctx.obj.c.d = counter * 2
+        //     this.ctx.obj.c.d = counter
+        //     //console.log('$$ctx1', this.$$ctx, this.ctx)
+        // }, 1000)
+    }
 }

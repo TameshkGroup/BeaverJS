@@ -11,15 +11,13 @@ export default class Input extends PHE {
 
     mounted() {
         this.ctx.name = 'ok'
-        let counter = 0
+        // let counter = 0
         this.ctx.counter = 0
         // setInterval(() => {
         //     this.ctx.counter = counter
         //     counter++
         // }, 1000)
     }
-
-    ctx: { name: string; counter: number; obj: { c: number } }
 
     template() {
         return HTML`<pre>${this.ctx.counter}</pre>`

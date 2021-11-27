@@ -1,7 +1,26 @@
 import { PHD } from '../PHD'
 import _ from 'lodash'
 
-type Item = PHE | null | undefined | string | number
+let l = 0
+
+export type Item = PHE | null | undefined | string | number
+
+function getElem(obj: HTMLElement, path: number[]) {
+    console.log('obj path', obj, path)
+    return path.reduce<HTMLElement>(
+        (res, key) => res.childNodes?.[key] as HTMLElement,
+        obj
+    )
+}
+
+export function HTML(template: TemplateStringsArray, ...a: any[]): string {
+    console.log(' HTML FMT items ', a, template)
+    const s = template.reduce<string>((acm, str, i) => {
+        console.log('i', i, 'length', str.length)
+        return acm + str + (i < template.length - 1 ? String(a[i]) : '')
+    }, '')
+    return s
+}
 
 function domReady() {
     return new Promise((resolve) => {
@@ -16,59 +35,162 @@ function domReady() {
     })
 }
 
-export function HTML(input: TemplateStringsArray, ...args: any): Item[] {
-    return input.reduce((acm, value, i) => {
-        return [...acm, value, args[i]]
-    }, [])
-}
+// export function HTML(input: TemplateStringsArray, ...args: any): Item[] {
+//     return input.reduce((acm, value, i) => {
+//         return [...acm, value, args[i]]
+//     }, [])
+// }
 
 export class PHE extends PHD {
     static $$includedElems: Record<string, typeof PHE> = {}
-    $$rootElement: HTMLElement
+    $$rootElement: HTMLElement = document.createElement('div')
     constructor(private $$elementSelector?: string) {
         super()
+        console.log('element constructor')
     }
 
-    template(): Item[] {
-        return []
-    }
-
-    readonly ctx: Record<string, any>
+    template(): string | void {}
 
     mounted() {}
 
     async mount() {
         await domReady()
-        this.$$rootElement = document.querySelector(this.$$elementSelector) || this.$$rootElement;
+        await new Promise((resolve) => {
+            this.addBeforeMountListener(() => {
+                resolve(true)
+            })
+        })
+        if (this.$$elementSelector)
+            this.$$rootElement =
+                document.querySelector(this.$$elementSelector) ||
+                this.$$rootElement
         this.render()
         this.mounted()
     }
 
-    $$template: Item[] = [] //`<div text="name"><div>1</div></div>`;
+    $$template: string = `<div></div>`
 
     render() {
-        this.$$template = this.template() || this.$$template;
+        console.log('render1')
 
-        let phes = []
-        const str = this.$$template.reduce<string>((acm, value) => {
-            if (
-                typeof value === 'string' ||
-                typeof value === 'number' ||
-                typeof value === 'bigint' ||
-                typeof value === 'boolean'
-            ) {
-                return acm + String(value)
-            }
-            if (value instanceof PHE) {
-                phes = [...phes, value]
-                return acm + '__$$__' + value.$id + '__$$__'
-            }
-            return acm
-        }, '')
+        this.$$template = this.template() || this.$$template
 
-        const parsed = new DOMParser().parseFromString(str, 'text/html').body
+        let phes: PHE[] = []
+        // const str = this.$$template.reduce<string>((acm, value) => {
+        //     if (
+        //         typeof value === 'string' ||
+        //         typeof value === 'number' ||
+        //         typeof value === 'bigint' ||
+        //         typeof value === 'boolean'
+        //     ) {
+        //         return acm + String(value)
+        //     }
+        //     if (value instanceof PHE) {
+        //         phes = [...phes, value]
+        //         return acm + '__$$__' + value.$id + '__$$__'
+        //     }
+        //     return acm
+        // }, '')
 
-        //console.log('parsed', parsed.querySelectorAll('*'))
+        const origin = new DOMParser().parseFromString(
+            this.$$template,
+            'text/html'
+        ).body
+
+        const parsed = origin.cloneNode(true) as HTMLElement
+
+        const parse = (path: number[] = []) => {
+            getElem(origin, path).childNodes.forEach((child, i) => {
+                console.log('child', child, child.nodeName)
+                let childPath = [...path, i]
+
+                getElem(origin, childPath)
+                    .getAttributeNames?.()
+                    .forEach((attrName) => {
+                        if (attrName === '@click') {
+                            const fn = new Function(
+                                getElem(origin, childPath).getAttribute(
+                                    attrName
+                                ) || ''
+                            ).bind(this)
+                            console.log(
+                                '@click',
+                                getElem(origin, childPath).getAttribute(
+                                    attrName
+                                ) || ''
+                            )
+                            getElem(parsed, childPath).addEventListener(
+                                'click',
+                                ()=> {
+                                    console.log('fnres', fn.call(this))
+                                }
+                            )
+                        }
+                    })
+
+                if (getElem(origin, childPath).nodeName === '#text') {
+                    const set = () => {
+                        //console.error('setCalled', child.textContent)
+                        const parsedTextContent = getElem(
+                            origin,
+                            childPath
+                        ).textContent?.replace(/\{\{.+?}}/g, (match) => {
+                            const path = match
+                                .substr(2, match.length - 4)
+                                .trim()
+
+                            // console.log(
+                            //     'subscribes',
+                            //     this.subscribs,
+                            //     'this.ctx',
+                            //     this.ctx
+                            // )
+                            return _.get(this.ctx, path)
+                        })
+
+                        if (parsedTextContent) {
+                            getElem(
+                                parsed as HTMLElement,
+                                childPath
+                            ).textContent = parsedTextContent
+                        } else {
+                            getElem(
+                                parsed as HTMLElement,
+                                childPath
+                            ).textContent = ''
+                        }
+                    }
+
+                    getElem(origin, childPath)
+                        .textContent?.match(/\{\{.+?}}/g)
+                        ?.forEach((match) => {
+                            const path = match
+                                .substr(2, match.length - 4)
+                                .trim()
+                            this.subscribs[path] = [
+                                ...(this.subscribs[path]
+                                    ? this.subscribs[path]
+                                    : []),
+                                () => {
+                                    console.log('__', l)
+                                    set()
+                                    l++
+                                },
+                            ]
+                        })
+                    set()
+
+                    console.log('textNode', child.textContent)
+                }
+                if (child instanceof HTMLElement) parse([...path, i])
+            })
+        }
+
+        parse()
+
+        //console.log('parsed.childNodes', parsed.childNodes)
+
+        console.log('parsed', parsed)
 
         // if (typeof this.template === "function") {
         //   this.$$template = this.template() || this.$$template;
@@ -86,18 +208,20 @@ export class PHE extends PHD {
 
             //const parent = e.parentNode as HTMLElement
             //parent.replaceChild(tmpObj, e)
-            console.log('parsed.innerHTML', parsed.innerHTML);
+            console.log('parsed.innerHTML', parsed.innerHTML)
             parsed.innerHTML = parsed.innerHTML.replace(
                 `__$$__${phe.$id}__$$__`, //'<div><!--THIS DATA SHOULD BE REPLACED--></div>',
                 `<div phid=${phe.$id}></div>`
             )
 
             ////e.outerHTML = `<div></div>`;
-            phe.$$rootElement = parsed.querySelector(`[phid="${phe.$id}"]`)
+            const rootElement = parsed.querySelector(`[phid="${phe.$id}"]`)
+            if (!rootElement || !(rootElement instanceof HTMLElement)) {
+                return
+            }
+            phe.$$rootElement = rootElement
 
-            
-
-            console.log('phe.$$rootElement', phe.$$rootElement);
+            console.log('phe.$$rootElement', phe.$$rootElement)
 
             phe.mount()
             //console.log(' -- element', e.outerHTML, e)
@@ -130,7 +254,9 @@ export class PHE extends PHD {
         //     'this.$$rootElement.innerHTML',
         //     this.$$rootElement.innerHTML
         // )
-        if (this.$$rootElement) this.$$rootElement.innerHTML = parsed.innerHTML
+        if (this.$$rootElement) this.$$rootElement.appendChild(parsed)
+
+        console.log('e', this.$$rootElement, 'mm')
 
         console.log('__ | __', this.$$rootElement)
     }

@@ -26,13 +26,16 @@
     "rollup-plugin-serve": "^1.1.0",
     "rollup-plugin-ts": "^2.0.4",
     "ts-node": "^10.4.0",
-    "typescript": "^4.5.2"
+    "typescript": "^4.5.2",
+    "vite": "^2.6.14"
   },
   "dependencies": {
     "@linaria/core": "^3.0.0-beta.13",
     "@types/nanoid": "^3.0.0",
+    "deep-proxy-polyfill": "^1.0.4",
     "nanoid": "^3.1.30",
     "pug": "^3.0.2",
+    "recursive-proxy": "^1.1.0",
     "rollup-plugin-pug": "^1.1.1"
   }
 }
