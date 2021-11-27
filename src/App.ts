@@ -1,7 +1,6 @@
 import { HTML, PHE } from './PHE'
 import _ from 'lodash'
 
-
 export class App extends PHE {
     constructor(elementSelector: string) {
         super(elementSelector)
@@ -18,7 +17,15 @@ export class App extends PHE {
     template() {
         //console.log(1, 'template requested')
         return HTML`
-        <div @click="this.reset()" style="width: 100px; height: 20px; background-color: green;color:white">
+        <div
+            tabindex="1"
+            @click="this.reset(); console.log('$event',$event)"
+            @mouseMove="console.log($event); this.ctx.c = $event.clientX"
+            @mouseEnter="(event)=> {this.reset(); console.log('event',event)}" 
+            @mouseLeave="this.ctx.c = 10"
+            @keydown="this.ctx.c = 40"
+            style="width: 100px; height: 20px; background-color: green;color:white"
+        >
             {{obj.c.d}}
             <span>{{c}}</span>
             {{obj.c.d}}

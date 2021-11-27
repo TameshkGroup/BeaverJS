@@ -107,25 +107,29 @@ export class PHE extends PHD {
                 getElem(origin, childPath)
                     .getAttributeNames?.()
                     .forEach((attrName) => {
-                        if (attrName === '@click') {
-                            const fn = new Function(
-                                getElem(origin, childPath).getAttribute(
-                                    attrName
-                                ) || ''
-                            ).bind(this)
-                            console.log(
-                                '@click',
-                                getElem(origin, childPath).getAttribute(
-                                    attrName
-                                ) || ''
-                            )
+                        console.log(
+                            "attrName.indexOf('@')",
+                            attrName.indexOf('@')
+                        )
+                        if (attrName.indexOf('@') === 0) {
+                            const event = attrName.replace('@', '')
+                            const elem = getElem(origin, childPath)
+                            const code = elem.getAttribute(attrName)
+                            //if (attrName === '@click') {
+                            console.log('code', code, event)
+                            if (!code) return
+
                             getElem(parsed, childPath).addEventListener(
-                                'click',
-                                ()=> {
-                                    console.log('fnres', fn.call(this))
+                                event,
+                                ($event) => {
+                                    const args = ['$event', code]
+                                    const fn = Function.apply(null, args)
+                                    //const fn = new Function(code).bind(this)
+                                    console.log('fnres', fn.bind(this)($event))
                                 }
                             )
                         }
+                        //}
                     })
 
                 if (getElem(origin, childPath).nodeName === '#text') {
