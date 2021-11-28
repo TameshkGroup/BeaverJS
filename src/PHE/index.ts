@@ -44,6 +44,7 @@ function domReady() {
 export class PHE extends PHD {
     static $$includedElems: Record<string, typeof PHE> = {}
     $$rootElement: HTMLElement = document.createElement('div')
+    components: Record<string, typeof PHE> = {}
     constructor(private $$elementSelector?: string) {
         super()
         console.log('element constructor')
@@ -139,17 +140,40 @@ export class PHE extends PHD {
                             origin,
                             childPath
                         ).textContent?.replace(/\{\{.+?}}/g, (match) => {
-                            const path = match
+                            const scopeStr = match
                                 .substr(2, match.length - 4)
                                 .trim()
 
+                            console.log(
+                                'new _',
+                                scopeStr,
+                                scopeStr.match(/^(new)[\s]\w+[\s\S]+/)?.length
+                            )
+                            //Check if there is instance of a class in the scope
+
+                            if (
+                                scopeStr.match(/^(new)[\s]\w+[\s\S]+/)?.length
+                            ) {
+                                const args = ['$event', 'Input']
+                                //const fn = Function.apply(null, args)
+                                //const fn = new Function(code).bind(this)
+                                const instance = new this.components['Input']()
+                                instance.$$rootElement = getElem(
+                                    parsed,
+                                    childPath
+                                ).parentElement || document.createElement('<div></div>')
+                                console.log('fnres', instance)
+                                instance.mount()
+                                return
+                            } else {
+                                return _.get(this.ctx, scopeStr)
+                            }
                             // console.log(
                             //     'subscribes',
                             //     this.subscribs,
                             //     'this.ctx',
                             //     this.ctx
                             // )
-                            return _.get(this.ctx, path)
                         })
 
                         if (parsedTextContent) {
@@ -168,19 +192,25 @@ export class PHE extends PHD {
                     getElem(origin, childPath)
                         .textContent?.match(/\{\{.+?}}/g)
                         ?.forEach((match) => {
-                            const path = match
+                            const scopeStr = match
                                 .substr(2, match.length - 4)
                                 .trim()
-                            this.subscribs[path] = [
-                                ...(this.subscribs[path]
-                                    ? this.subscribs[path]
-                                    : []),
-                                () => {
-                                    console.log('__', l)
-                                    set()
-                                    l++
-                                },
-                            ]
+                            //Check if there is instance of a class in the scope
+                            if (
+                                scopeStr.match(/^(new)[\s]\w+[\s\S]+/)?.length
+                            ) {
+                            } else {
+                                this.subscribs[scopeStr] = [
+                                    ...(this.subscribs[scopeStr]
+                                        ? this.subscribs[scopeStr]
+                                        : []),
+                                    () => {
+                                        console.log('__', l)
+                                        set()
+                                        l++
+                                    },
+                                ]
+                            }
                         })
                     set()
 

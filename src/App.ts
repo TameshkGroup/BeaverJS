@@ -1,7 +1,10 @@
 import { HTML, PHE } from './PHE'
 import _ from 'lodash'
+import Input from './Input'
 
 export class App extends PHE {
+    components = { Input }
+
     constructor(elementSelector: string) {
         super(elementSelector)
         console.log(-1, 'constructor')
@@ -20,16 +23,20 @@ export class App extends PHE {
         <div
             tabindex="1"
             @click="this.reset(); console.log('$event',$event)"
-            @mouseMove="console.log($event); this.ctx.c = $event.clientX"
-            @mouseEnter="(event)=> {this.reset(); console.log('event',event)}" 
+            @mouseMove="console.log($event); this.ctx.c = $event.clientX; this.ctx.x = $event.clientX; this.ctx.y = $event.clientY"
+            @mouseEnter="this.reset(); console.log('event',event)" 
             @mouseLeave="this.ctx.c = 10"
             @keydown="this.ctx.c = 40"
-            style="width: 100px; height: 20px; background-color: green;color:white"
+            style="width: 700px; height: 500px; background-color: green;color:white"
         >
+            {{x}}
+            <span>{{y}}</span>
             {{obj.c.d}}
-            <span>{{c}}</span>
-            {{obj.c.d}}
-        </div>`
+            
+            <div>{{new Input()}}</div>
+        </div>
+        
+        `
     }
 
     reset() {

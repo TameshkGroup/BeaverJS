@@ -1,8 +1,5 @@
-import { App } from './App'
 import { HTML, PHE } from './PHE'
-import { Element } from './PHE/decorators'
 
-@Element(App)
 export default class Input extends PHE {
     constructor() {
         super()
@@ -20,6 +17,6 @@ export default class Input extends PHE {
     }
 
     template() {
-        return HTML`<pre>${this.ctx.counter}</pre>`
+        return HTML`<div>{{counter}}pk</div>`
     }
 }
