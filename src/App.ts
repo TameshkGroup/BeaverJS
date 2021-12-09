@@ -1,8 +1,10 @@
 import { HTML, PHE } from './PHE'
 import _ from 'lodash'
 import Input from './Input'
+var m = {};
 
-export class App extends PHE {
+
+export default class App extends PHE {
     components = { Input }
 
     constructor(elementSelector: string) {

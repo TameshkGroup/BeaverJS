@@ -93,10 +93,7 @@ export class PHE extends PHD {
         //     return acm
         // }, '')
 
-        const origin = new DOMParser().parseFromString(
-            this.$$template,
-            'text/html'
-        ).body
+        const origin = document.createElement('div')
 
         const parsed = origin.cloneNode(true) as HTMLElement
 
@@ -158,10 +155,9 @@ export class PHE extends PHD {
                                 //const fn = Function.apply(null, args)
                                 //const fn = new Function(code).bind(this)
                                 const instance = new this.components['Input']()
-                                instance.$$rootElement = getElem(
-                                    parsed,
-                                    childPath
-                                ).parentElement || document.createElement('<div></div>')
+                                instance.$$rootElement =
+                                    getElem(parsed, childPath).parentElement ||
+                                    document.createElement('<div></div>')
                                 console.log('fnres', instance)
                                 instance.mount()
                                 return

@@ -16,7 +16,6 @@ export default class Input extends PHE {
         // }, 1000)
     }
 
-    template() {
-        return HTML`<div>{{counter}}pk</div>`
-    }
+    $$template = HTML`<div>{{this.ctx.counter}}pk</div>`
+    
 }

@@ -9,12 +9,15 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
+    "serve": "vite",
     "build": "rollup --config"
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",
     "@rollup/plugin-replace": "^3.0.0",
+    "@types/fast-html-parser": "^1.0.2",
     "@types/lodash": "^4.14.177",
+    "fast-html-parser": "^1.0.1",
     "lodash": "^4.17.21",
     "nodemon": "^2.0.15",
     "rollup": "^2.60.0",
@@ -27,15 +30,22 @@
     "rollup-plugin-ts": "^2.0.4",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.2",
-    "vite": "^2.6.14"
+    "vite": "^2.6.14",
+    "vite-plugin-ts": "^1.3.0"
   },
   "dependencies": {
     "@linaria/core": "^3.0.0-beta.13",
     "@types/nanoid": "^3.0.0",
+    "@types/react": "^17.0.37",
+    "@vitejs/plugin-react": "^1.1.0",
+    "acorn": "^8.6.0",
+    "acorn-jsx": "^5.3.2",
     "deep-proxy-polyfill": "^1.0.4",
     "nanoid": "^3.1.30",
     "pug": "^3.0.2",
     "recursive-proxy": "^1.1.0",
-    "rollup-plugin-pug": "^1.1.1"
+    "rollup-plugin-jsx": "^1.0.3",
+    "rollup-plugin-pug": "^1.1.1",
+    "vite-react-jsx": "^1.1.2"
   }
 }
