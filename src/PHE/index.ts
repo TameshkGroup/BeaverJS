@@ -1,25 +1,28 @@
 import { PHD } from '../PHD'
 import _ from 'lodash'
+import HTMLParser from 'fast-html-parser'
+import { DataNode, Document, Element } from 'domhandler/lib'
+import { ElementType } from 'htmlparser2'
 
 let l = 0
 
 export type Item = PHE | null | undefined | string | number
 
 function getElem(obj: HTMLElement, path: number[]) {
-    console.log('obj path', obj, path)
     return path.reduce<HTMLElement>(
         (res, key) => res.childNodes?.[key] as HTMLElement,
         obj
     )
 }
 
-export function HTML(template: TemplateStringsArray, ...a: any[]): string {
-    console.log(' HTML FMT items ', a, template)
+export function HTML(
+    template: TemplateStringsArray,
+    ...a: any[]
+): Partial<Element> {
     const s = template.reduce<string>((acm, str, i) => {
-        console.log('i', i, 'length', str.length)
         return acm + str + (i < template.length - 1 ? String(a[i]) : '')
     }, '')
-    return s
+    return s as any as Element
 }
 
 function domReady() {
@@ -47,10 +50,9 @@ export class PHE extends PHD {
     components: Record<string, typeof PHE> = {}
     constructor(private $$elementSelector?: string) {
         super()
-        console.log('element constructor')
     }
 
-    template(): string | void {}
+    template(): Partial<Element> | void {}
 
     mounted() {}
 
@@ -69,52 +71,191 @@ export class PHE extends PHD {
         this.mounted()
     }
 
-    $$template: string = `<div></div>`
+    $$template: Partial<Element> = {
+        type: ElementType.Tag,
+        tagName: 'div',
+    }
 
     render() {
-        console.log('render1')
-
         this.$$template = this.template() || this.$$template
 
         let phes: PHE[] = []
-        // const str = this.$$template.reduce<string>((acm, value) => {
-        //     if (
-        //         typeof value === 'string' ||
-        //         typeof value === 'number' ||
-        //         typeof value === 'bigint' ||
-        //         typeof value === 'boolean'
-        //     ) {
-        //         return acm + String(value)
-        //     }
-        //     if (value instanceof PHE) {
-        //         phes = [...phes, value]
-        //         return acm + '__$$__' + value.$id + '__$$__'
-        //     }
-        //     return acm
-        // }, '')
 
-        const origin = document.createElement('div')
+        let parsed: HTMLElement = document.createElement('div')
 
-        const parsed = origin.cloneNode(true) as HTMLElement
+        const findTargetElement = (
+            el: HTMLElement,
+            path: number[]
+        ): HTMLElement => {
+            if (!Array.isArray(path[0])) {
+                return el
+            } else {
+                return findTargetElement(
+                    parsed.childNodes[path[0]] as HTMLElement,
+                    path.slice(1)
+                )
+            }
+        }
 
-        const parse = (path: number[] = []) => {
+        this.$$template = this.template() || this.$$template
+        console.log('template', this.$$template)
+
+        const appendElFromTemplate = (
+            htmlParentEl: HTMLElement,
+            templateEl: Partial<Element | DataNode | Document>
+        ) => {
+            let element: HTMLElement | Text // = document.createTextNode('')
+            if (templateEl.type === ElementType.Root) {
+                ;(templateEl as Document).children.forEach((child, index) => {
+                    appendElFromTemplate(htmlParentEl, child)
+                })
+                return
+            } else if (
+                templateEl.type === ElementType.Tag &&
+                (templateEl as Element).name
+            ) {
+                const el = templateEl as Element
+                element = document.createElement(el.name)
+                const directives = []
+                el.children.forEach((child, index) => {
+                    if (child.type === ElementType.Directive) {
+                        const el = child as DataNode
+                        directives.push(el.data.slice(3, -1))
+                    } else {
+                        appendElFromTemplate(element as HTMLElement, child)
+                    }
+                })
+                if (el.attribs)
+                    Object.entries(el.attribs).forEach(
+                        ([attrName, attrValue]) => {
+                            if (attrName.indexOf('@') === 0) {
+                                const event = attrName.replace('@', '')
+                                //const elem = getElem(origin, childPath)
+                                const code = attrValue //elem.getAttribute(attrName)
+                                //if (attrName === '@click') {
+                                if (!code) return
+
+                                element.addEventListener(event, ($event) => {
+                                    const args = ['$event', code]
+                                    const fn = Function.apply(null, args)
+                                    //const fn = new Function(code).bind(this)
+                                    fn.bind(this)($event)
+                                })
+                            } else {
+                                ;(element as HTMLElement).setAttribute(
+                                    attrName,
+                                    attrValue
+                                )
+                            }
+                            //}
+                        }
+                    )
+            } else if (
+                templateEl.type === ElementType.Text &&
+                (templateEl as DataNode).data
+            ) {
+                const el = templateEl as DataNode
+                element = document.createTextNode(el.data)
+
+                const set = () => {
+                    element.textContent =
+                        el.data?.replace(/\{\{.+?}}/g, (match) => {
+                            const scopeStr = match
+                                .substr(2, match.length - 4)
+                                .trim()
+
+                            //Check if there is instance of a class in the scope
+
+                            if (
+                                scopeStr.match(/^(new)[\s]\w+[\s\S]+/)?.length
+                            ) {
+                                const args = ['$event', 'Input']
+                                //const fn = Function.apply(null, args)
+                                //const fn = new Function(code).bind(this)
+                                const instance = new this.components['Input']()
+                                element = document.createElement('div')
+                                //element.replaceChild(element,root)
+                                instance.$$rootElement = element
+                                //getElem(parsed, childPath).parentElement ||
+
+                                instance.mount()
+                                return
+                            } else {
+                                return _.get(this.ctx, scopeStr)
+                            }
+                        }) || ''
+                }
+
+                element.textContent?.match(/<[\?]js.*/g)?.forEach((match) => {
+                    console.log('js block', match)
+                })
+
+                element.textContent?.match(/\{\{.+?}}/g)?.forEach((match) => {
+                    const scopeStr = match.substr(2, match.length - 4).trim()
+                    //Check if there is instance of a class in the scope
+                    if (scopeStr.match(/^(new)[\s]\w+[\s\S]+/)?.length) {
+                    } else {
+                        this.subscribs[scopeStr] = [
+                            ...(this.subscribs[scopeStr]
+                                ? this.subscribs[scopeStr]
+                                : []),
+                            () => {
+                                set()
+                                l++
+                            },
+                        ]
+                    }
+                })
+
+                set()
+                //} else if (templateEl.type === ElementType.Directive) {
+                // const el = templateEl as DataNode
+                //element = document.createTextNode(el.data.slice(3, -1))
+            } else {
+                console.log('unknow el type', templateEl)
+            }
+
+            htmlParentEl.append(element)
+        }
+
+        const createDOM = (template: Partial<Element>, path: number[] = []) => {
+            if (path.length === 0) {
+                parsed = document.createElement(template.tagName || 'div')
+                template.children?.forEach((childTemplate, index) => {
+                    createDOM(childTemplate, [...path, index])
+                })
+            } else {
+                template.children?.forEach((childTemplate, index) => {
+                    createDOM(childTemplate, [...path, index])
+                })
+                const parentElement = findTargetElement(
+                    parsed,
+                    path.slice(undefined, -1)
+                )
+                appendElFromTemplate(parentElement, template)
+            }
+
+            template.tagName
+        }
+
+        //createDOM(this.$$template, [])
+        appendElFromTemplate(this.$$rootElement, this.$$template)
+
+        //const parsed = origin.cloneNode(true) as HTMLElement
+
+        /*  const parse = (path: number[] = []) => {
             getElem(origin, path).childNodes.forEach((child, i) => {
-                console.log('child', child, child.nodeName)
                 let childPath = [...path, i]
 
                 getElem(origin, childPath)
                     .getAttributeNames?.()
                     .forEach((attrName) => {
-                        console.log(
-                            "attrName.indexOf('@')",
-                            attrName.indexOf('@')
-                        )
+                        
                         if (attrName.indexOf('@') === 0) {
                             const event = attrName.replace('@', '')
                             const elem = getElem(origin, childPath)
                             const code = elem.getAttribute(attrName)
                             //if (attrName === '@click') {
-                            console.log('code', code, event)
                             if (!code) return
 
                             getElem(parsed, childPath).addEventListener(
@@ -123,7 +264,7 @@ export class PHE extends PHD {
                                     const args = ['$event', code]
                                     const fn = Function.apply(null, args)
                                     //const fn = new Function(code).bind(this)
-                                    console.log('fnres', fn.bind(this)($event))
+                                    fn.bind(this)($event)
                                 }
                             )
                         }
@@ -141,11 +282,7 @@ export class PHE extends PHD {
                                 .substr(2, match.length - 4)
                                 .trim()
 
-                            console.log(
-                                'new _',
-                                scopeStr,
-                                scopeStr.match(/^(new)[\s]\w+[\s\S]+/)?.length
-                            )
+                            
                             //Check if there is instance of a class in the scope
 
                             if (
@@ -158,18 +295,11 @@ export class PHE extends PHD {
                                 instance.$$rootElement =
                                     getElem(parsed, childPath).parentElement ||
                                     document.createElement('<div></div>')
-                                console.log('fnres', instance)
                                 instance.mount()
                                 return
                             } else {
                                 return _.get(this.ctx, scopeStr)
                             }
-                            // console.log(
-                            //     'subscribes',
-                            //     this.subscribs,
-                            //     'this.ctx',
-                            //     this.ctx
-                            // )
                         })
 
                         if (parsedTextContent) {
@@ -201,7 +331,6 @@ export class PHE extends PHD {
                                         ? this.subscribs[scopeStr]
                                         : []),
                                     () => {
-                                        console.log('__', l)
                                         set()
                                         l++
                                     },
@@ -210,17 +339,12 @@ export class PHE extends PHD {
                         })
                     set()
 
-                    console.log('textNode', child.textContent)
                 }
                 if (child instanceof HTMLElement) parse([...path, i])
             })
         }
-
-        parse()
-
-        //console.log('parsed.childNodes', parsed.childNodes)
-
-        console.log('parsed', parsed)
+ */
+        //parse()
 
         // if (typeof this.template === "function") {
         //   this.$$template = this.template() || this.$$template;
@@ -231,14 +355,12 @@ export class PHE extends PHD {
             //.querySelectorAll(k.toLowerCase())
             //.forEach((e: HTMLElement) => {
             //const phe = new PHEI()
-            //console.log(' --- element', e)
 
             //var tmpObj = document.createElement('div')
             //tmpObj.innerHTML = '<!--THIS DATA SHOULD BE REPLACED-->'
 
             //const parent = e.parentNode as HTMLElement
             //parent.replaceChild(tmpObj, e)
-            console.log('parsed.innerHTML', parsed.innerHTML)
             parsed.innerHTML = parsed.innerHTML.replace(
                 `__$$__${phe.$id}__$$__`, //'<div><!--THIS DATA SHOULD BE REPLACED--></div>',
                 `<div phid=${phe.$id}></div>`
@@ -251,14 +373,8 @@ export class PHE extends PHD {
             }
             phe.$$rootElement = rootElement
 
-            console.log('phe.$$rootElement', phe.$$rootElement)
-
             phe.mount()
-            //console.log(' -- element', e.outerHTML, e)
-            //})
         })
-
-        //console.log('0', PHE.$$includedElems)
 
         // parsed.querySelectorAll(`[text]`).forEach((el) => {
         //     const data = _.get(this.$$ctx, el.getAttribute('text'))
@@ -279,15 +395,6 @@ export class PHE extends PHD {
         //     }
         // })
 
-        // console.log('rootElement', this.$$rootElement)
-        // console.log(
-        //     'this.$$rootElement.innerHTML',
-        //     this.$$rootElement.innerHTML
-        // )
         if (this.$$rootElement) this.$$rootElement.appendChild(parsed)
-
-        console.log('e', this.$$rootElement, 'mm')
-
-        console.log('__ | __', this.$$rootElement)
     }
 }

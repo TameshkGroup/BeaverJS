@@ -1,8 +1,6 @@
 import { HTML, PHE } from './PHE'
 import _ from 'lodash'
 import Input from './Input'
-var m = {};
-
 
 export default class App extends PHE {
     components = { Input }
@@ -25,7 +23,7 @@ export default class App extends PHE {
         <div
             tabindex="1"
             @click="this.reset(); console.log('$event',$event)"
-            @mouseMove="console.log($event); this.ctx.c = $event.clientX; this.ctx.x = $event.clientX; this.ctx.y = $event.clientY"
+            @mouseMove="/*console.log($event);*/ this.ctx.c = $event.clientX; this.ctx.x = $event.clientX; this.ctx.y = $event.clientY"
             @mouseEnter="this.reset(); console.log('event',event)" 
             @mouseLeave="this.ctx.c = 10"
             @keydown="this.ctx.c = 40"
@@ -35,9 +33,11 @@ export default class App extends PHE {
             <span>{{y}}</span>
             {{obj.c.d}}
             
-            <div>{{new Input()}}</div>
+            <?js if(obj.c.d === 10){ ?>
+                <div>{{new Input()}}</div>
+            <?js } ?>
+            <div>ad</div>
         </div>
-        
         `
     }
 
@@ -66,11 +66,18 @@ export default class App extends PHE {
         //this.ctx.watch('ok')
 
         this.ctx.c = 2
+
+        this.ctx.x = 1
+
         //this.ctx.obj.c.d = 12
         console.log(' ctx:   3', this.ctx.c) // this.ctx.obj.c.d)
 
         this.ctx.obj.c.d++
         let counter = this.ctx.obj.c.d
+
+        setInterval(() => {
+            this.ctx.obj.c.d++
+        }, 1000)
         // setInterval(() => {
         //     counter++
 

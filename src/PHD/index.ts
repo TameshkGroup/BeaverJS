@@ -10,7 +10,6 @@ export class PHD {
     $$ctx: Record<string | symbol, any> = {}
     $id: string
     constructor() {
-        console.log('phd Contructor', this.$$ctx)
         this.$id = nanoid()
 
         const createHander = <T extends Record<string | symbol, any>>(
@@ -26,22 +25,17 @@ export class PHD {
                 return target[key]
             },
             set: (target: T, key: keyof T, value: any) => {
-                console.log(`Setting ${[...path, key]} to: `, value)
 
                 target[key] = value
 
                 this.subscribs[[...path, key].join('.')]?.forEach(
                     (subscribe) => {
-                        console.log('subscribe', subscribe)
                         subscribe(value)
                     }
                 )
 
                
                 return true
-            },
-            apply: (target: T, key: keyof T, value: any) => {
-                console.log(-10, 'apply:', key, value, target)
             },
         })
 
@@ -103,23 +97,12 @@ export class PHD {
         //             //if(root === rootObject);
         //             this.subscribs[[...keys, key].join('.')]?.forEach(
         //                 (subscribe) => {
-        //                     console.log('subscribe', subscribe)
         //                     subscribe(value)
         //                 }
         //             )
-        //             console.log(
-        //                 9,
-        //                 'proxySet',
-        //                 [...keys, key].join('.'),
-        //                 key,
-        //                 value
-        //             )
-        //             //console.log('path', [...keys, key].join('.'))
-        //             //console.log('setHandler', obj, key, value, root, keys)
         //             obj[key] = value
         //         },
         //         get: (obj, key, root, keys) => {
-        //             //console.log('path', keys, key)
         //             return _.get(obj, key)
         //         },
         //     })
