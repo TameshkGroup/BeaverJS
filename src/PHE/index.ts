@@ -1,19 +1,27 @@
 import { PHD } from '../PHD'
-import _ from 'lodash'
-import HTMLParser from 'fast-html-parser'
 import { DataNode, Document, Element } from 'domhandler/lib'
-import { ElementType } from 'htmlparser2'
-
-let l = 0
+export enum ElementType {
+    /** Type for the root element of a document */
+    Root = 'root',
+    /** Type for Text */
+    Text = 'text',
+    /** Type for <? ... ?> */
+    Directive = 'directive',
+    /** Type for <!-- ... --> */
+    Comment = 'comment',
+    /** Type for <script> tags */
+    Script = 'script',
+    /** Type for <style> tags */
+    Style = 'style',
+    /** Type for Any tag */
+    Tag = 'tag',
+    /** Type for <![CDATA[ ... ]]> */
+    CDATA = 'cdata',
+    /** Type for <!doctype ...> */
+    Doctype = 'doctype',
+}
 
 export type Item = PHE | null | undefined | string | number
-
-function getElem(obj: HTMLElement, path: number[]) {
-    return path.reduce<HTMLElement>(
-        (res, key) => res.childNodes?.[key] as HTMLElement,
-        obj
-    )
-}
 
 export function HTML(
     template: TemplateStringsArray,
@@ -98,35 +106,116 @@ export class PHE extends PHD {
         }
 
         this.$$template = this.template() || this.$$template
-        console.log('template', this.$$template)
 
         const appendElFromTemplate = (
             htmlParentEl: HTMLElement,
-            templateEl: Partial<Element | DataNode | Document>
+            templateEl: Partial<Element | DataNode | Document>,
+            scope: any = undefined
         ) => {
             let element: HTMLElement | Text // = document.createTextNode('')
             if (templateEl.type === ElementType.Root) {
                 ;(templateEl as Document).children.forEach((child, index) => {
-                    appendElFromTemplate(htmlParentEl, child)
+                    appendElFromTemplate(htmlParentEl, child, scope)
                 })
                 return
             } else if (
                 templateEl.type === ElementType.Tag &&
+                (templateEl as Element).name?.toLowerCase() === 'for'
+            ) {
+                const tEl = templateEl as Element
+                element = document.createElement(tEl.name)
+
+                if (tEl.name.toLowerCase() === 'for') {
+                    const vars = tEl.attribs['exp']
+                        .match(/[$](\w)+/g)
+                        ?.join(',')
+
+                    const set = () => {
+                        ;(element as HTMLDivElement).innerHTML = ''
+
+                        const args = ['appendElFromTemplate,tEl, elem', code]
+                        const fn = Function.apply(null, args)
+                        //const fn = new Function(code).bind(this)
+                        try {
+                            fn.bind(this)(appendElFromTemplate, tEl, element)
+                        } catch (e) {
+                            console.error(e)
+                        }
+                    }
+
+                    const exp = tEl.attribs['exp'].replace(
+                        /this(.\w)+/,
+                        ($propStr) => {
+                            const propTrimmed = $propStr.replace(
+                                'this.ctx.',
+                                ''
+                            )
+                            //TODO REMOVE subscribes
+                            this.subscribes[propTrimmed] = [
+                                ...(this.subscribes[propTrimmed]
+                                    ? this.subscribes[propTrimmed]
+                                    : []),
+                                () => {
+                                    set()
+                                },
+                            ]
+                            console.log('===', this.subscribes)
+                            return $propStr.replace(/this./, 'that.')
+                        }
+                    )
+
+                    const code = `
+                            var that = this;
+                            (function() {
+                                
+                                for( ${exp} ){
+                                    tEl.children.forEach((tChild)=>{
+                                        appendElFromTemplate(elem, tChild, {${vars}})
+                                    })
+                                }
+                            })()`
+
+                    set()
+                }
+            } else if (
+                templateEl.type === ElementType.Tag &&
                 (templateEl as Element).name
             ) {
-                const el = templateEl as Element
-                element = document.createElement(el.name)
-                const directives = []
-                el.children.forEach((child, index) => {
-                    if (child.type === ElementType.Directive) {
+                const tEl = templateEl as Element
+                element = document.createElement(tEl.name)
+                //const directives: string[] = []
+
+                tEl.children.forEach((child, index) => {
+                    /* if (child.type === ElementType.Directive) {
                         const el = child as DataNode
                         directives.push(el.data.slice(3, -1))
-                    } else {
-                        appendElFromTemplate(element as HTMLElement, child)
-                    }
+
+                        console.log('el', el)
+
+                        //if(child.attribs['if']){
+                        //    console.log(0,'IFFF')
+                        //}
+
+                        console.log(
+                            's Element).children',
+                            (tEl as Element).children
+                        )
+                        const args = [
+                            'appendElFromTemplate,tEl, elem',
+                            el.data.slice(3, -1) +
+                                ' appendElFromTemplate(elem, tEl) }',
+                        ]
+                        console.log('el', el)
+                        //const fn = Function.apply(null, args)
+                        //const fn = new Function(code).bind(this)
+                        //fn.bind(this)(appendElFromTemplate,tEl, elem)
+                    } else { */
+                    appendElFromTemplate(element as HTMLElement, child, scope)
+                    //}
                 })
-                if (el.attribs)
-                    Object.entries(el.attribs).forEach(
+                //console.log('directive', directives.join(''))
+                if (tEl.attribs)
+                    Object.entries(tEl.attribs).forEach(
                         ([attrName, attrValue]) => {
                             if (attrName.indexOf('@') === 0) {
                                 const event = attrName.replace('@', '')
@@ -139,7 +228,9 @@ export class PHE extends PHD {
                                     const args = ['$event', code]
                                     const fn = Function.apply(null, args)
                                     //const fn = new Function(code).bind(this)
-                                    fn.bind(this)($event)
+                                    try {
+                                        fn.bind(this)($event)
+                                    } catch (e) {}
                                 })
                             } else {
                                 ;(element as HTMLElement).setAttribute(
@@ -181,7 +272,29 @@ export class PHE extends PHD {
                                 instance.mount()
                                 return
                             } else {
-                                return _.get(this.ctx, scopeStr)
+                                try {
+                                    try {
+                                        console.log('scopeStr', scopeStr)
+                                        const res = new Function(
+                                            'return ' + scopeStr
+                                        ).bind(this)()
+                                        if (res) {
+                                            console.log('eval', res, scopeStr)
+                                            return res
+                                        }
+                                    } catch (e) {}
+                                    if (eval('scope.' + scopeStr)) {
+                                        return eval('scope.' + scopeStr)
+                                    }
+                                } catch (e) {}
+                                const get = (obj: any, strPath: string) => {
+                                    return strPath
+                                        .split('.')
+                                        .reduce((acm, key) => {
+                                            return obj[key]
+                                        }, obj)
+                                }
+                                return get(this.ctx, scopeStr)
                             }
                         }) || ''
                 }
@@ -195,15 +308,23 @@ export class PHE extends PHD {
                     //Check if there is instance of a class in the scope
                     if (scopeStr.match(/^(new)[\s]\w+[\s\S]+/)?.length) {
                     } else {
-                        this.subscribs[scopeStr] = [
-                            ...(this.subscribs[scopeStr]
-                                ? this.subscribs[scopeStr]
-                                : []),
-                            () => {
-                                set()
-                                l++
-                            },
-                        ]
+                        console.log(
+                            'match',
+                            scopeStr.match(/this.ctx(.\w){1,100}/g)
+                        )
+                        scopeStr.match(/this.ctx(.\w)+/g)?.forEach((item) => {
+                            
+                            item = item.replace(/this\.ctx\./, '')
+                            this.subscribes[item] = [
+                                ...(this.subscribes[item]
+                                    ? this.subscribes[item]
+                                    : []),
+                                () => {
+                                    set()
+                                },
+                            ]
+                            console.log('-:-:-:-', item, this.subscribes)
+                        })
                     }
                 })
 
@@ -212,7 +333,7 @@ export class PHE extends PHD {
                 // const el = templateEl as DataNode
                 //element = document.createTextNode(el.data.slice(3, -1))
             } else {
-                console.log('unknow el type', templateEl)
+                console.log('unknown el type', templateEl)
             }
 
             htmlParentEl.append(element)
@@ -241,132 +362,11 @@ export class PHE extends PHD {
         //createDOM(this.$$template, [])
         appendElFromTemplate(this.$$rootElement, this.$$template)
 
-        //const parsed = origin.cloneNode(true) as HTMLElement
-
-        /*  const parse = (path: number[] = []) => {
-            getElem(origin, path).childNodes.forEach((child, i) => {
-                let childPath = [...path, i]
-
-                getElem(origin, childPath)
-                    .getAttributeNames?.()
-                    .forEach((attrName) => {
-                        
-                        if (attrName.indexOf('@') === 0) {
-                            const event = attrName.replace('@', '')
-                            const elem = getElem(origin, childPath)
-                            const code = elem.getAttribute(attrName)
-                            //if (attrName === '@click') {
-                            if (!code) return
-
-                            getElem(parsed, childPath).addEventListener(
-                                event,
-                                ($event) => {
-                                    const args = ['$event', code]
-                                    const fn = Function.apply(null, args)
-                                    //const fn = new Function(code).bind(this)
-                                    fn.bind(this)($event)
-                                }
-                            )
-                        }
-                        //}
-                    })
-
-                if (getElem(origin, childPath).nodeName === '#text') {
-                    const set = () => {
-                        //console.error('setCalled', child.textContent)
-                        const parsedTextContent = getElem(
-                            origin,
-                            childPath
-                        ).textContent?.replace(/\{\{.+?}}/g, (match) => {
-                            const scopeStr = match
-                                .substr(2, match.length - 4)
-                                .trim()
-
-                            
-                            //Check if there is instance of a class in the scope
-
-                            if (
-                                scopeStr.match(/^(new)[\s]\w+[\s\S]+/)?.length
-                            ) {
-                                const args = ['$event', 'Input']
-                                //const fn = Function.apply(null, args)
-                                //const fn = new Function(code).bind(this)
-                                const instance = new this.components['Input']()
-                                instance.$$rootElement =
-                                    getElem(parsed, childPath).parentElement ||
-                                    document.createElement('<div></div>')
-                                instance.mount()
-                                return
-                            } else {
-                                return _.get(this.ctx, scopeStr)
-                            }
-                        })
-
-                        if (parsedTextContent) {
-                            getElem(
-                                parsed as HTMLElement,
-                                childPath
-                            ).textContent = parsedTextContent
-                        } else {
-                            getElem(
-                                parsed as HTMLElement,
-                                childPath
-                            ).textContent = ''
-                        }
-                    }
-
-                    getElem(origin, childPath)
-                        .textContent?.match(/\{\{.+?}}/g)
-                        ?.forEach((match) => {
-                            const scopeStr = match
-                                .substr(2, match.length - 4)
-                                .trim()
-                            //Check if there is instance of a class in the scope
-                            if (
-                                scopeStr.match(/^(new)[\s]\w+[\s\S]+/)?.length
-                            ) {
-                            } else {
-                                this.subscribs[scopeStr] = [
-                                    ...(this.subscribs[scopeStr]
-                                        ? this.subscribs[scopeStr]
-                                        : []),
-                                    () => {
-                                        set()
-                                        l++
-                                    },
-                                ]
-                            }
-                        })
-                    set()
-
-                }
-                if (child instanceof HTMLElement) parse([...path, i])
-            })
-        }
- */
-        //parse()
-
-        // if (typeof this.template === "function") {
-        //   this.$$template = this.template() || this.$$template;
-        // }createStore
-
         phes.forEach((phe) => {
-            //parsed
-            //.querySelectorAll(k.toLowerCase())
-            //.forEach((e: HTMLElement) => {
-            //const phe = new PHEI()
-
-            //var tmpObj = document.createElement('div')
-            //tmpObj.innerHTML = '<!--THIS DATA SHOULD BE REPLACED-->'
-
-            //const parent = e.parentNode as HTMLElement
-            //parent.replaceChild(tmpObj, e)
             parsed.innerHTML = parsed.innerHTML.replace(
                 `__$$__${phe.$id}__$$__`, //'<div><!--THIS DATA SHOULD BE REPLACED--></div>',
                 `<div phid=${phe.$id}></div>`
             )
-
-            ////e.outerHTML = `<div></div>`;
             const rootElement = parsed.querySelector(`[phid="${phe.$id}"]`)
             if (!rootElement || !(rootElement instanceof HTMLElement)) {
                 return

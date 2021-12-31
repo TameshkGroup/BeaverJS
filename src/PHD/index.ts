@@ -4,7 +4,7 @@ import _ from 'lodash'
 export type Value = any
 
 export class PHD {
-    subscribs: Record<string, ((value: Value) => void)[]> = {}
+    subscribes: Record<string, ((value: Value) => void)[]> = {}
 
     render() {}
     $$ctx: Record<string | symbol, any> = {}
@@ -28,7 +28,7 @@ export class PHD {
 
                 target[key] = value
 
-                this.subscribs[[...path, key].join('.')]?.forEach(
+                this.subscribes[[...path, key].join('.')]?.forEach(
                     (subscribe) => {
                         subscribe(value)
                     }
