@@ -12,6 +12,10 @@ export default class App extends PHE {
         setInterval(() => {
             this.ctx.arr = [...this.ctx.arr, 4]
         }, 1000)
+
+        setTimeout(() => {
+            this.ctx.arr = [...this.ctx.arr, 5]
+        }, 2000)
     }
 
     template() {
@@ -44,11 +48,13 @@ export default class App extends PHE {
 
             
             <for exp='var $j in this.ctx.arr'>
-                <div>item  {{this.ctx.arr}} __ {{this.ctx.x}}</div>
+                <div>item {{this.ctx.arr}} __ {{this.ctx.x}}</div>
             </for>
             {{JSON.stringify(this.ctx.arr)}}
             <div>ad</div>
         </div>
+        <button @click="this.ctx.arr = [1,2,3]">Set 1,2,3</button>
+        <button @click="console.log('subscribes',this.subscribes)">Log Subscribes</button>
         `
     }
 }

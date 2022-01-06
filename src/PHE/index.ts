@@ -1,5 +1,6 @@
 import { PHD } from '../PHD'
 import { DataNode, Document, Element } from 'domhandler/lib'
+import { nanoid } from 'nanoid'
 export enum ElementType {
     /** Type for the root element of a document */
     Root = 'root',
@@ -110,12 +111,13 @@ export class PHE extends PHD {
         const appendElFromTemplate = (
             htmlParentEl: HTMLElement,
             templateEl: Partial<Element | DataNode | Document>,
-            scope: any = undefined
+            scope: any = undefined,
+            scopeId?: string
         ) => {
             let element: HTMLElement | Text // = document.createTextNode('')
             if (templateEl.type === ElementType.Root) {
                 ;(templateEl as Document).children.forEach((child, index) => {
-                    appendElFromTemplate(htmlParentEl, child, scope)
+                    appendElFromTemplate(htmlParentEl, child, scope, scopeId)
                 })
                 return
             } else if (
@@ -130,14 +132,32 @@ export class PHE extends PHD {
                         .match(/[$](\w)+/g)
                         ?.join(',')
 
+                    let lastId: string | undefined
                     const set = () => {
+                        if (lastId) {
+                            this.removeSubscribeByClass(lastId)
+                        }
+                        const $scopeId = nanoid()
+                        lastId = $scopeId
+                        ;(element as HTMLDivElement).setAttribute(
+                            '_id',
+                            $scopeId
+                        )
                         ;(element as HTMLDivElement).innerHTML = ''
 
-                        const args = ['appendElFromTemplate,tEl, elem', code]
+                        const args = [
+                            'appendElFromTemplate,tEl,elem,scopeId',
+                            code,
+                        ]
                         const fn = Function.apply(null, args)
                         //const fn = new Function(code).bind(this)
                         try {
-                            fn.bind(this)(appendElFromTemplate, tEl, element)
+                            fn.bind(this)(
+                                appendElFromTemplate,
+                                tEl,
+                                element,
+                                $scopeId
+                            )
                         } catch (e) {
                             console.error(e)
                         }
@@ -151,15 +171,14 @@ export class PHE extends PHD {
                                 ''
                             )
                             //TODO REMOVE subscribes
-                            this.subscribes[propTrimmed] = [
-                                ...(this.subscribes[propTrimmed]
-                                    ? this.subscribes[propTrimmed]
-                                    : []),
-                                () => {
-                                    set()
-                                },
-                            ]
-                            console.log('===', this.subscribes)
+                            /* if (lastScopeId) {
+                                this.removeSubscribeByClass(lastScopeId)
+                            } */
+                            const prevId = (
+                                element as HTMLElement
+                            ).getAttribute('_id')
+
+                            this.addSubscribe(propTrimmed, () => set(), scopeId)
                             return $propStr.replace(/this./, 'that.')
                         }
                     )
@@ -167,10 +186,9 @@ export class PHE extends PHD {
                     const code = `
                             var that = this;
                             (function() {
-                                
                                 for( ${exp} ){
                                     tEl.children.forEach((tChild)=>{
-                                        appendElFromTemplate(elem, tChild, {${vars}})
+                                        appendElFromTemplate(elem, tChild, {${vars}}, scopeId)
                                     })
                                 }
                             })()`
@@ -190,30 +208,27 @@ export class PHE extends PHD {
                         const el = child as DataNode
                         directives.push(el.data.slice(3, -1))
 
-                        console.log('el', el)
 
                         //if(child.attribs['if']){
-                        //    console.log(0,'IFFF')
                         //}
 
-                        console.log(
-                            's Element).children',
-                            (tEl as Element).children
-                        )
                         const args = [
                             'appendElFromTemplate,tEl, elem',
                             el.data.slice(3, -1) +
                                 ' appendElFromTemplate(elem, tEl) }',
                         ]
-                        console.log('el', el)
                         //const fn = Function.apply(null, args)
                         //const fn = new Function(code).bind(this)
                         //fn.bind(this)(appendElFromTemplate,tEl, elem)
                     } else { */
-                    appendElFromTemplate(element as HTMLElement, child, scope)
+                    appendElFromTemplate(
+                        element as HTMLElement,
+                        child,
+                        scope,
+                        scopeId
+                    )
                     //}
                 })
-                //console.log('directive', directives.join(''))
                 if (tEl.attribs)
                     Object.entries(tEl.attribs).forEach(
                         ([attrName, attrValue]) => {
@@ -274,12 +289,10 @@ export class PHE extends PHD {
                             } else {
                                 try {
                                     try {
-                                        console.log('scopeStr', scopeStr)
                                         const res = new Function(
                                             'return ' + scopeStr
                                         ).bind(this)()
                                         if (res) {
-                                            console.log('eval', res, scopeStr)
                                             return res
                                         }
                                     } catch (e) {}
@@ -308,22 +321,9 @@ export class PHE extends PHD {
                     //Check if there is instance of a class in the scope
                     if (scopeStr.match(/^(new)[\s]\w+[\s\S]+/)?.length) {
                     } else {
-                        console.log(
-                            'match',
-                            scopeStr.match(/this.ctx(.\w){1,100}/g)
-                        )
                         scopeStr.match(/this.ctx(.\w)+/g)?.forEach((item) => {
-                            
                             item = item.replace(/this\.ctx\./, '')
-                            this.subscribes[item] = [
-                                ...(this.subscribes[item]
-                                    ? this.subscribes[item]
-                                    : []),
-                                () => {
-                                    set()
-                                },
-                            ]
-                            console.log('-:-:-:-', item, this.subscribes)
+                            this.addSubscribe(item, () => set(), scopeId)
                         })
                     }
                 })
@@ -334,6 +334,7 @@ export class PHE extends PHD {
                 //element = document.createTextNode(el.data.slice(3, -1))
             } else {
                 console.log('unknown el type', templateEl)
+                element = document.createElement('none')
             }
 
             htmlParentEl.append(element)

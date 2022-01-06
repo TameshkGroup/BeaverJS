@@ -3,8 +3,33 @@ import _ from 'lodash'
 
 export type Value = any
 
+export type SubscriptionValue = {
+    fn: (value: Value) => void
+    class?: string
+    id: string
+}
+
 export class PHD {
-    subscribes: Record<string, ((value: Value) => void)[]> = {}
+    subscribes: Record<string, SubscriptionValue[]> = {}
+
+    addSubscribe(path: string, fn: (value: Value) => void, klass?: string) {
+        const id = nanoid()
+        this.subscribes[path] = [
+            ...(this.subscribes[path] ? this.subscribes[path] : []),
+            {
+                class: klass,
+                fn,
+                id,
+            },
+        ]
+        return id
+    }
+
+    removeSubscribeByClass(klass: string){
+        Object.keys(this.subscribes).forEach((key)=>{
+            this.subscribes[key] = this.subscribes[key].filter((s)=> s.class !== klass)
+        })
+    }
 
     render() {}
     $$ctx: Record<string | symbol, any> = {}
@@ -25,23 +50,21 @@ export class PHD {
                 return target[key]
             },
             set: (target: T, key: keyof T, value: any) => {
-
                 target[key] = value
 
                 this.subscribes[[...path, key].join('.')]?.forEach(
                     (subscribe) => {
-                        subscribe(value)
+                        subscribe.fn(value)
                     }
                 )
 
-               
                 return true
             },
         })
 
         const p = new Proxy(this.$$ctx, createHander<typeof this.ctx>())
 
-        this.ctx = p;
+        this.ctx = p
 
         setTimeout(() => {
             Object.values(this.beforeMountListeners).forEach((listener) => {
