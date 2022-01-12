@@ -9,25 +9,63 @@ export type SubscriptionValue = {
     id: string
 }
 
-export class PHD {
+export class Puya {
     subscribes: Record<string, SubscriptionValue[]> = {}
 
-    addSubscribe(path: string, fn: (value: Value) => void, klass?: string) {
-        const id = nanoid()
-        this.subscribes[path] = [
-            ...(this.subscribes[path] ? this.subscribes[path] : []),
-            {
-                class: klass,
-                fn,
-                id,
-            },
-        ]
-        return id
+    addSubscribe(
+        path: string,
+        fn: (value: Value) => void,
+        klass?: string,
+        throttle?: number
+    ): string
+    addSubscribe(
+        fn: (value: Value) => void,
+        klass?: string,
+        throttle?: number
+    ): string
+
+    addSubscribe(
+        pathOrFn: string | ((value: Value) => void) = '',
+        fnOrClass: ((value: Value) => void) | string | undefined,
+        klassOrThrottle?: string | number,
+        throttle = 0
+    ): string {
+        if (typeof pathOrFn === 'string') {
+            const path = pathOrFn
+            const fn = fnOrClass as (value: Value) => void
+            const klass = klassOrThrottle as string
+            const id = nanoid(5)
+            this.subscribes[path] = [
+                ...(this.subscribes[path] ? this.subscribes[path] : []),
+                {
+                    class: klass,
+                    fn: _.throttle(fn, throttle),
+                    id,
+                },
+            ]
+            return id
+        } else {
+            const fn = pathOrFn as (value: Value) => void
+            const klass = fnOrClass as string
+            throttle = klassOrThrottle as number
+            const id = nanoid(5)
+            this.subscribes[''] = [
+                ...(this.subscribes[''] ? this.subscribes[''] : []),
+                {
+                    class: klass,
+                    fn: _.throttle(fn, throttle),
+                    id,
+                },
+            ]
+            return id
+        }
     }
 
-    removeSubscribeByClass(klass: string){
-        Object.keys(this.subscribes).forEach((key)=>{
-            this.subscribes[key] = this.subscribes[key].filter((s)=> s.class !== klass)
+    removeSubscribeByClass(klass: string) {
+        Object.keys(this.subscribes).forEach((key) => {
+            this.subscribes[key] = this.subscribes[key].filter(
+                (s) => s.class !== klass
+            )
         })
     }
 
@@ -35,9 +73,9 @@ export class PHD {
     $$ctx: Record<string | symbol, any> = {}
     $id: string
     constructor() {
-        this.$id = nanoid()
+        this.$id = nanoid(5)
 
-        const createHander = <T extends Record<string | symbol, any>>(
+        const createHandler = <T extends Record<string | symbol, any>>(
             path: string[] = []
         ): ProxyHandler<T> => ({
             get: (target: T, key: keyof T): any => {
@@ -45,13 +83,15 @@ export class PHD {
                 if (typeof target[key] === 'object' && target[key] != null)
                     return new Proxy(
                         target[key],
-                        createHander<any>([...path, key as string])
+                        createHandler<any>([...path, key as string])
                     )
                 return target[key]
             },
             set: (target: T, key: keyof T, value: any) => {
                 target[key] = value
-
+                this.subscribes['']?.forEach((subscribe) => {
+                    subscribe.fn(this.ctx)
+                })
                 this.subscribes[[...path, key].join('.')]?.forEach(
                     (subscribe) => {
                         subscribe.fn(value)
@@ -62,7 +102,7 @@ export class PHD {
             },
         })
 
-        const p = new Proxy(this.$$ctx, createHander<typeof this.ctx>())
+        const p = new Proxy(this.$$ctx, createHandler<typeof this.ctx>())
 
         this.ctx = p
 
@@ -147,7 +187,7 @@ export class PHD {
     beforeMountListeners: Record<string, () => void> = {}
 
     addBeforeMountListener(listener: () => void) {
-        const key = nanoid()
+        const key = nanoid(5)
         this.beforeMountListeners[key] = listener
         return key
     }

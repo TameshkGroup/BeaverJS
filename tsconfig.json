@@ -3,7 +3,7 @@
         "experimentalDecorators": true,
         "target": "ESNext",
         "useDefineForClassFields": true,
-        "module": "ESNext",
+        "module": "commonjs",
         "lib": ["ESNext", "DOM"],
         "moduleResolution": "Node",
         "strict": true,
@@ -20,5 +20,5 @@
             "@/*": ["./src/*"]
         }
     },
-    "include": ["./src/**.ts", "./src/**.pts", "./src/*.ts", "src/App.ts", "src/main.tsp"]
+    "include": ["./src/**.ts", "./src/**.pts", "./src/*.ts", "src/App.ts", "src/main.tsp", "src/samples/Puya.ts"]
 }

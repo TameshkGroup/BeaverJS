@@ -7,51 +7,48 @@ export default class App extends PHE {
 
     constructor(m: string) {
         super(m)
-        this.ctx.arr = [
-        ]
-        setInterval(() => {
-            this.ctx.arr = [...this.ctx.arr, 4]
-        }, 1000)
-
-        setTimeout(() => {
-            this.ctx.arr = [...this.ctx.arr, 5]
-        }, 2000)
+        this.ctx.arr = _.range(0, 1000)
+        this.subscribes['']
     }
 
     template() {
         //console.log(1, 'template requested')
         return HTML`
+        <input @input="x = $event.target.value" />
         <div
             tabindex="1"
             @click="this.reset(); console.log('$event',$event)"
-            @mouseMove="this.ctx.c = $event.clientX; this.ctx.x = $event.clientX; this.ctx.y = $event.clientY"
-            @mouseEnter="this.reset(); console.log('event',event)" 
-            @mouseLeave="this.ctx.c = 10"
-            @keydown="this.ctx.c = 40"
-            style="width: 700px; height: 500px; background-color: green;color:white"
-        >
-
-        -- {{ JSON.stringify({length: Object.values(this.subscribes['arr']).length, arr: this.ctx.arr}) }} --
-        <br />
-            {{this.ctx.x}}
-            <span>{{this.ctx.y}}</span>
-            {{this.ctx.obj.c.d}}
-            
-            <if exp='this.ctx.obj.c.d === 10'>
-                
-                <div>{{new Input()}}</div>
+            @mouseMove="this.ctx.x = $event.clientX; this.ctx.y = $event.clientY"
+            style="background-color: black;color:white; height: 100%"
+        >   
+            <if exp="this.ctx.y > 100" >
+                <div style="background: red; width: 100px; height: 100px;">
+                </div>
             </if>
-            
-            <for exp='var $j = 10; $j <= 20; $j+= 2'>
-                <div>item {{$j}}</div>
-            </for>
-
-            
+            <if exp="this.ctx.y <= 100">
+                <div style="background: blue; width: 100px; height: 100px;">
+                </div>
+            </if>
             <for exp='var $j in this.ctx.arr'>
-                <div>item {{this.ctx.arr}} __ {{this.ctx.x}}</div>
+                <div>x:{{this.ctx.x}}(1000)</div>
+                <div>y:{{this.ctx.y}}(1000)</div>
             </for>
-            {{JSON.stringify(this.ctx.arr)}}
-            <div>ad</div>
+        </div>
+        <div id="ok">
+            <style>
+                #ok{
+                    width: 100px;
+                    height: 100px;
+                    background: red;
+                    position: absolute;
+                    left: {{this.ctx.x}}px;
+                }
+            </style>
+            <style>
+                #ok{
+                    top: calc(100px + {{this.ctx.y}}px);
+                }
+            </style>
         </div>
         <button @click="this.ctx.arr = [1,2,3]">Set 1,2,3</button>
         <button @click="console.log('subscribes',this.subscribes)">Log Subscribes</button>
