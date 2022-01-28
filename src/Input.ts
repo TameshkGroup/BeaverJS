@@ -1,21 +1,36 @@
 import { HTML, PHE } from './PHE'
+import { AsPuya } from './Puya'
 
+@AsPuya
 export default class Input extends PHE {
     constructor() {
         super()
         console.log('-- this constructor invoked --')
     }
 
-    mounted() {
-        this.ctx.name = 'ok'
-        // let counter = 0
-        this.ctx.counter = 0
-        // setInterval(() => {
-        //     this.ctx.counter = counter
-        //     counter++
-        // }, 1000)
+    name = 'ok1'
+    counter = 1
+
+    value: object | null = null;
+    a = ''
+    val = '12'
+    v = '12'
+
+    beforeMount(): void {
+    
+        this.value = {}
     }
 
-    $$template = HTML`<div>{{this.ctx.counter}}pk</div>`
-    
+    mounted() {
+        this.name = 'ok'
+        this.counter = 0
+    }
+
+    $$template = HTML`
+    <div>{{this.counter}}
+        <input @input="this.value.v = $event.target.value; console.log(this)"/>
+        {{this.value.v}}
+    </div>
+    <button @click="console.log(this)">OK</button>
+    `
 }

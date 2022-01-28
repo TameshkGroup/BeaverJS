@@ -13,7 +13,7 @@ export default class ForDirective {
 
         const vars = tEl.attribs['exp'].match(/[$](\w)+/g)?.join(',')
         const exp = tEl.attribs['exp'].replace(/this(.\w)+/, ($propStr) => {
-            const propTrimmed = $propStr.replace('this.ctx.', '')
+            const propTrimmed = $propStr.replace('this.', '')
 
             this.phe.addSubscribe(propTrimmed, () => set(), parentScopeId)
             return $propStr.replace(/this./, 'that.')
