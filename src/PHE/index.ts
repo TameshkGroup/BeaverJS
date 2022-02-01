@@ -60,7 +60,7 @@ export const appendElFromTemplate = (
 ) => {
     let element: HTMLElement | Text // = document.createTextNode('')
     if (templateEl.type === ElementType.Root) {
-        ;(templateEl as Document).children.forEach((child, index) => {
+        ;(templateEl as Document).children.forEach((child) => {
             appendElFromTemplate(that, htmlParentEl, child, scope, scopeId)
         })
         return
@@ -72,7 +72,7 @@ export const appendElFromTemplate = (
             templateEl as Element,
             scopeId as string
         )
-    } else if(
+    } else if (
         templateEl.type === ElementType.Tag &&
         (templateEl as Element).name?.toLowerCase() === 'if'
     ) {
@@ -139,19 +139,52 @@ export const appendElFromTemplate = (
                         .trim()
 
                     //Check if there is instance of a class in the scope
-
-                    if (scopeStr.match(/^(new)[\s]\w+[\s\S]+/)?.length) {
+                    //console.log('scopeStr', scopeStr)
+                    if (
+                        scopeStr.match(
+                            /^(new)\s+(([A-z]|_)+([A-z]|_|\d)*)\(.*\)/
+                        )?.length
+                    ) {
                         //const args = ['$event', 'Input']
                         //const fn = Function.apply(null, args)
-                        //const fn = new Function(code).bind(this)
-                        const instance = new that.$$components['Input']()
-                        instance.$$parent = that;
-                        element = document.createElement('div')
-                        //element.replaceChild(element,root)
-                        instance.$$rootElement = element
-                        //getElem(parsed, childPath).parentElement ||
 
-                        instance.mount()
+                        const componentName = scopeStr.match(
+                            /(?<=((new)\s+))(([A-z]|_)+([A-z]|_|\d)*)(?=\(.*\))/
+                        )?.[0]
+
+                        const componentArgs = scopeStr.match(
+                            /(?<=((new)\s+)(([A-z]|_)+([A-z]|_|\d)*\()).+(?=.*\))/
+                        )?.[0]
+
+                        if (componentName) {
+                            //const fn = new Function(code).bind(this)
+
+                            /* const instance = new that.$$components[
+                                componentName
+                            ]() */
+
+                            componentArgs
+                                ?.match(/this(.\w){0,}/g)
+                                ?.map((item) => {})
+
+                            const args = [
+                                'cmp',
+                                'return new cmp(' + componentArgs + ')',
+                            ]
+                            const fn = Function.apply(null, args)
+
+                            const instance = fn.bind(that)(
+                                that.$$components[componentName]
+                            )
+
+                            instance.$$parent = that
+                            element = document.createElement('div')
+                            //element.replaceChild(element,root)
+                            instance.$$rootElement = element
+                            //getElem(parsed, childPath).parentElement ||
+
+                            instance.mount()
+                        }
                         return
                     } else {
                         try {
@@ -168,11 +201,7 @@ export const appendElFromTemplate = (
                                 }
                             } catch (e) {}
                         } catch (e) {}
-                        console.log('setting', that, scopeStr)
-                        return getFromPath(
-                            that,
-                            scopeStr.replace('this.', '')
-                        )
+                        return getFromPath(that, scopeStr.replace('this.', ''))
                     }
                 }) || ''
         }
@@ -184,34 +213,28 @@ export const appendElFromTemplate = (
         element.textContent
             ?.match(/\{\{.+?}}((\(\d{0,10}\))){0,1}/g)
             ?.forEach((match) => {
-                console.log('match', match)
                 const thrMatch = match.match(/\}\}\(\d{0,10}\)/g)?.[0]
-                const throttleStr = 
+                const throttleStr =
                     thrMatch?.slice(3, thrMatch.length - 1) || '0'
-                const throttle = parseInt(throttleStr);
-                console.log('thr', throttle)
+                const throttle = parseInt(throttleStr)
 
-                const scopeStr = match.slice(2, match.length - (throttleStr.length + 1)).trim()
-            
+                const scopeStr = match
+                    .slice(2, match.length - (throttleStr.length + 1))
+                    .trim()
+
                 //Check if there is instance of a class in the scope
                 if (scopeStr.match(/^(new)[\s]\w+[\s\S]+/)?.length) {
                 } else {
                     //const m = _.throttle(set, 10)
-                    //console.log('item', scopeStr)
                     scopeStr.match(/this(.\w){0,}/g)?.forEach((item) => {
-                        item = item.slice(5)//item.replace(/this\./, '')
-                        console.log('item', item);
+                        item = item.slice(5) //item.replace(/this\./, '')
                         that.addSubscribe(item, set, scopeId, throttle)
-                    });
+                    })
                 }
             })
 
         set()
-        //} else if (templateEl.type === ElementType.Directive) {
-        // const el = templateEl as DataNode
-        //element = document.createTextNode(el.data.slice(3, -1))
     } else {
-        console.log('unknown el type', templateEl)
         element = document.createElement('none')
     }
 
@@ -231,7 +254,7 @@ export class PHE extends Puya {
 
     $$directives = []
 
-    $$components: Record<string, typeof PHE> = {}
+    $$components: Record<string, Constructor<PHE>> = {}
     constructor(private $$elementSelector?: string) {
         super()
         console.log('$$elementSelector', $$elementSelector)
@@ -252,7 +275,6 @@ export class PHE extends Puya {
             this.$$rootElement =
                 document.querySelector(this.$$elementSelector) ||
                 this.$$rootElement
-        console.log('elementSelector', this.$$elementSelector, document);
         this.render()
         this.mounted()
     }
@@ -321,8 +343,6 @@ export class PHE extends Puya {
 
             phe.mount()
         })
-
-        console.log('parsed', parsed, this.$$rootElement);
 
         if (this.$$rootElement) this.$$rootElement.appendChild(parsed)
     }

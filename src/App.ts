@@ -2,38 +2,39 @@ import { HTML, PHE } from './PHE'
 import _ from 'lodash'
 import { AsPuya } from './Puya';
 import Input from './Input'
+
 @AsPuya
 export default class App extends PHE {
     $$components = { Input }
 
-    arr: number[] = [];
-    x: Number = 0;
-    y: Number = 0;
+    arr: number[] = _.range(1, 100);
+    x: number = 0;
+    y: number = 0;
 
     template() {
-        //console.log(1, 'template requested')
         return HTML`
         <input @input="this.x = $event.target.value" />
+        <input @input="this.y = $event.target.value" value="this.y" />
         {{this.x}}
         <div
             tabindex="1"
             @click="this.reset(); console.log('$event',$event)"
-            @1mouseMove="this.x = $event.clientX; this.y = $event.clientY"
+            @mouseMove="this.x = $event.clientX; this.y = $event.clientY"
             style="background-color: black;color:white; height: 100%"
         >   
             <if exp="this.y > 100" >
-            <div style="background: red; width: 100px; height: 100px;">
-            </div>
+                <div style="background: red; width: 100px; height: 100px;">
+                </div>
             </if>
             <if exp="this.y <= 100">
-            <div style="background: blue; width: 100px; height: 100px;">
-            </div>
+                <div style="background: blue; width: 100px; height: 100px;">
+                </div>
             </if>
             <for exp='var $j in this.arr'>
-            <div>x:{{this.x}}</div>
-            <div>y:{{this.y}}</div>
+                <div>x:{{this.x}}(200)</div>
+                <div>y:{{this.y}}(200)</div>
             </for>
-            {{new Input()}}
+            {{new Input({x: this.x})}}
         </div>
         <div id="ok">
             <style>
