@@ -1,6 +1,5 @@
 import App from "./App";
 
-const __DEV__ = false;
-
-const main = new App("#app");
+const main = new App();
+main.$$elementSelector = "#app";
 main.mount();

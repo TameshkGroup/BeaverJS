@@ -18,6 +18,33 @@ export function AsPuya<T extends new (...arg: any[]) => any>(
     return class extends target {
         private $$context: any = {}
 
+        setByPath = (path: string | string[], value: any, klass: string) => {
+            // If not yet an array, get the keys from the string-path
+            if (!Array.isArray(path))
+                path = path.toString().match(/[^.[\]]+/g) || []
+            //@ts-ignore
+            path.slice(0, -1).reduce(
+                (
+                    a,
+                    c,
+                    i // Iterate all of them except the last one
+                ) =>
+                    //@ts-ignore
+                    Object(a[c]) === a[c] // Does the key exist and is its value an object?
+                        ? // Yes: then follow that path
+                          //@ts-ignore
+                          a[c]
+                        : // No: create the key. Is the next key a potential array-index?
+                          //@ts-ignore
+                          (a[c] =
+                              Math.abs(Number.parseInt(path[i + 1])) >> 0 ===
+                              +path[i + 1]
+                                  ? [] // Yes: assign a new array object
+                                  : {}), // No: assign a new plain object
+                this.$$context
+            )[path[path.length - 1]] = value // Finally assign the value to the last key
+        }
+
         constructor(...args: any[]) {
             //@ts-ignore
             super(...args)

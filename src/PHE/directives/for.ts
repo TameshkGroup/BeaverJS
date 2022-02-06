@@ -47,8 +47,7 @@ export default class ForDirective {
                     this.phe,
                     tEl,
                     element,
-                    $scopeId
-                )
+                    $scopeId                )
             } catch (e) {
                 console.error(e)
             }

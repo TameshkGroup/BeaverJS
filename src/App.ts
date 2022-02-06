@@ -5,17 +5,14 @@ import Input from './Input'
 
 @AsPuya
 export default class App extends PHE {
-    $$components = { Input }
+    $$components = { input: Input }
 
-    arr: number[] = _.range(1, 100);
+    arr: number[] = _.range(1, 20);
     x: number = 0;
     y: number = 0;
 
     template() {
         return HTML`
-        <input @input="this.x = $event.target.value" />
-        <input @input="this.y = $event.target.value" value="this.y" />
-        {{this.x}}
         <div
             tabindex="1"
             @click="this.reset(); console.log('$event',$event)"
@@ -31,10 +28,8 @@ export default class App extends PHE {
                 </div>
             </if>
             <for exp='var $j in this.arr'>
-                <div>x:{{this.x}}(200)</div>
-                <div>y:{{this.y}}(200)</div>
+                <Input x{}='$j' y{}='this.x' />
             </for>
-            {{new Input({x: this.x})}}
         </div>
         <div id="ok">
             <style>

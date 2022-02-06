@@ -1,7 +1,7 @@
 import { Puya } from '../Puya'
 import { DataNode, Document, Element } from 'domhandler/lib'
 import _ from 'lodash'
-import { getFromPath } from '../shared'
+import { getFromPath, setByPath } from '../shared'
 import ForDirective from './directives/for'
 import IfDirective from './directives/if'
 
@@ -56,12 +56,18 @@ export const appendElFromTemplate = (
     htmlParentEl: HTMLElement,
     templateEl: Partial<Element | DataNode | Document>,
     scope: any = undefined,
-    scopeId?: string
+    scopeId?: string,
 ) => {
     let element: HTMLElement | Text // = document.createTextNode('')
     if (templateEl.type === ElementType.Root) {
         ;(templateEl as Document).children.forEach((child) => {
-            appendElFromTemplate(that, htmlParentEl, child, scope, scopeId)
+            appendElFromTemplate(
+                that,
+                htmlParentEl,
+                child,
+                scope,
+                scopeId,
+            )
         })
         return
     } else if (
@@ -81,6 +87,108 @@ export const appendElFromTemplate = (
             scopeId as string
         )
     } else if (
+        templateEl.type === ElementType.Tag &&
+        that.$$components?.[(templateEl as Element).name]
+    ) {
+        console.log('component detected')
+        //element = document.createElement('div')
+
+        //console.log('attribs', args)
+
+        const fn = Function.apply(null, ['cmp', 'return new cmp(' + ')'])
+
+        const instance = fn.bind(that)(
+            that.$$components?.[(templateEl as Element).name]
+        ) as PHE
+        instance.props = {}
+
+        Object.entries((templateEl as Element).attribs).forEach(([k, v]) => {
+            
+
+
+            let childToParent = false
+            let parentToChild = false
+            let str = k
+            let pos = k.lastIndexOf('}')
+            if (pos > k.length - 2) {
+                console.log('childToParent')
+                str = str.slice(0, pos)
+                childToParent = true
+            }
+            pos = k.lastIndexOf('{')
+            if (pos > k.length - 3) {
+                console.log('parentToChild')
+                str = str.slice(0, pos)
+                parentToChild = true
+            }
+
+            try{
+                console.log('scope', scope, 'scope.' + v, str)
+                const ev = eval('scope.' + v);
+                if(ev !== undefined){
+                    instance.props[str] = ev;
+                    return;
+                }
+            }catch(e){
+
+            }
+
+            if (parentToChild) {
+                instance.props[str] = Function.apply(null, [
+                    '',
+                    'return ' + v,
+                ]).bind(that)()
+                that.addSubscribe(
+                    v.slice(5),
+                    (value) => (instance.props[str] = value)
+                )
+            }
+
+            
+            if (childToParent) {
+                instance.addSubscribe('props.' + str, (value) => {
+                    if (getFromPath(that, v.slice(5)) !== value) { //DEEP Equality check
+                        setByPath(that, v.slice(5), value)
+                    }
+                })
+            }
+
+            console.log('str', str)
+        })
+
+        /* componentArgs
+            ?.match(/this(.\w){0,}/g)
+            ?.map((item, i) => {
+                console.log(item, i)
+            }) */
+
+        /* const propsStr = componentArgs?.split(
+            /,(?=(?:[^\"]*\"[^\"]*\")*([^\"])*$)/
+        )[0] */
+        /* if (propsStr) {
+            const props = propsStr
+                .trim()
+                .slice(1, -1)
+                ?.split(
+                    /,(?=(?:[^\"]*\"[^\"]*\")*([^\"])*$)/
+                )
+                .map((i) =>
+                    i.split(
+                        /:(?=(?:[^\"]*\"[^\"]*\")*([^\"])*$)/
+                    )
+                )
+
+            console.log('props', props)
+        } */
+
+        instance.$$parent = that
+        element = document.createElement('div')
+        //element.replaceChild(element,root)
+        instance.$$rootElement = element
+        //getElem(parsed, childPath).parentElement ||
+
+        instance.mount()
+    } else if (
         (templateEl.type === ElementType.Tag ||
             templateEl.type === ElementType.Style) &&
         (templateEl as Element).name
@@ -94,7 +202,7 @@ export const appendElFromTemplate = (
                 element as HTMLElement,
                 child,
                 scope,
-                scopeId
+                scopeId,
             )
         })
         if (tEl.attribs)
@@ -156,16 +264,12 @@ export const appendElFromTemplate = (
                             /(?<=((new)\s+)(([A-z]|_)+([A-z]|_|\d)*\()).+(?=.*\))/
                         )?.[0]
 
-                        if (componentName) {
+                        if (componentName && false) {
                             //const fn = new Function(code).bind(this)
 
                             /* const instance = new that.$$components[
                                 componentName
                             ]() */
-
-                            componentArgs
-                                ?.match(/this(.\w){0,}/g)
-                                ?.map((item) => {})
 
                             const args = [
                                 'cmp',
@@ -176,6 +280,31 @@ export const appendElFromTemplate = (
                             const instance = fn.bind(that)(
                                 that.$$components[componentName]
                             )
+
+                            componentArgs
+                                ?.match(/this(.\w){0,}/g)
+                                ?.map((item, i) => {
+                                    console.log(item, i)
+                                })
+
+                            const propsStr = componentArgs?.split(
+                                /,(?=(?:[^\"]*\"[^\"]*\")*([^\"])*$)/
+                            )[0]
+                            if (propsStr) {
+                                const props = propsStr
+                                    .trim()
+                                    .slice(1, -1)
+                                    ?.split(
+                                        /,(?=(?:[^\"]*\"[^\"]*\")*([^\"])*$)/
+                                    )
+                                    .map((i) =>
+                                        i.split(
+                                            /:(?=(?:[^\"]*\"[^\"]*\")*([^\"])*$)/
+                                        )
+                                    )
+
+                                console.log('props', props)
+                            }
 
                             instance.$$parent = that
                             element = document.createElement('div')
@@ -251,14 +380,12 @@ export class PHE extends Puya {
     static $$includedElems: Record<string, typeof PHE> = {}
     $$rootElement: HTMLElement = document.createElement('div')
     $$parent?: PHE
+    $$elementSelector?: string
+    props: Record<string, any> = {}
 
     $$directives = []
 
     $$components: Record<string, Constructor<PHE>> = {}
-    constructor(private $$elementSelector?: string) {
-        super()
-        console.log('$$elementSelector', $$elementSelector)
-    }
 
     template(): Partial<Element> | void {}
 
@@ -286,9 +413,7 @@ export class PHE extends Puya {
 
     render() {
         this.$$template = this.template() || this.$$template
-
         let phes: PHE[] = []
-
         let parsed: HTMLElement = document.createElement('div')
 
         const findTargetElement = (
@@ -321,14 +446,28 @@ export class PHE extends Puya {
                     parsed,
                     path.slice(undefined, -1)
                 )
-                appendElFromTemplate(this, parentElement, template)
+                appendElFromTemplate(
+                    this,
+                    parentElement,
+                    template,
+                    undefined,
+                    undefined,
+                    this.$$components
+                )
             }
 
             template.tagName
         }
 
         //createDOM(this.$$template, [])
-        appendElFromTemplate(this, this.$$rootElement, this.$$template)
+        appendElFromTemplate(
+            this,
+            this.$$rootElement,
+            this.$$template,
+            undefined,
+            undefined,
+            this.$$components
+        )
 
         phes.forEach((phe) => {
             parsed.innerHTML = parsed.innerHTML.replace(
