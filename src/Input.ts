@@ -3,14 +3,10 @@ import { AsPuya } from './Puya'
 
 @AsPuya
 export default class Input extends PHE {
-    value = {v: 10}
     $$template = HTML`
     <div>
-        x:
-        <input @input="this.props.x = $event.target.value"/>
-        y:
-        <input @input="this.props.y = $event.target.value"/>
-        {{this.props.x}} {{this.props.y}}
+        {{this.props.value}}
+        <input @input="this.props.value = $event.target.value" value{='this.props.value' input}='this.props.value' />
     </div>
     `
 }

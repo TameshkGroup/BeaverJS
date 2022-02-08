@@ -7,18 +7,27 @@ import Input from './Input'
 export default class App extends PHE {
     $$components = { input: Input }
 
-    arr: number[] = _.range(1, 20);
-    x: number = 0;
-    y: number = 0;
+    value = 'va';
+
+    arr: number[] = _.range(1, 3);
+    x: any;//{x: 12};
+    y: number = 100;
+    beforeMount(): void {
+        this.x = {x: 10}
+    }
+
+    async mounted(){
+        this.x.x = 13
+    }
 
     template() {
         return HTML`
         <div
             tabindex="1"
             @click="this.reset(); console.log('$event',$event)"
-            @mouseMove="this.x = $event.clientX; this.y = $event.clientY"
+            @mouseMove="this.x.x = $event.clientX; this.y = $event.clientY;"
             style="background-color: black;color:white; height: 100%"
-        >   
+        >
             <if exp="this.y > 100" >
                 <div style="background: red; width: 100px; height: 100px;">
                 </div>
@@ -27,8 +36,13 @@ export default class App extends PHE {
                 <div style="background: blue; width: 100px; height: 100px;">
                 </div>
             </if>
+            {{this.x.x}} {{this.y}}
+            <div>
+                --{{JSON.stringify(this.x)}}--
+            </div>
+            {{this.value}}
             <for exp='var $j in this.arr'>
-                <Input x{}='$j' y{}='this.x' />
+                <Input value{}='this.value' />
             </for>
         </div>
         <div id="ok">
@@ -38,7 +52,7 @@ export default class App extends PHE {
                     height: 100px;
                     background: red;
                     position: absolute;
-                    left: {{this.x}}px;
+                    left: {{this.x.x}}px;
                     top: calc(100px + {{this.y}}px);
                 }
             </style>

@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
 import _ from 'lodash'
-import { isObject } from '../shared'
+import { getFromPath, isObject } from '../shared'
 
 export type Value = any
 
@@ -66,11 +66,39 @@ export function AsPuya<T extends new (...arg: any[]) => any>(
                     this.$$subscribes['']?.forEach((subscribe) => {
                         subscribe.fn(this)
                     })
-                    this.$$subscribes[[...path, key].join('.')]?.forEach(
+                    /* this.$$subscribes[[...path, key].join('.')]?.forEach(
                         (subscribe) => {
                             subscribe.fn(value)
                         }
                     )
+
+                    
+ */
+
+                    const propParts = [...path, key]
+
+                    //TODO
+                    //@ts-ignore
+                    //console.log(1, propParts[0], this.$$subscribes?.[propParts[0]])
+                    if (typeof propParts[0] === 'string') {
+                        this.$$subscribes?.[propParts[0]]?.forEach(
+                            (subscribe) => {
+                                try{
+                                    subscribe.fn(target)
+                                }catch{}
+                            }
+                        )
+                    }
+                    let acm = ''
+                    for (let part of propParts.slice(1)) {
+                        acm += (acm ? '.' : '') + part
+                        this.$$subscribes?.[propParts[0] + '.' + acm]?.forEach(
+                            (subscribe) => {
+                                const value = getFromPath(target, acm)
+                                subscribe.fn(value)
+                            }
+                        )
+                    }
 
                     return true
                 },
@@ -82,6 +110,7 @@ export function AsPuya<T extends new (...arg: any[]) => any>(
                     (key) => key[0] !== '$' && typeof this[key] !== 'function'
                 ) as (keyof Puya)[]
             )?.forEach((prop) => {
+                const prevValue = this[prop]
                 if (this[prop]) {
                     this.$$context[prop] = this[prop]
                 }
@@ -133,6 +162,21 @@ export function AsPuya<T extends new (...arg: any[]) => any>(
                         this.$$subscribes['']?.forEach((subscribe) => {
                             subscribe.fn(this)
                         })
+                        //const propParts = prop.split('.');
+                        //console.log('propPars', propParts);
+                        /* propParts.reduce((acm, part) => {
+                            console.log(
+                                'parts',
+                                acm + (acm ? '.' : '') + part,
+                                propParts
+                            )
+                            this.$$subscribes[
+                                acm + (acm ? '.' : '') + part
+                            ]?.forEach((subscribe) => {
+                                subscribe.fn(value)
+                            })
+                            return acm + (acm ? '.' : '') + part
+                        }, '') */
                         this.$$subscribes[prop]?.forEach((subscribe) => {
                             subscribe.fn(value)
                         })
@@ -143,6 +187,8 @@ export function AsPuya<T extends new (...arg: any[]) => any>(
                 if (isObject(this[prop])) {
                     this[prop] = this.$$context[prop]
                 }
+                //@ts-ignore
+                this[prop] = prevValue
             })
 
             /* Object.defineProperty(this, 'unique', {

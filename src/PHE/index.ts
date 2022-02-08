@@ -56,18 +56,12 @@ export const appendElFromTemplate = (
     htmlParentEl: HTMLElement,
     templateEl: Partial<Element | DataNode | Document>,
     scope: any = undefined,
-    scopeId?: string,
+    scopeId?: string
 ) => {
     let element: HTMLElement | Text // = document.createTextNode('')
     if (templateEl.type === ElementType.Root) {
         ;(templateEl as Document).children.forEach((child) => {
-            appendElFromTemplate(
-                that,
-                htmlParentEl,
-                child,
-                scope,
-                scopeId,
-            )
+            appendElFromTemplate(that, htmlParentEl, child, scope, scopeId)
         })
         return
     } else if (
@@ -103,9 +97,6 @@ export const appendElFromTemplate = (
         instance.props = {}
 
         Object.entries((templateEl as Element).attribs).forEach(([k, v]) => {
-            
-
-
             let childToParent = false
             let parentToChild = false
             let str = k
@@ -122,32 +113,40 @@ export const appendElFromTemplate = (
                 parentToChild = true
             }
 
-            try{
+            try {
                 console.log('scope', scope, 'scope.' + v, str)
-                const ev = eval('scope.' + v);
-                if(ev !== undefined){
-                    instance.props[str] = ev;
-                    return;
+                const ev = eval('scope.' + v)
+                if (ev !== undefined) {
+                    instance.props[str] = ev
+                    return
                 }
-            }catch(e){
-
+            } catch (e) {
+                try {
+                    const res = new Function('return ' + v).bind(that)()
+                    instance.props[str] = res
+                } catch (e) {}
             }
+
+            console.log('addSubs2', v, (templateEl as Element).attribs)
 
             if (parentToChild) {
-                instance.props[str] = Function.apply(null, [
+                /* instance.props[str] = Function.apply(null, [
                     '',
                     'return ' + v,
-                ]).bind(that)()
-                that.addSubscribe(
-                    v.slice(5),
-                    (value) => (instance.props[str] = value)
-                )
+                ]).bind(that)() */
+                if (v.slice(0, 5) == 'this.')
+                    that.addSubscribe(v.slice(5), (value) => {
+                        console.log('parentToChild', value)
+                        instance.props[str] = value
+                    })
             }
 
-            
             if (childToParent) {
                 instance.addSubscribe('props.' + str, (value) => {
-                    if (getFromPath(that, v.slice(5)) !== value) { //DEEP Equality check
+                    //DEEP Equality check
+                    if (!_.isEqual(getFromPath(that, v.slice(5)), value)) {
+                        console.log('childToParent', value, v)
+                        //that[v.slice(5)] = value;
                         setByPath(that, v.slice(5), value)
                     }
                 })
@@ -202,7 +201,7 @@ export const appendElFromTemplate = (
                 element as HTMLElement,
                 child,
                 scope,
-                scopeId,
+                scopeId
             )
         })
         if (tEl.attribs)
@@ -223,7 +222,84 @@ export const appendElFromTemplate = (
                         } catch (e) {}
                     })
                 } else {
-                    ;(element as HTMLElement).setAttribute(attrName, attrValue)
+                    let childToParent = false
+                    let parentToChild = false
+                    let str = attrName
+                    let pos = attrName.lastIndexOf('}')
+                    if (pos > attrName.length - 2) {
+                        console.log('childToParent')
+                        str = str.slice(0, pos)
+                        childToParent = true
+                    }
+                    pos = attrName.lastIndexOf('{')
+                    if (pos > attrName.length - 3) {
+                        console.log('parentToChild')
+                        str = str.slice(0, pos)
+                        parentToChild = true
+                    }
+                    console.log(
+                        'parentTochidCheck',
+                        parentToChild,
+                        childToParent,
+                        attrName
+                    )
+
+                    try {
+                        console.log('scope', scope, 'scope.' + attrValue, str)
+                        const ev = eval('scope.' + attrValue)
+                        if (ev !== undefined) {
+                            console.log('set attrib', ev)
+                            ;(element as HTMLElement).setAttribute(str, ev)
+                            return
+                        }
+                    } catch (e) {
+                        try {
+                            const res: any = new Function(
+                                'return ' + attrValue
+                            ).bind(that)()
+                            console.log('set attrib', res)
+                            ;(element as HTMLElement).setAttribute(str, res)
+                        } catch (e) {}
+                    }
+
+                    console.log(
+                        'addSubs2',
+                        attrValue,
+                        (templateEl as Element).attribs
+                    )
+
+                    if (parentToChild) {
+                        /* instance.props[str] = Function.apply(null, [
+                            '',
+                            'return ' + v,
+                        ]).bind(that)() */
+                        if (attrValue.slice(0, 5) == 'this.')
+                            that.addSubscribe(attrValue.slice(5), (value) => {
+                                console.log('set attrib', value)
+                                ;(element as HTMLElement).setAttribute(
+                                    str,
+                                    value
+                                )
+                            })
+                    }
+
+                    /* if (childToParent) {
+                        instance.addSubscribe('props.' + str, (value) => {
+                            //DEEP Equality check
+                            if (!_.isEqual(getFromPath(that, v.slice(5)), value)) {
+                                console.log('childToParent', value, v);
+                                //that[v.slice(5)] = value;
+                                setByPath(that, v.slice(5), value)
+                            }
+                        })
+                    } */
+
+                    if (!parentToChild && !childToParent) {
+                        ;(element as HTMLElement).setAttribute(
+                            attrName,
+                            attrValue
+                        )
+                    }
                 }
                 //}
             })
@@ -318,19 +394,26 @@ export const appendElFromTemplate = (
                     } else {
                         try {
                             const ev = eval('scope.' + scopeStr)
-                            if (ev) {
+                            if (ev !== undefined) {
                                 return ev
                             }
-                            try {
-                                const res = new Function(
-                                    'return ' + scopeStr
-                                ).bind(that)()
-                                if (res) {
-                                    return res
-                                }
-                            } catch (e) {}
                         } catch (e) {}
-                        return getFromPath(that, scopeStr.replace('this.', ''))
+                        try {
+                            const res = new Function('return ' + scopeStr).bind(
+                                that
+                            )()
+                            return res
+                        } catch (e) {}
+                        /* try {
+                            console.log('scopeStr', scopeStr)
+                            const ev = eval(scopeStr)
+                            if (ev !== undefined) return ev
+                        } catch {} */
+                        /* if (scopeStr.slice(0, 5) === 'this.')
+                            return getFromPath(
+                                that,
+                                scopeStr.replace('this.', '')
+                            ) */
                     }
                 }) || ''
         }
@@ -357,6 +440,7 @@ export const appendElFromTemplate = (
                     //const m = _.throttle(set, 10)
                     scopeStr.match(/this(.\w){0,}/g)?.forEach((item) => {
                         item = item.slice(5) //item.replace(/this\./, '')
+                        //console.log('item instead slice ', scopeStr, item, that)
                         that.addSubscribe(item, set, scopeId, throttle)
                     })
                 }
@@ -451,8 +535,7 @@ export class PHE extends Puya {
                     parentElement,
                     template,
                     undefined,
-                    undefined,
-                    this.$$components
+                    undefined
                 )
             }
 
@@ -465,8 +548,7 @@ export class PHE extends Puya {
             this.$$rootElement,
             this.$$template,
             undefined,
-            undefined,
-            this.$$components
+            undefined
         )
 
         phes.forEach((phe) => {
