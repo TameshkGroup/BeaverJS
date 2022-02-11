@@ -1,11 +1,11 @@
 import { Element } from 'domhandler/lib'
 import { nanoid } from 'nanoid'
-import { appendElFromTemplate, PHE } from '..'
+import BVRElement, { appendElFromTemplate } from '..'
 
-export default class ForDirective {
-    constructor(private phe: PHE) {}
+export default class IfDirective {
+    constructor(private bvrElement: BVRElement) {}
 
-    static tagName = 'for'
+    static tagName = 'if'
 
     render(templateEl: Element, parentScopeId: string) {
         const tEl = templateEl as Element
@@ -15,13 +15,13 @@ export default class ForDirective {
         const exp = tEl.attribs['exp'].replace(/this(.\w)+/, ($propStr) => {
             const propTrimmed = $propStr.replace('this.', '')
 
-            this.phe.addSubscribe(propTrimmed, () => set(), parentScopeId)
+            this.bvrElement.addSubscribe(propTrimmed, () => set(), parentScopeId)
             return $propStr.replace(/this./, 'that.')
         })
         const code = `
                     var that = this;
                     (function() {
-                        for( ${exp} ){
+                        if( ${exp} ){
                             tEl.children.forEach((tChild)=>{
                                 appendElFromTemplate(those,elem, tChild, {${vars}}, scopeId)
                             })
@@ -33,7 +33,7 @@ export default class ForDirective {
         let lastId: string | undefined
         const set = () => {
             if (lastId) {
-                this.phe.removeSubscribeByClass(lastId)
+                this.bvrElement.removeSubscribeByClass(lastId)
             }
             const $scopeId = nanoid(6)
             lastId = $scopeId
@@ -42,12 +42,13 @@ export default class ForDirective {
             try {
                 const fn = Function.apply(null, args)
 
-                fn.bind(this.phe)(
+                fn.bind(this.bvrElement)(
                     appendElFromTemplate,
-                    this.phe,
+                    this.bvrElement,
                     tEl,
                     element,
-                    $scopeId                )
+                    $scopeId
+                )
             } catch (e) {
                 console.error(e)
             }

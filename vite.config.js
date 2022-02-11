@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
-import phenomenJSX from './vite-phenomen-jsx'
+import viteBeaverPlugin from './vite-beaver-plugin'
 
 export default defineConfig({
-    plugins: [phenomenJSX()],
+    plugins: [viteBeaverPlugin()],
 })

@@ -20,8 +20,7 @@ export function AsPuya<T extends new (...arg: any[]) => any>(
 
         setByPath = (path: string | string[], value: any, klass: string) => {
             // If not yet an array, get the keys from the string-path
-            if (!Array.isArray(path))
-                path = path.toString().match(/[^.[\]]+/g) || []
+            if (!Array.isArray(path)) path = path.toString().match(/[^.[\]]+/g) || []
             //@ts-ignore
             path.slice(0, -1).reduce(
                 (
@@ -37,8 +36,7 @@ export function AsPuya<T extends new (...arg: any[]) => any>(
                         : // No: create the key. Is the next key a potential array-index?
                           //@ts-ignore
                           (a[c] =
-                              Math.abs(Number.parseInt(path[i + 1])) >> 0 ===
-                              +path[i + 1]
+                              Math.abs(Number.parseInt(path[i + 1])) >> 0 === +path[i + 1]
                                   ? [] // Yes: assign a new array object
                                   : {}), // No: assign a new plain object
                 this.$$context
@@ -55,10 +53,7 @@ export function AsPuya<T extends new (...arg: any[]) => any>(
                 get: (target: T, key: keyof T): any => {
                     if (key == 'isProxy') return true
                     if (typeof target[key] === 'object' && target[key] != null)
-                        return new Proxy(
-                            target[key],
-                            createHandler<any>([...path, key as string])
-                        )
+                        return new Proxy(target[key], createHandler<any>([...path, key as string]))
                     return target[key]
                 },
                 set: (target: T, key: keyof T, value: any) => {
@@ -66,38 +61,23 @@ export function AsPuya<T extends new (...arg: any[]) => any>(
                     this.$$subscribes['']?.forEach((subscribe) => {
                         subscribe.fn(this)
                     })
-                    /* this.$$subscribes[[...path, key].join('.')]?.forEach(
-                        (subscribe) => {
-                            subscribe.fn(value)
-                        }
-                    )
-
-                    
- */
 
                     const propParts = [...path, key]
 
-                    //TODO
-                    //@ts-ignore
-                    //console.log(1, propParts[0], this.$$subscribes?.[propParts[0]])
                     if (typeof propParts[0] === 'string') {
-                        this.$$subscribes?.[propParts[0]]?.forEach(
-                            (subscribe) => {
-                                try{
-                                    subscribe.fn(target)
-                                }catch{}
-                            }
-                        )
+                        this.$$subscribes?.[propParts[0]]?.forEach((subscribe) => {
+                            try {
+                                subscribe.fn(target)
+                            } catch {}
+                        })
                     }
                     let acm = ''
                     for (let part of propParts.slice(1)) {
                         acm += (acm ? '.' : '') + part
-                        this.$$subscribes?.[propParts[0] + '.' + acm]?.forEach(
-                            (subscribe) => {
-                                const value = getFromPath(target, acm)
-                                subscribe.fn(value)
-                            }
-                        )
+                        this.$$subscribes?.[propParts[0] + '.' + acm]?.forEach((subscribe) => {
+                            const value = getFromPath(target, acm)
+                            subscribe.fn(value)
+                        })
                     }
 
                     return true
@@ -114,47 +94,18 @@ export function AsPuya<T extends new (...arg: any[]) => any>(
                 if (this[prop]) {
                     this.$$context[prop] = this[prop]
                 }
-                /* try {
-                    delete this[prop]
-                } catch (e) {
-                    console.error(e)
-                } */
 
-                /* if (isObject(this[prop])) {
-                    this.$$context[prop] = this[prop];
-                    this[prop] = new Proxy(this.$$context, createHandler([prop]))
-                } else */
                 Object.defineProperty(this, prop, {
                     get: () => {
-                        /* console.log(
-                            'getting',
-                            prop,
-                            this.$$context[prop],
-                            this.$$context[prop].__isProxy
-                        ) */
                         return this.$$context[prop]
                     },
                     set: (value) => {
-                        //console.log('setting', prop, value)
-
                         if (isObject(value)) {
-                            //this.$$context[prop] = value;
-                            /* console.log(
-                                'proxing',
-                                this.$$context,
-                                this.$$context[prop],
-                                prop
-                            ) */
                             this.$$context['$_' + prop] = value
                             this.$$context[prop] = new Proxy(
                                 this.$$context['$_' + prop],
                                 createHandler([prop])
                             )
-
-                            //console.log(this.$$context[prop])
-                            //@ts-ignore
-                            //console.log(this.$$context[prop] && this.$$context[prop] instanceof Proxy)
-                            //this.$$context[prop].x = 188
                         } else {
                             this.$$context[prop] = value
                         }
@@ -162,21 +113,6 @@ export function AsPuya<T extends new (...arg: any[]) => any>(
                         this.$$subscribes['']?.forEach((subscribe) => {
                             subscribe.fn(this)
                         })
-                        //const propParts = prop.split('.');
-                        //console.log('propPars', propParts);
-                        /* propParts.reduce((acm, part) => {
-                            console.log(
-                                'parts',
-                                acm + (acm ? '.' : '') + part,
-                                propParts
-                            )
-                            this.$$subscribes[
-                                acm + (acm ? '.' : '') + part
-                            ]?.forEach((subscribe) => {
-                                subscribe.fn(value)
-                            })
-                            return acm + (acm ? '.' : '') + part
-                        }, '') */
                         this.$$subscribes[prop]?.forEach((subscribe) => {
                             subscribe.fn(value)
                         })
@@ -190,12 +126,6 @@ export function AsPuya<T extends new (...arg: any[]) => any>(
                 //@ts-ignore
                 this[prop] = prevValue
             })
-
-            /* Object.defineProperty(this, 'unique', {
-                value: true,
-                configurable: false,
-                writable: false
-            }); */
         }
     } as any
 }
@@ -209,11 +139,7 @@ export class Puya {
         klass?: string,
         throttle?: number
     ): string
-    addSubscribe(
-        fn: (value: Value) => void,
-        klass?: string,
-        throttle?: number
-    ): string
+    addSubscribe(fn: (value: Value) => void, klass?: string, throttle?: number): string
 
     addSubscribe(
         pathOrFn: string | ((value: Value) => void) = '',
@@ -254,9 +180,7 @@ export class Puya {
 
     removeSubscribeByClass(klass: string) {
         Object.keys(this.$$subscribes).forEach((key) => {
-            this.$$subscribes[key] = this.$$subscribes[key].filter(
-                (s) => s.class !== klass
-            )
+            this.$$subscribes[key] = this.$$subscribes[key].filter((s) => s.class !== klass)
         })
     }
 
@@ -272,10 +196,7 @@ export class Puya {
             get: (target: T, key: keyof T): any => {
                 if (key == 'isProxy') return true
                 if (typeof target[key] === 'object' && target[key] != null)
-                    return new Proxy(
-                        target[key],
-                        createHandler<any>([...path, key as string])
-                    )
+                    return new Proxy(target[key], createHandler<any>([...path, key as string]))
                 return target[key]
             },
             set: (target: T, key: keyof T, value: any) => {
@@ -283,11 +204,9 @@ export class Puya {
                 this.$$subscribes['']?.forEach((subscribe) => {
                     subscribe.fn(this)
                 })
-                this.$$subscribes[[...path, key].join('.')]?.forEach(
-                    (subscribe) => {
-                        subscribe.fn(value)
-                    }
-                )
+                this.$$subscribes[[...path, key].join('.')]?.forEach((subscribe) => {
+                    subscribe.fn(value)
+                })
 
                 return true
             },

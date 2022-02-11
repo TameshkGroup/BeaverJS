@@ -13,24 +13,21 @@ export default function phenomenJSX() {
                 let match
                 const patt = /([`])(?:(?=(\\?))\2.)*?\1/gs
                 while ((match = patt.exec(src))) {
-                    if (src.slice(match.index - 4, match.index) === 'HTML') {
+                    if (src.slice(match.index - 4, match.index) === 'html') {
                         const startIndex = match.index + 1
                         const endIndex = patt.lastIndex - 1
-
-                        let handler = new Handler()
-                        new Parser(handler, {}).end(
-                            src.slice(startIndex, endIndex)
-                        )
+                        let handler = new Handler();                        
+                        
+                        new Parser(handler, {
+                            lowerCaseAttributeNames: false,
+                            lowerCaseTags: false,
+                        }).end(src.slice(startIndex, endIndex))
                         const root = handler.root
-
                         var cache = []
                         src =
                             src.slice(0, startIndex - 5) +
                             JSON.stringify(root, (key, value) => {
-                                if (
-                                    typeof value === 'object' &&
-                                    value !== null
-                                ) {
+                                if (typeof value === 'object' && value !== null) {
                                     if (key === 'next' || key === 'prev') return
                                     // Duplicate reference found, discard key
                                     if (cache.includes(value)) return

@@ -1,6 +1,6 @@
 declare module '*.pts' {
-    type PHE = import('./PHE').PHE
-    export default PHE
+    type BVRElement = typeof import('./BVRElement')
+    export default BVRElement
 }
 
 type Constructor<T> = {

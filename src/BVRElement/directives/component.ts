@@ -1,9 +1,9 @@
 import { Element } from 'domhandler/lib'
 import { nanoid } from 'nanoid'
-import { appendElFromTemplate, PHE } from '..'
+import BVRElement, { appendElFromTemplate } from '..'
 
-export default class IfDirective {
-    constructor(private phe: PHE) {}
+export default class BVRElementDirective {
+    constructor(private bvrElement: BVRElement) {}
 
     static tagName = 'if'
 
@@ -13,9 +13,9 @@ export default class IfDirective {
 
         const vars = tEl.attribs['exp'].match(/[$](\w)+/g)?.join(',')
         const exp = tEl.attribs['exp'].replace(/this(.\w)+/, ($propStr) => {
-            const propTrimmed = $propStr.replace('this.', '')
+            const propTrimmed = $propStr.replace('this.ctx.', '')
 
-            this.phe.addSubscribe(propTrimmed, () => set(), parentScopeId)
+            this.bvrElement.addSubscribe(propTrimmed, () => set(), parentScopeId)
             return $propStr.replace(/this./, 'that.')
         })
         const code = `
@@ -33,7 +33,7 @@ export default class IfDirective {
         let lastId: string | undefined
         const set = () => {
             if (lastId) {
-                this.phe.removeSubscribeByClass(lastId)
+                this.bvrElement.removeSubscribeByClass(lastId)
             }
             const $scopeId = nanoid(6)
             lastId = $scopeId
@@ -42,9 +42,9 @@ export default class IfDirective {
             try {
                 const fn = Function.apply(null, args)
 
-                fn.bind(this.phe)(
+                fn.bind(this.bvrElement)(
                     appendElFromTemplate,
-                    this.phe,
+                    this.bvrElement,
                     tEl,
                     element,
                     $scopeId
