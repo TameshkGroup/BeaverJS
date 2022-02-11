@@ -35,19 +35,20 @@ export default class App extends BVRElement {
                 style="background-color: black;color:white; height: 100%"
             >
                 {{this.checked}}
+                {{ this.checked?100:200 }}
+                <br />
                 <input type="checkbox" checked{}="this.checked"/>
                 <if exp="this.y > 100">
                     <div style="background: red; width: 100px; height: 100px;"></div>
                 </if>
-                <if exp="this.y <= 100">
-                    <div style="background: blue; width: 100px; height: 100px;"></div>
-                </if>
+                <input value{="this.checked ?100:200" value}="this.x.x" />
+                
                 {{this.x.x}} {{this.y}}
                 <div>--{{JSON.stringify(this.x)}}--</div>
                 {{this.value}}
+                <TextInput value{="this.checked ?100:200" value}="this.x.x" />
+                <TextInput value}="this.y" $="$.props.value = this.checked?100:200" />
                 <for exp="var $j in this.arr">
-                    <TextInput value}="this.y" $="$.props.value = this.y" />
-                    <TextInput value}="this.x.x" $="$.props.value = this.x.x" />
                 </for>
             </div>
             <div id="ok">
@@ -57,7 +58,7 @@ export default class App extends BVRElement {
                         height: 100px;
                         background: red;
                         position: absolute;
-                        left: {{this.x.x}}px;
+                        left: {{this.x.x + 100}}px;
                         top: calc(100px + {{this.y}}px);
                     }
                 </style>

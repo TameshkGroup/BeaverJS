@@ -135,15 +135,19 @@ export const appendElFromTemplate = (
                 }
 
                 if (parentToChild) {
-                    /* instance.props[str] = Function.apply(null, [
-                    '',
-                    'return ' + v,
-                ]).bind(that)() */
-                    if (v.slice(0, 5) == 'this.')
-                        that.addSubscribe(v.slice(5), (value) => {
-                            console.log('parentToChild', value)
-                            instance.props[str] = value
-                        })
+                    const set = () =>{
+                        instance.props[str] = Function.apply(null, [
+                            '',
+                            'return ' + v,
+                        ]).bind(that)()
+                    }
+
+                    v.match(/this(.\w){0,}/g)?.forEach((item) => {
+                        item = item.slice(5) //item.replace(/this\./, '')
+                        that.addSubscribe(item, set, scopeId)
+                    })
+
+                    set();
                 }
 
                 if (childToParent) {
@@ -260,13 +264,34 @@ export const appendElFromTemplate = (
                             that.addSubscribe(attrValue.slice(5), (value) => {
                                 ;(element as HTMLInputElement).value = value
                             })
+
+
+                            const set = () =>{
+                                (element as any)[str] = Function.apply(null, [
+                                    '',
+                                    'return ' + attrValue,
+                                ]).bind(that)()
+                            }
+        
+                            attrValue.match(/this(.\w){0,}/g)?.forEach((item) => {
+                                item = item.slice(5) //item.replace(/this\./, '')
+                                that.addSubscribe(item, set, scopeId)
+                            })
+        
+                            set();
                     }
 
                     if (childToParent) {
+                        //TODO specify currect listener for each element type
                         element.addEventListener('change', (event) => {
                             const value = (event.currentTarget as any)?.[str];
                             if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
-                                console.log('childToParent', value, value);
+                                setByPath(that, attrValue.slice(5), value)
+                            }
+                        });
+                        element.addEventListener('input', (event) => {
+                            const value = (event.currentTarget as any)?.[str];
+                            if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
                                 setByPath(that, attrValue.slice(5), value)
                             }
                         })
