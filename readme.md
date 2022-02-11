@@ -1,5 +1,7 @@
 <p align="center" style="text-align: center;">
+<center>
   <img src="https://bitbucket.org/tameshkgroup/beaverjs/raw/0749cc5b50e3fd8b844cab8e30ce8dff5bf21339/images/icon.svg?raw=true" alt="BeaverJS Icon"/>
+<center>
 </p>
 
 > Don't use this at this time.
