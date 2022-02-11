@@ -1,4 +1,4 @@
-![Scheme](./images/icon.png)
+![](./images/icon.png)
 
 > Don't use this at this time.
 > Because this framework is in the pre-build phase.
