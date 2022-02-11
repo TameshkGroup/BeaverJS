@@ -1,4 +1,4 @@
-![](./images/icon.png)
+![](./images/icon.png?style=centerme)
 
 > Don't use this at this time.
 > Because this framework is in the pre-build phase.
@@ -52,3 +52,9 @@ export default class App extends BVRElement {
 }
 ```
 
+
+
+img[src$="centerme"] {
+  display:block;
+  margin: 0 auto;
+}
