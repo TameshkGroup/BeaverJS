@@ -1,4 +1,4 @@
-![icon](./icon.png)
+![Alt text](./icon.svg?raw=true "BeaverJS icon")
 
 > Don't use this at this time.
 > Because this framework is in the pre-build phase.
