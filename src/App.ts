@@ -24,6 +24,7 @@ export default class App extends BVRElement {
     async mounted() {
         this.x.x = 13
     }
+    checked = true;
 
     template() {
         return html`
@@ -33,6 +34,8 @@ export default class App extends BVRElement {
                 @mouseMove="//this.x.x = $event.clientX; this.y = $event.clientY;"
                 style="background-color: black;color:white; height: 100%"
             >
+                {{this.checked}}
+                <input type="checkbox" checked{}="this.checked"/>
                 <if exp="this.y > 100">
                     <div style="background: red; width: 100px; height: 100px;"></div>
                 </if>

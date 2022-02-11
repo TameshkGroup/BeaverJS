@@ -245,37 +245,32 @@ export const appendElFromTemplate = (
                     try {
                         const ev = eval('scope.' + attrValue)
                         if (ev !== undefined) {
-                            ;(element as HTMLInputElement).value = ev
+                            ;(element as any)[str] = ev
                             return
                         }
                     } catch (e) {
                         try {
                             const res: any = new Function('return ' + attrValue).bind(that)()
-                            ;(element as HTMLInputElement).value = res //.setAttribute(str, res)
+                            ;(element as any)[str] = res //.setAttribute(str, res)
                         } catch (e) {}
                     }
 
                     if (parentToChild) {
-                        /* instance.props[str] = Function.apply(null, [
-                            '',
-                            'return ' + v,
-                        ]).bind(that)() */
                         if (attrValue.slice(0, 5) == 'this.')
                             that.addSubscribe(attrValue.slice(5), (value) => {
                                 ;(element as HTMLInputElement).value = value
                             })
                     }
 
-                    /* if (childToParent) {
-                        instance.addSubscribe('props.' + str, (value) => {
-                            //DEEP Equality check
-                            if (!_.isEqual(getFromPath(that, v.slice(5)), value)) {
-                                console.log('childToParent', value, v);
-                                //that[v.slice(5)] = value;
-                                setByPath(that, v.slice(5), value)
+                    if (childToParent) {
+                        element.addEventListener('change', (event) => {
+                            const value = (event.currentTarget as any)?.[str];
+                            if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
+                                console.log('childToParent', value, value);
+                                setByPath(that, attrValue.slice(5), value)
                             }
                         })
-                    } */
+                    }
 
                     if (!parentToChild && !childToParent) {
                         ;(element as HTMLElement).setAttribute(attrName, attrValue)
