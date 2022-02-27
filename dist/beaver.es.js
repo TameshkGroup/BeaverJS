@@ -718,7 +718,7 @@ var lodash = { exports: {} };
     }
     var runInContext = function runInContext2(context) {
       context = context == null ? root : _2.defaults(root.Object(), context, _2.pick(root, contextProps));
-      var Array2 = context.Array, Date = context.Date, Error2 = context.Error, Function2 = context.Function, Math2 = context.Math, Object2 = context.Object, RegExp2 = context.RegExp, String = context.String, TypeError2 = context.TypeError;
+      var Array2 = context.Array, Date = context.Date, Error2 = context.Error, Function2 = context.Function, Math2 = context.Math, Object2 = context.Object, RegExp2 = context.RegExp, String2 = context.String, TypeError2 = context.TypeError;
       var arrayProto = Array2.prototype, funcProto = Function2.prototype, objectProto = Object2.prototype;
       var coreJsData = context["__core-js_shared__"];
       var funcToString = funcProto.toString;
@@ -1037,7 +1037,7 @@ var lodash = { exports: {} };
       Stack.prototype.has = stackHas;
       Stack.prototype.set = stackSet;
       function arrayLikeKeys(value, inherited) {
-        var isArr = isArray(value), isArg = !isArr && isArguments(value), isBuff = !isArr && !isArg && isBuffer(value), isType = !isArr && !isArg && !isBuff && isTypedArray(value), skipIndexes = isArr || isArg || isBuff || isType, result2 = skipIndexes ? baseTimes(value.length, String) : [], length = result2.length;
+        var isArr = isArray(value), isArg = !isArr && isArguments(value), isBuff = !isArr && !isArg && isBuffer(value), isType = !isArr && !isArg && !isBuff && isTypedArray(value), skipIndexes = isArr || isArg || isBuff || isType, result2 = skipIndexes ? baseTimes(value.length, String2) : [], length = result2.length;
         for (var key in value) {
           if ((inherited || hasOwnProperty.call(value, key)) && !(skipIndexes && (key == "length" || isBuff && (key == "offset" || key == "parent") || isType && (key == "buffer" || key == "byteLength" || key == "byteOffset") || isIndex(key, length)))) {
             result2.push(key);
@@ -5608,6 +5608,12 @@ var ElementType;
   ElementType2["CDATA"] = "cdata";
   ElementType2["Doctype"] = "doctype";
 })(ElementType || (ElementType = {}));
+function html(template, ...a) {
+  const s = template.reduce((acm, str2, i) => {
+    return acm + str2 + (i < template.length - 1 ? String(a[i]) : "");
+  }, "");
+  return s;
+}
 function domReady() {
   return new Promise((resolve) => {
     document.addEventListener("DOMContentLoaded", () => resolve(true));
@@ -5899,4 +5905,4 @@ class BVRElement extends Puya {
   }
 }
 __publicField(BVRElement, "$$includedElems", {});
-export { BVRElement, Puya };
+export { BVRElement, Puya, html };
