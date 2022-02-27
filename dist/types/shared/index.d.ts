@@ -1,0 +1,17 @@
+export declare const isMap: (val: unknown) => val is Map<any, any>;
+export declare const isSet: (val: unknown) => val is Set<any>;
+export declare const isDate: (val: unknown) => val is Date;
+export declare const isFunction: (val: unknown) => val is Function;
+export declare const isString: (val: unknown) => val is string;
+export declare const isSymbol: (val: unknown) => val is symbol;
+export declare const isObject: (val: unknown) => val is Record<any, any>;
+export declare const isArray: (arg: any) => arg is any[];
+export declare const isIntegerKey: (key: unknown) => boolean;
+export declare const hasChanged: (value: any, oldValue: any) => boolean;
+export declare const hasOwn: (val: object, key: string | symbol) => key is never;
+export declare const objectToString: () => string;
+export declare const toTypeString: (value: unknown) => string;
+export declare const toRawType: (value: unknown) => string;
+export declare const getFromPath: (obj: any, strPath: string) => any;
+export declare const setByPath: (obj: any, path: string | string[], value: any) => any;
+//# sourceMappingURL=index.d.ts.map

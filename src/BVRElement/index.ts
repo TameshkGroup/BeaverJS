@@ -84,10 +84,14 @@ export const appendElFromTemplate = (
 
         Object.entries((templateEl as Element).attribs).forEach(([k, v]) => {
             if (k.indexOf('@') === 0) {
+                //TODO
+                //@ts-ignore 
                 const event = k.replace('@', '')
                 const code = k
                 if (!code) return
 
+                //TODO
+                //@ts-ignore 
                 const fn = Function.apply(null, ['$event', code])
                 /* instance.addEventListener(event, ($event) => {
                     try {

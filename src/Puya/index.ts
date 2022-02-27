@@ -18,6 +18,8 @@ export function AsPuya<T extends new (...arg: any[]) => any>(
     return class extends target {
         private $$context: any = {}
 
+        //TODO
+        //@ts-ignore 
         setByPath = (path: string | string[], value: any, klass: string) => {
             // If not yet an array, get the keys from the string-path
             if (!Array.isArray(path)) path = path.toString().match(/[^.[\]]+/g) || []
@@ -31,14 +33,14 @@ export function AsPuya<T extends new (...arg: any[]) => any>(
                     //@ts-ignore
                     Object(a[c]) === a[c] // Does the key exist and is its value an object?
                         ? // Yes: then follow that path
-                          //@ts-ignore
-                          a[c]
+                        //@ts-ignore
+                        a[c]
                         : // No: create the key. Is the next key a potential array-index?
-                          //@ts-ignore
-                          (a[c] =
-                              Math.abs(Number.parseInt(path[i + 1])) >> 0 === +path[i + 1]
-                                  ? [] // Yes: assign a new array object
-                                  : {}), // No: assign a new plain object
+                        //@ts-ignore
+                        (a[c] =
+                            Math.abs(Number.parseInt(path[i + 1])) >> 0 === +path[i + 1]
+                                ? [] // Yes: assign a new array object
+                                : {}), // No: assign a new plain object
                 this.$$context
             )[path[path.length - 1]] = value // Finally assign the value to the last key
         }
@@ -68,7 +70,7 @@ export function AsPuya<T extends new (...arg: any[]) => any>(
                         this.$$subscribes?.[propParts[0]]?.forEach((subscribe) => {
                             try {
                                 subscribe.fn(target)
-                            } catch {}
+                            } catch { }
                         })
                     }
                     let acm = ''
@@ -84,48 +86,48 @@ export function AsPuya<T extends new (...arg: any[]) => any>(
                 },
             })
 
-            ;(
-                Object.keys(this).filter(
+                ; (
+                    Object.keys(this).filter(
+                        //@ts-ignore
+                        (key) => key[0] !== '$' && typeof this[key] !== 'function'
+                    ) as (keyof Puya)[]
+                )?.forEach((prop) => {
+                    const prevValue = this[prop]
+                    if (this[prop]) {
+                        this.$$context[prop] = this[prop]
+                    }
+
+                    Object.defineProperty(this, prop, {
+                        get: () => {
+                            return this.$$context[prop]
+                        },
+                        set: (value) => {
+                            if (isObject(value)) {
+                                this.$$context['$_' + prop] = value
+                                this.$$context[prop] = new Proxy(
+                                    this.$$context['$_' + prop],
+                                    createHandler([prop])
+                                )
+                            } else {
+                                this.$$context[prop] = value
+                            }
+
+                            this.$$subscribes['']?.forEach((subscribe) => {
+                                subscribe.fn(this)
+                            })
+                            this.$$subscribes[prop]?.forEach((subscribe) => {
+                                subscribe.fn(value)
+                            })
+                        },
+                        configurable: false,
+                    })
+
+                    if (isObject(this[prop])) {
+                        this[prop] = this.$$context[prop]
+                    }
                     //@ts-ignore
-                    (key) => key[0] !== '$' && typeof this[key] !== 'function'
-                ) as (keyof Puya)[]
-            )?.forEach((prop) => {
-                const prevValue = this[prop]
-                if (this[prop]) {
-                    this.$$context[prop] = this[prop]
-                }
-
-                Object.defineProperty(this, prop, {
-                    get: () => {
-                        return this.$$context[prop]
-                    },
-                    set: (value) => {
-                        if (isObject(value)) {
-                            this.$$context['$_' + prop] = value
-                            this.$$context[prop] = new Proxy(
-                                this.$$context['$_' + prop],
-                                createHandler([prop])
-                            )
-                        } else {
-                            this.$$context[prop] = value
-                        }
-
-                        this.$$subscribes['']?.forEach((subscribe) => {
-                            subscribe.fn(this)
-                        })
-                        this.$$subscribes[prop]?.forEach((subscribe) => {
-                            subscribe.fn(value)
-                        })
-                    },
-                    configurable: false,
+                    this[prop] = prevValue
                 })
-
-                if (isObject(this[prop])) {
-                    this[prop] = this.$$context[prop]
-                }
-                //@ts-ignore
-                this[prop] = prevValue
-            })
         }
     } as any
 }
@@ -184,7 +186,7 @@ export class Puya {
         })
     }
 
-    render() {}
+    render() { }
     $$ctx: Record<string | symbol, any> = {}
     $id: string
     constructor() {
@@ -228,5 +230,5 @@ export class Puya {
         return key
     }
 
-    beforeMount() {}
+    beforeMount() { }
 }

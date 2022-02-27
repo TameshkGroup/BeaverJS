@@ -7,10 +7,11 @@
   "mainDir": "src",
   "private": true,
   "type": "commonjs",
-  "types": "dist/src",
+  "types": "dist/types",
   "scripts": {
     "serve": "vite",
-    "build": "rollup --config"
+    "build": "vite build && yarn gen:types",
+    "gen:types": "tsc -d --declarationDir dist/types --declarationMap --emitDeclarationOnly"
   },
   "files": [
     "dist"
@@ -29,8 +30,7 @@
     "nodemon": "^2.0.15",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.2",
-    "vite": "^2.6.14",
-    "vite-plugin-dts": "^0.9.9"
+    "vite": "^2.6.14"
   },
   "dependencies": {
     "@types/nanoid": "^3.0.0",
