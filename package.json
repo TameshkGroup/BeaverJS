@@ -10,7 +10,7 @@
   "types": "dist/types",
   "scripts": {
     "serve": "vite",
-    "build": "vite build && yarn gen:types",
+    "build": "vite build && yarn gen:types && yarn tsc ./vite-beaver-plugin/index.ts --outDir ./dist/vite-plugin",
     "gen:types": "tsc -d --declarationDir dist/types --declarationMap --emitDeclarationOnly"
   },
   "files": [

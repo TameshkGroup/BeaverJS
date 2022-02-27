@@ -1,5 +1,5 @@
 const fileRegex = /\.(ts)$/
-import _ from 'lodash'
+import * as _ from 'lodash'
 
 import { Parser } from 'htmlparser2/lib/Parser'
 import { DomHandler as Handler } from 'domhandler'
@@ -30,6 +30,7 @@ export default function phenomenJSX() {
                                 if (typeof value === 'object' && value !== null) {
                                     if (key === 'next' || key === 'prev') return
                                     // Duplicate reference found, discard key
+                                    //@ts-ignore
                                     if (cache.includes(value)) return
 
                                     // Store value in our collection
