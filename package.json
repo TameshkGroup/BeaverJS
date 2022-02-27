@@ -4,13 +4,23 @@
   "description": "Minimal and simple js framework",
   "author": "MohamadKhani",
   "license": "MIT",
-  "main": "./src/main.ts",
   "mainDir": "src",
   "private": true,
   "type": "commonjs",
   "scripts": {
     "serve": "vite",
     "build": "rollup --config"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/beaver.umd.js",
+  "module": "./dist/beaver.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/beaver.es.js",
+      "require": "./dist/beaver.umd.js"
+    }
   },
   "devDependencies": {
     "@types/lodash": "^4.14.177",

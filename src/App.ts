@@ -15,8 +15,8 @@ export default class App extends BVRElement {
     value = 'va'
 
     arr: number[] = _.range(1, 3)
-    x: any //{x: 12};
-    y: number = 100
+    x: any;
+    y: number = 100;
     beforeMount(): void {
         this.x = { x: 10 }
     }
