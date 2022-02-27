@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import viteBeaverPlugin from './vite-beaver-plugin'
-import path from 'path'
+import path from 'path';
+import dts from 'vite-plugin-dts';
 
 export default defineConfig({
     build: {
@@ -22,5 +23,8 @@ export default defineConfig({
             }
         }
     },
-    plugins: [viteBeaverPlugin()],
+    plugins: [
+        viteBeaverPlugin(),
+        dts()
+    ],
 })
