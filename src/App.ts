@@ -15,8 +15,8 @@ export default class App extends BVRElement {
     value = 'va'
 
     arr: number[] = _.range(1, 3)
-    x: any;
-    y: number = 100;
+    x: any
+    y: number = 100
     beforeMount(): void {
         this.x = { x: 10 }
     }
@@ -24,7 +24,7 @@ export default class App extends BVRElement {
     async mounted() {
         this.x.x = 13
     }
-    checked = true;
+    checked = true
 
     template() {
         return html`
@@ -46,7 +46,23 @@ export default class App extends BVRElement {
                 {{this.x.x}} {{this.y}}
                 <div>--{{JSON.stringify(this.x)}}--</div>
                 {{this.value}}
-                <TextInput value{="this.checked ?100:200" value}="this.x.x" />
+                <TextInput value{="this.checked ?100:200" value}="this.x.x">
+                    <filler>
+                        The Filler
+                        <div>aa</div>
+                        <TextInput value{="this.x.x" value}="this.x.x" bi.value="" set.value="this.x.x" get.value="this.x.x = Number.parseInt($)" >
+                            <args>
+                                <value>
+                            <args/>
+                            <filler slot="prepend">
+                                prepend1 {{JSON.stringify(this.x)}}
+                            </filler>
+                            <filler>
+                                defult {{this.x.x}}
+                            </filler>
+                        </Textinput>
+                    </filler>
+                </Textarea>
                 <TextInput value}="this.y" $="$.props.value = this.checked?100:200" />
                 <for exp="var $j in this.arr">
                 </for>

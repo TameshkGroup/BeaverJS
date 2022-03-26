@@ -23,7 +23,7 @@ export default class IfDirective {
                     (function() {
                         if( ${exp} ){
                             tEl.children.forEach((tChild)=>{
-                                appendElFromTemplate(those,elem, tChild, {${vars}}, scopeId)
+                                appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
                             })
                         }
                     })()`

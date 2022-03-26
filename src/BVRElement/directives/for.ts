@@ -23,7 +23,7 @@ export default class ForDirective {
                     (function() {
                         for( ${exp} ){
                             tEl.children.forEach((tChild)=>{
-                                appendElFromTemplate(those,elem, tChild, {${vars}}, scopeId)
+                                appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
                             })
                         }
                     })()`

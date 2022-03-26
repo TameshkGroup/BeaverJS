@@ -4,6 +4,7 @@ import _ from 'lodash'
 import { getFromPath, setByPath } from '../shared'
 import ForDirective from './directives/for'
 import IfDirective from './directives/if'
+import ComponentDirective from './directives/component'
 
 export enum ElementType {
     /** Type for the root element of a document */
@@ -47,15 +48,15 @@ function domReady() {
 
 export const appendElFromTemplate = (
     that: BVRElement,
-    htmlParentEl: HTMLElement,
     templateEl: Partial<Element | DataNode | Document>,
+    htmlParentEl?: HTMLElement,
     scope: any = undefined,
     scopeId?: string
-) => {
-    let element: HTMLElement | Text // = document.createTextNode('')
+): string | HTMLElement | Text | undefined => {
+    let element: HTMLElement | Text | string // = document.createTextNode('')
     if (templateEl.type === ElementType.Root) {
         ;(templateEl as Document).children.forEach((child) => {
-            appendElFromTemplate(that, htmlParentEl, child, scope, scopeId)
+            appendElFromTemplate(that, child, htmlParentEl, scope, scopeId)
         })
         return
     } else if (
@@ -73,131 +74,20 @@ export const appendElFromTemplate = (
         that.$$elements?.[(templateEl as Element).name]
     ) {
         console.log('bvr element detected')
-        //element = document.createElement('div')
-
-        //console.log('attribs', args)
-
-        const fn = Function.apply(null, ['cmp', 'return new cmp(' + ')'])
-
-        const instance = fn.bind(that)(that.$$elements?.[(templateEl as Element).name]) as BVRElement
-        instance.props = {}
-
-        Object.entries((templateEl as Element).attribs).forEach(([k, v]) => {
-            if (k.indexOf('@') === 0) {
-                //TODO
-                //@ts-ignore 
-                const event = k.replace('@', '')
-                const code = k
-                if (!code) return
-
-                //TODO
-                //@ts-ignore 
-                const fn = Function.apply(null, ['$event', code])
-                /* instance.addEventListener(event, ($event) => {
-                    try {
-                        fn.bind(that)($event)
-                    } catch (e) {}
-                }) */
-                // TODO
-            } else if (k === '$') {
-                const set = () => {
-                    Function.apply(null, ['$', v]).bind(that)(instance)
-                }
-
-                v.match(/this(.\w){0,}/g)?.forEach((item) => {
-                    item = item.slice(5) //item.replace(/this\./, '')
-                    that.addSubscribe(item, set, scopeId)
-                })
-
-                set()
-            } else {
-                let childToParent = false
-                let parentToChild = false
-                let str = k
-                let pos = k.lastIndexOf('}')
-                if (pos > k.length - 2) {
-                    str = str.slice(0, pos)
-                    childToParent = true
-                }
-                pos = k.lastIndexOf('{')
-                if (pos > k.length - 3) {
-                    str = str.slice(0, pos)
-                    parentToChild = true
-                }
-
-                try {
-                    const ev = eval('scope.' + v)
-                    if (ev !== undefined) {
-                        instance.props[str] = ev
-                        return
-                    }
-                } catch (e) {
-                    try {
-                        const res = new Function('return ' + v).bind(that)()
-                        instance.props[str] = res
-                    } catch (e) {}
-                }
-
-                if (parentToChild) {
-                    const set = () =>{
-                        instance.props[str] = Function.apply(null, [
-                            '',
-                            'return ' + v,
-                        ]).bind(that)()
-                    }
-
-                    v.match(/this(.\w){0,}/g)?.forEach((item) => {
-                        item = item.slice(5) //item.replace(/this\./, '')
-                        that.addSubscribe(item, set, scopeId)
-                    })
-
-                    set();
-                }
-
-                if (childToParent) {
-                    instance.addSubscribe('props.' + str, (value) => {
-                        //DEEP Equality check
-                        if (!_.isEqual(getFromPath(that, v.slice(5)), value)) {
-                            //that[v.slice(5)] = value;
-                            setByPath(that, v.slice(5), value)
-                        }
-                    })
-                }
-            }
-        })
-
-        /* componentArgs
-            ?.match(/this(.\w){0,}/g)
-            ?.map((item, i) => {
-                console.log(item, i)
-            }) */
-
-        /* const propsStr = componentArgs?.split(
-            /,(?=(?:[^\"]*\"[^\"]*\")*([^\"])*$)/
-        )[0] */
-        /* if (propsStr) {
-            const props = propsStr
-                .trim()
-                .slice(1, -1)
-                ?.split(
-                    /,(?=(?:[^\"]*\"[^\"]*\")*([^\"])*$)/
-                )
-                .map((i) =>
-                    i.split(
-                        /:(?=(?:[^\"]*\"[^\"]*\")*([^\"])*$)/
-                    )
-                )
-
-            console.log('props', props)
-        } */
-
-        instance.$$parent = that
-        element = document.createElement('div')
-        //element.replaceChild(element,root)
-        instance.$$rootElement = element
-        //getElem(parsed, childPath).parentElement ||
-
-        instance.mount()
+        element = new ComponentDirective(that).render(templateEl as Element, scopeId as string)
+    } else if (
+        templateEl.type === ElementType.Tag &&
+        (templateEl as Element).name === 'slot' &&
+        that.$$slots?.[(templateEl as Element).attribs.name || 'default']
+    ) {
+        const filler = that.$$slots?.[(templateEl as Element).attribs.name || 'default'].filler
+        if (filler && that?.$$parent) {
+            console.log('fillerIs', filler, that)
+            element = appendElFromTemplate(that?.$$parent, filler, undefined, scope, scopeId) || ''
+        } else {
+            element = ''
+        }
+        //element = JSON.stringify(that.$$slots)
     } else if (
         (templateEl.type === ElementType.Tag || templateEl.type === ElementType.Style) &&
         (templateEl as Element).name
@@ -206,7 +96,7 @@ export const appendElFromTemplate = (
         element = document.createElement(tEl.name)
 
         tEl.children.forEach((child) => {
-            appendElFromTemplate(that, element as HTMLElement, child, scope, scopeId)
+            appendElFromTemplate(that, child, element as HTMLElement, scope, scopeId)
         })
         if (tEl.attribs)
             Object.entries(tEl.attribs).forEach(([attrName, attrValue]) => {
@@ -269,32 +159,31 @@ export const appendElFromTemplate = (
                                 ;(element as HTMLInputElement).value = value
                             })
 
+                        const set = () => {
+                            ;(element as any)[str] = Function.apply(null, [
+                                '',
+                                'return ' + attrValue,
+                            ]).bind(that)()
+                        }
 
-                            const set = () =>{
-                                (element as any)[str] = Function.apply(null, [
-                                    '',
-                                    'return ' + attrValue,
-                                ]).bind(that)()
-                            }
-        
-                            attrValue.match(/this(.\w){0,}/g)?.forEach((item) => {
-                                item = item.slice(5) //item.replace(/this\./, '')
-                                that.addSubscribe(item, set, scopeId)
-                            })
-        
-                            set();
+                        attrValue.match(/this(.\w){0,}/g)?.forEach((item) => {
+                            item = item.slice(5) //item.replace(/this\./, '')
+                            that.addSubscribe(item, set, scopeId)
+                        })
+
+                        set()
                     }
 
                     if (childToParent) {
                         //TODO specify currect listener for each element type
                         element.addEventListener('change', (event) => {
-                            const value = (event.currentTarget as any)?.[str];
+                            const value = (event.currentTarget as any)?.[str]
                             if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
                                 setByPath(that, attrValue.slice(5), value)
                             }
-                        });
+                        })
                         element.addEventListener('input', (event) => {
-                            const value = (event.currentTarget as any)?.[str];
+                            const value = (event.currentTarget as any)?.[str]
                             if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
                                 setByPath(that, attrValue.slice(5), value)
                             }
@@ -372,7 +261,8 @@ export const appendElFromTemplate = (
         element = document.createElement('none')
     }
 
-    htmlParentEl.append(element)
+    htmlParentEl?.append?.(element)
+    return element
 }
 
 // export function HTML(input: TemplateStringsArray, ...args: any): Item[] {
@@ -380,12 +270,17 @@ export const appendElFromTemplate = (
 //         return [...acm, value, args[i]]
 //     }, [])
 // }
+type Slot = {
+    filler?: Partial<Element | DataNode | Document>
+    templatePath: number[]
+}
 
 export default class BVRElement extends Puya {
     static $$includedElems: Record<string, typeof BVRElement> = {}
     $$rootElement: HTMLElement = document.createElement('div')
     $$parent?: BVRElement
     $$elementSelector?: string
+    $$slots: Record<string, Slot> = {}
     props: Record<string, any> = {}
 
     $$directives = []
@@ -441,14 +336,14 @@ export default class BVRElement extends Puya {
                     createDOM(childTemplate, [...path, index])
                 })
                 const parentElement = findTargetElement(parsed, path.slice(undefined, -1))
-                appendElFromTemplate(this, parentElement, template, undefined, undefined)
+                appendElFromTemplate(this, template, parentElement, undefined, undefined)
             }
 
             template.tagName
         }
 
         //createDOM(this.$$template, [])
-        appendElFromTemplate(this, this.$$rootElement, this.$$template, undefined, undefined)
+        appendElFromTemplate(this, this.$$template, this.$$rootElement, undefined, undefined)
 
         bvrElements.forEach((bvrElement) => {
             parsed.innerHTML = parsed.innerHTML.replace(
