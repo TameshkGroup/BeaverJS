@@ -25,6 +25,7 @@ export default class App extends BVRElement {
         this.x.x = 13
     }
     checked = true
+    _ = _
 
     template() {
         return html`
@@ -43,7 +44,7 @@ export default class App extends BVRElement {
                     <if exp="this.x.x > 10"> mm </if>
                     <TextInput bi.value="this.x.x" />
                 </if>
-                <for exp="i in _.range(0,10)">
+                <for exp="i in this._.range(0,10)">
                     <div>{{i}}</div>
                 </for>
                 <input value{="this.checked ?100:200" value}="this.x.x" />
@@ -63,7 +64,11 @@ export default class App extends BVRElement {
                 </TextInput>
                 <TextInput get.value="this.y"></TextInput>
 
-                <for exp="var $j in this.arr"> 1111 </for>
+                <for exp="let $j in this.arr">
+                    1 {{$j}}
+                    <if exp="$j < 2"> m </if>
+                    <if exp="$j >= 2"> n </if>
+                </for>
             </div>
 
             <div id="ok">

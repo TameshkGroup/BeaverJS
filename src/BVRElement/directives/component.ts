@@ -8,7 +8,7 @@ export default class ComponentDirective {
 
     static tagName = 'if'
 
-    render(templateEl: Element, parentScopeId: string) {
+    render(templateEl: Element,scope: any, parentScopeId: string) {
 
         const fn = Function.apply(null, ['cmp', 'return new cmp(' + ')'])
 
@@ -146,7 +146,6 @@ export default class ComponentDirective {
                                     value
                                 )
                             ) {
-                                //that[v.slice(5)] = value;
                                 setByPath(this.bvrElement, assignment.lhs.slice(5), value)
                             }
                         })

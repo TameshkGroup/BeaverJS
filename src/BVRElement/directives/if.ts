@@ -7,28 +7,31 @@ export default class IfDirective {
 
     static tagName = 'if'
 
-    render(templateEl: Element, parentScopeId: string) {
-
+    render(templateEl: Element, scope: any, parentScopeId: string) {
         const tEl = templateEl as Element
         let element: (HTMLElement | Comment)[] = []
 
         const vars = tEl.attribs['exp'].match(/[$](\w)+/g)?.join(',')
+
         const exp = tEl.attribs['exp'].replace(/this(.\w)+/, ($propStr) => {
             const propTrimmed = $propStr.replace('this.', '')
 
             this.bvrElement.addSubscribe(propTrimmed, () => set(), parentScopeId)
             return $propStr.replace(/this./, 'that.')
         })
+        console.log('vars', vars)
         const code = `
+                    const {${scope&&Object.keys(scope).join(',')}} = ${JSON.stringify(scope)}
                     var that = this;
-                        if( ${exp} ){
-                            return tEl.children.map((tChild)=>{
-                                return appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
-                            })
-                        }else {
-                            return []
-                        }
-                    `
+
+                    if( ${exp} ){
+                        return tEl.children.map((tChild)=>{
+                            return appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
+                        })
+                    }else {
+                        return []
+                    }
+                `
 
         const args = ['appendElFromTemplate,those,tEl,elem,scopeId', code]
 

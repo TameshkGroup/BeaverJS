@@ -50,31 +50,49 @@ export const appendElFromTemplate = (
     that: BVRElement,
     templateEl: Partial<Element | DataNode | Document> | Partial<Element | DataNode | Document>[],
     htmlParentEl?: HTMLElement,
-    scope: any = undefined,
+    scope: Record<string, any> = {},
     scopeId?: string
 ): string | HTMLElement | Text | undefined | (HTMLElement | Comment)[] => {
     let element: HTMLElement | Text | string | (HTMLElement | Comment)[] // = document.createTextNode('')
     if (Array.isArray(templateEl) || templateEl.type === ElementType.Root) {
         const iter = (templateEl as Document).children || templateEl
         return iter.map((child) => {
-            return appendElFromTemplate(that, child, htmlParentEl, scope, scopeId) as HTMLElement
+            return appendElFromTemplate(
+                that,
+                child,
+                htmlParentEl,
+                scope || {},
+                scopeId
+            ) as HTMLElement
         })
     } else if (
         templateEl.type === ElementType.Tag &&
         (templateEl as Element).name?.toLowerCase() === 'for'
     ) {
-        element = new ForDirective(that).render(templateEl as Element, scopeId as string)
+        element = new ForDirective(that).render(
+            templateEl as Element,
+            scope || {},
+            scopeId as string
+        )
     } else if (
         templateEl.type === ElementType.Tag &&
         (templateEl as Element).name?.toLowerCase() === 'if'
     ) {
-        element = new IfDirective(that).render(templateEl as Element, scopeId as string)
+        element = new IfDirective(that).render(
+            templateEl as Element,
+            scope || {},
+            scopeId as string
+        )
     } else if (
         templateEl.type === ElementType.Tag &&
         that.$$elements?.[(templateEl as Element).name]
     ) {
         console.log('bvr element detected')
-        element = new ComponentDirective(that).render(templateEl as Element, scopeId as string)
+        element = new ComponentDirective(that).render(
+            templateEl as Element,
+            scope,
+            scopeId as string
+        )
     } else if (
         templateEl.type === ElementType.Tag &&
         (templateEl as Element).name === 'slot' &&
