@@ -1,9 +1,9 @@
 import { Element } from 'domhandler/lib';
 import BVRElement from '..';
-export default class IfDirective {
+export default class ComponentDirective {
     private bvrElement;
     constructor(bvrElement: BVRElement);
     static tagName: string;
-    render(templateEl: Element, scope: any, parentScopeId: string): (HTMLElement | Comment)[];
+    render(templateEl: Element, _: any, parentScopeId: string): HTMLDivElement;
 }
-//# sourceMappingURL=if.d.ts.map
+//# sourceMappingURL=component.d.ts.map

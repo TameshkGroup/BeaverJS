@@ -1,5 +1,22 @@
 var __defProp = Object.defineProperty;
+var __defProps = Object.defineProperties;
+var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __propIsEnum = Object.prototype.propertyIsEnumerable;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp.call(b, prop))
+      __defNormalProp(a, prop, b[prop]);
+  if (__getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(b)) {
+      if (__propIsEnum.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    }
+  return a;
+};
+var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 var __publicField = (obj, key, value) => {
   __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
@@ -2159,8 +2176,8 @@ var lodash = { exports: {} };
       function createBind(func, bitmask, thisArg) {
         var isBind = bitmask & WRAP_BIND_FLAG, Ctor = createCtor(func);
         function wrapper() {
-          var fn2 = this && this !== root && this instanceof wrapper ? Ctor : func;
-          return fn2.apply(isBind ? thisArg : this, arguments);
+          var fn = this && this !== root && this instanceof wrapper ? Ctor : func;
+          return fn.apply(isBind ? thisArg : this, arguments);
         }
         return wrapper;
       }
@@ -2215,8 +2232,8 @@ var lodash = { exports: {} };
           if (length < arity) {
             return createRecurry(func, bitmask, createHybrid, wrapper.placeholder, undefined$1, args, holders, undefined$1, undefined$1, arity - length);
           }
-          var fn2 = this && this !== root && this instanceof wrapper ? Ctor : func;
-          return apply(fn2, this, args);
+          var fn = this && this !== root && this instanceof wrapper ? Ctor : func;
+          return apply(fn, this, args);
         }
         return wrapper;
       }
@@ -2293,7 +2310,7 @@ var lodash = { exports: {} };
             var newHolders = replaceHolders(args, placeholder);
             return createRecurry(func, bitmask, createHybrid, wrapper.placeholder, thisArg, args, newHolders, argPos, ary2, arity - length);
           }
-          var thisBinding = isBind ? thisArg : this, fn2 = isBindKey ? thisBinding[func] : func;
+          var thisBinding = isBind ? thisArg : this, fn = isBindKey ? thisBinding[func] : func;
           length = args.length;
           if (argPos) {
             args = reorder(args, argPos);
@@ -2304,9 +2321,9 @@ var lodash = { exports: {} };
             args.length = ary2;
           }
           if (this && this !== root && this instanceof wrapper) {
-            fn2 = Ctor || createCtor(fn2);
+            fn = Ctor || createCtor(fn);
           }
-          return fn2.apply(thisBinding, args);
+          return fn.apply(thisBinding, args);
         }
         return wrapper;
       }
@@ -2363,14 +2380,14 @@ var lodash = { exports: {} };
       function createPartial(func, bitmask, thisArg, partials) {
         var isBind = bitmask & WRAP_BIND_FLAG, Ctor = createCtor(func);
         function wrapper() {
-          var argsIndex = -1, argsLength = arguments.length, leftIndex = -1, leftLength = partials.length, args = Array2(leftLength + argsLength), fn2 = this && this !== root && this instanceof wrapper ? Ctor : func;
+          var argsIndex = -1, argsLength = arguments.length, leftIndex = -1, leftLength = partials.length, args = Array2(leftLength + argsLength), fn = this && this !== root && this instanceof wrapper ? Ctor : func;
           while (++leftIndex < leftLength) {
             args[leftIndex] = partials[leftIndex];
           }
           while (argsLength--) {
             args[leftIndex++] = arguments[++argsIndex];
           }
-          return apply(fn2, isBind ? thisArg : this, args);
+          return apply(fn, isBind ? thisArg : this, args);
         }
         return wrapper;
       }
@@ -5465,20 +5482,20 @@ class Puya {
   addSubscribe(pathOrFn = "", fnOrClass, klassOrThrottle, throttle = 0) {
     if (typeof pathOrFn === "string") {
       const path = pathOrFn;
-      const fn2 = fnOrClass;
+      const fn = fnOrClass;
       const klass = klassOrThrottle;
       const id = nanoid(5);
       this.$$subscribes[path] = [
         ...this.$$subscribes[path] ? this.$$subscribes[path] : [],
         {
           class: klass,
-          fn: throttle ? _.throttle(fn2, throttle) : fn2,
+          fn: throttle ? _.throttle(fn, throttle) : fn,
           id
         }
       ];
       return id;
     } else {
-      const fn2 = pathOrFn;
+      const fn = pathOrFn;
       const klass = fnOrClass;
       throttle = klassOrThrottle;
       const id = nanoid(5);
@@ -5486,7 +5503,7 @@ class Puya {
         ...this.$$subscribes[""] ? this.$$subscribes[""] : [],
         {
           class: klass,
-          fn: throttle ? _.throttle(fn2, throttle) : fn2,
+          fn: throttle ? _.throttle(fn, throttle) : fn,
           id
         }
       ];
@@ -5512,37 +5529,87 @@ class ForDirective {
   constructor(bvrElement) {
     this.bvrElement = bvrElement;
   }
-  render(templateEl2, parentScopeId) {
+  render(templateEl2, scope2, parentScopeId) {
     var _a;
     const tEl2 = templateEl2;
-    const element2 = document.createElement(tEl2.name);
+    let element2 = [];
     const vars = (_a = tEl2.attribs["exp"].match(/[$](\w)+/g)) == null ? void 0 : _a.join(",");
     const exp = tEl2.attribs["exp"].replace(/this(.\w)+/, ($propStr) => {
       const propTrimmed = $propStr.replace("this.", "");
       this.bvrElement.addSubscribe(propTrimmed, () => set2(), parentScopeId);
       return $propStr.replace(/this./, "that.");
     });
+    console.log("for vars", vars);
     const code = `
                     var that = this;
-                    (function() {
-                        for( ${exp} ){
-                            tEl.children.forEach((tChild)=>{
-                                appendElFromTemplate(those,elem, tChild, {${vars}}, scopeId)
-                            })
-                        }
-                    })()`;
+                    const {${Object.keys(scope2).join(",")}} = ${JSON.stringify(scope2)}
+                    const elements = []
+                    for( ${exp} ){
+                        elements.push(...tEl.children.map((tChild)=>{
+                            console.log('vars', {${vars}})
+                            return appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
+                        }))
+                    }
+                    return elements;
+                    `;
     const args = ["appendElFromTemplate,those,tEl,elem,scopeId", code];
     let lastId;
     const set2 = () => {
+      var _a2;
       if (lastId) {
         this.bvrElement.removeSubscribeByClass(lastId);
       }
+      function getComments(context) {
+        var foundComments = [];
+        var elementPath = [context];
+        while (elementPath.length > 0) {
+          var el2 = elementPath.pop();
+          for (var i = 0; i < ((el2 == null ? void 0 : el2.childNodes.length) || 0); i++) {
+            var node = el2 == null ? void 0 : el2.childNodes[i];
+            if ((node == null ? void 0 : node.nodeType) === Node.COMMENT_NODE && node instanceof Comment) {
+              foundComments.push(node);
+            } else {
+              elementPath.push(node);
+            }
+          }
+        }
+        return foundComments;
+      }
+      let start;
+      let end;
       const $scopeId = nanoid(6);
-      lastId = $scopeId;
-      element2.innerHTML = "";
+      let first = false;
+      if (!lastId) {
+        first = true;
+        lastId = $scopeId;
+        start = document.createComment("for:" + $scopeId);
+        end = document.createComment("endfor:" + $scopeId);
+        element2 = [start, end];
+      } else {
+        start = getComments(this.bvrElement.$$rootElement).find((cmnt) => cmnt.nodeValue === "for:" + lastId);
+        end = getComments(this.bvrElement.$$rootElement).find((cmnt) => cmnt.nodeValue === "endfor:" + lastId);
+        while ((start == null ? void 0 : start.nextSibling) !== end && (start == null ? void 0 : start.nextSibling)) {
+          (_a2 = start == null ? void 0 : start.parentElement) == null ? void 0 : _a2.removeChild(start == null ? void 0 : start.nextSibling);
+        }
+      }
       try {
-        const fn2 = Function.apply(null, args);
-        fn2.bind(this.bvrElement)(appendElFromTemplate, this.bvrElement, tEl2, element2, $scopeId);
+        const fn = Function.apply(null, args);
+        const elems = fn.bind(this.bvrElement)(appendElFromTemplate, this.bvrElement, tEl2, void 0, $scopeId);
+        if (first) {
+          element2 = [element2[0], ...elems, element2[1]];
+        } else {
+          const h = (endElement, element22) => {
+            if (!Array.isArray(element22)) {
+              endElement.before(element22);
+            } else {
+              element22.forEach((el2) => {
+                h(endElement, el2);
+              });
+            }
+          };
+          if (end)
+            h(end, elems);
+        }
       } catch (e) {
         console.error(e);
       }
@@ -5556,39 +5623,90 @@ class IfDirective {
   constructor(bvrElement) {
     this.bvrElement = bvrElement;
   }
-  render(templateEl2, parentScopeId) {
+  render(templateEl2, scope2, parentScopeId) {
     var _a;
     const tEl2 = templateEl2;
-    const element2 = document.createElement(tEl2.name);
+    let element2 = [];
     const vars = (_a = tEl2.attribs["exp"].match(/[$](\w)+/g)) == null ? void 0 : _a.join(",");
     const exp = tEl2.attribs["exp"].replace(/this(.\w)+/, ($propStr) => {
       const propTrimmed = $propStr.replace("this.", "");
       this.bvrElement.addSubscribe(propTrimmed, () => set2(), parentScopeId);
       return $propStr.replace(/this./, "that.");
     });
+    console.log("vars", vars);
     const code = `
+                    const {${scope2 && Object.keys(scope2).join(",")}} = ${JSON.stringify(scope2)}
                     var that = this;
-                    (function() {
-                        if( ${exp} ){
-                            tEl.children.forEach((tChild)=>{
-                                appendElFromTemplate(those,elem, tChild, {${vars}}, scopeId)
-                            })
-                        }
-                    })()`;
+
+                    if( ${exp} ){
+                        return tEl.children.map((tChild)=>{
+                            return appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
+                        })
+                    }else {
+                        return []
+                    }
+                `;
     const args = ["appendElFromTemplate,those,tEl,elem,scopeId", code];
     let lastId;
     const set2 = () => {
+      var _a2;
       if (lastId) {
         this.bvrElement.removeSubscribeByClass(lastId);
       }
+      function getComments(context) {
+        var foundComments = [];
+        var elementPath = [context];
+        while (elementPath.length > 0) {
+          var el2 = elementPath.pop();
+          for (var i = 0; i < ((el2 == null ? void 0 : el2.childNodes.length) || 0); i++) {
+            var node = el2 == null ? void 0 : el2.childNodes[i];
+            if ((node == null ? void 0 : node.nodeType) === Node.COMMENT_NODE && node instanceof Comment) {
+              foundComments.push(node);
+            } else {
+              elementPath.push(node);
+            }
+          }
+        }
+        return foundComments;
+      }
+      let start;
+      let end;
       const $scopeId = nanoid(6);
-      lastId = $scopeId;
-      element2.innerHTML = "";
+      let first = false;
+      if (!lastId) {
+        first = true;
+        lastId = $scopeId;
+        start = document.createComment("if:" + $scopeId);
+        end = document.createComment("endif:" + $scopeId);
+        element2 = [start, end];
+      } else {
+        start = getComments(this.bvrElement.$$rootElement).find((cmnt) => cmnt.nodeValue === "if:" + lastId);
+        end = getComments(this.bvrElement.$$rootElement).find((cmnt) => cmnt.nodeValue === "endif:" + lastId);
+        while ((start == null ? void 0 : start.nextSibling) !== end && (start == null ? void 0 : start.nextSibling)) {
+          (_a2 = start == null ? void 0 : start.parentElement) == null ? void 0 : _a2.removeChild(start == null ? void 0 : start.nextSibling);
+        }
+      }
       try {
-        const fn2 = Function.apply(null, args);
-        fn2.bind(this.bvrElement)(appendElFromTemplate, this.bvrElement, tEl2, element2, $scopeId);
+        const fn = Function.apply(null, args);
+        const elems = fn.bind(this.bvrElement)(appendElFromTemplate, this.bvrElement, tEl2, void 0, $scopeId);
+        if (first) {
+          element2 = [element2[0], ...elems, element2[1]];
+        } else {
+          const h = (endElement, element22) => {
+            if (!Array.isArray(element22)) {
+              endElement.before(element22);
+            } else {
+              element22.forEach((el2) => {
+                h(endElement, el2);
+              });
+            }
+          };
+          if (end)
+            h(end, elems);
+        }
       } catch (e) {
         console.error(e);
+        element2 = [];
       }
     };
     set2();
@@ -5596,6 +5714,121 @@ class IfDirective {
   }
 }
 __publicField(IfDirective, "tagName", "if");
+class ComponentDirective {
+  constructor(bvrElement) {
+    this.bvrElement = bvrElement;
+  }
+  render(templateEl2, _2, parentScopeId) {
+    var _a, _b;
+    const fn = Function.apply(null, ["cmp", "return new cmp()"]);
+    const cmp = (_a = this.bvrElement.$$elements) == null ? void 0 : _a[templateEl2.name];
+    const instance = fn.bind(this.bvrElement)(cmp);
+    instance.$$elements = (_b = this.bvrElement) == null ? void 0 : _b.$$elements;
+    instance.props = {};
+    let el2 = instance.$$template;
+    const loop = (node, path) => {
+      var _a2;
+      if (node.name === "slot") {
+        const slotName = ((_a2 = node == null ? void 0 : node.attribs) == null ? void 0 : _a2["name"]) || "default";
+        let filler;
+        templateEl2.children.forEach((child) => {
+          var _a3, _b2;
+          if (child.type === "tag" && child.name === "filler" && (((_a3 = child.attribs) == null ? void 0 : _a3.slot) ? ((_b2 = child.attribs) == null ? void 0 : _b2.slot) === slotName : slotName === "default")) {
+            filler = child;
+          }
+        });
+        instance.$$slots = __spreadProps(__spreadValues({}, instance.$$slots), {
+          [slotName]: {
+            templatePath: path,
+            filler
+          }
+        });
+      }
+      var nodes = node == null ? void 0 : node.children;
+      for (var i = 0; i < ((nodes == null ? void 0 : nodes.length) || 0); i++) {
+        loop(nodes[i], [...path, i]);
+      }
+    };
+    loop(el2, []);
+    Object.entries(templateEl2.attribs).forEach(([k, v]) => {
+      var _a2, _b2, _c;
+      if (k.indexOf("@") === 0) {
+        k.replace("@", "");
+        const code = k;
+        if (!code)
+          return;
+        Function.apply(null, ["$event", code]);
+      } else if (k === "$") {
+        const set2 = () => {
+          Function.apply(null, ["$", v]).bind(this.bvrElement)(instance);
+        };
+        (_a2 = v.match(/this(.\w){0,}/g)) == null ? void 0 : _a2.forEach((item) => {
+          item = item.slice(5);
+          this.bvrElement.addSubscribe(item, set2, parentScopeId);
+        });
+        set2();
+      } else {
+        if (k.indexOf("set.") === 0) {
+          const set2 = () => {
+            instance.props[k.replace("set.", "")] = Function.apply(null, [
+              "",
+              "return " + v
+            ]).bind(this.bvrElement)();
+          };
+          (_b2 = v.match(/this(.\w){0,}/g)) == null ? void 0 : _b2.forEach((item) => {
+            item = item.slice(5);
+            this.bvrElement.addSubscribe(item, set2, parentScopeId);
+          });
+          set2();
+        } else if (k.indexOf("bi.") === 0) {
+          const str2 = k.replace("bi.", "");
+          const set2 = () => {
+            instance.props[str2] = Function.apply(null, ["", "return " + v]).bind(this.bvrElement)();
+          };
+          (_c = v.match(/this(.\w){0,}/g)) == null ? void 0 : _c.forEach((item) => {
+            item = item.slice(5);
+            this.bvrElement.addSubscribe(item, set2, parentScopeId);
+          });
+          set2();
+          instance.addSubscribe("props." + str2, (value) => {
+            if (!_2.isEqual(getFromPath(this.bvrElement, v.slice(5)), value)) {
+              setByPath(this.bvrElement, v.slice(5), value);
+            }
+          });
+        } else if (k.indexOf("get.") === 0) {
+          const str2 = k.replace("get.", "");
+          if (v.indexOf("=") >= 0) {
+            let assignment = {
+              rhs: v.slice(v.indexOf("=") + 1).trim(),
+              lhs: v.slice(0, v.indexOf("=")).trim()
+            };
+            instance.addSubscribe("props." + str2, (v2) => {
+              const value = Function.apply(null, [
+                "$",
+                "return " + assignment.rhs
+              ]).bind(this.bvrElement)(v2);
+              if (!_2.isEqual(getFromPath(this.bvrElement, assignment.lhs.slice(5)), value)) {
+                setByPath(this.bvrElement, assignment.lhs.slice(5), value);
+              }
+            });
+          } else {
+            instance.addSubscribe("props." + str2, (value) => {
+              if (!_2.isEqual(getFromPath(this.bvrElement, v.slice(5)), value)) {
+                setByPath(this.bvrElement, v.slice(5), value);
+              }
+            });
+          }
+        }
+      }
+    });
+    instance.$$parent = this.bvrElement;
+    const element2 = document.createElement("div");
+    instance.$$rootElement = element2;
+    instance.mount();
+    return element2;
+  }
+}
+__publicField(ComponentDirective, "tagName", "if");
 var ElementType;
 (function(ElementType2) {
   ElementType2["Root"] = "root";
@@ -5622,98 +5855,34 @@ function domReady() {
     }
   });
 }
-const appendElFromTemplate = (that, htmlParentEl, templateEl, scope = void 0, scopeId) => {
-  var _a, _b, _c, _d, _e, _f, _g, _h;
+const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeId) => {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
   let element;
-  if (templateEl.type === ElementType.Root) {
-    templateEl.children.forEach((child) => {
-      appendElFromTemplate(that, htmlParentEl, child, scope, scopeId);
+  if (Array.isArray(templateEl) || templateEl.type === ElementType.Root) {
+    const iter = templateEl.children || templateEl;
+    return iter.map((child) => {
+      return appendElFromTemplate(that, child, htmlParentEl, scope || {}, scopeId);
     });
-    return;
   } else if (templateEl.type === ElementType.Tag && ((_a = templateEl.name) == null ? void 0 : _a.toLowerCase()) === "for") {
-    element = new ForDirective(that).render(templateEl, scopeId);
+    element = new ForDirective(that).render(templateEl, scope || {}, scopeId);
   } else if (templateEl.type === ElementType.Tag && ((_b = templateEl.name) == null ? void 0 : _b.toLowerCase()) === "if") {
-    element = new IfDirective(that).render(templateEl, scopeId);
+    element = new IfDirective(that).render(templateEl, scope || {}, scopeId);
   } else if (templateEl.type === ElementType.Tag && ((_c = that.$$elements) == null ? void 0 : _c[templateEl.name])) {
     console.log("bvr element detected");
-    const fn = Function.apply(null, ["cmp", "return new cmp()"]);
-    const instance = fn.bind(that)((_d = that.$$elements) == null ? void 0 : _d[templateEl.name]);
-    instance.props = {};
-    Object.entries(templateEl.attribs).forEach(([k, v]) => {
-      var _a2, _b2;
-      if (k.indexOf("@") === 0) {
-        k.replace("@", "");
-        const code = k;
-        if (!code)
-          return;
-        Function.apply(null, ["$event", code]);
-      } else if (k === "$") {
-        const set2 = () => {
-          Function.apply(null, ["$", v]).bind(that)(instance);
-        };
-        (_a2 = v.match(/this(.\w){0,}/g)) == null ? void 0 : _a2.forEach((item) => {
-          item = item.slice(5);
-          that.addSubscribe(item, set2, scopeId);
-        });
-        set2();
-      } else {
-        let childToParent = false;
-        let parentToChild = false;
-        let str = k;
-        let pos = k.lastIndexOf("}");
-        if (pos > k.length - 2) {
-          str = str.slice(0, pos);
-          childToParent = true;
-        }
-        pos = k.lastIndexOf("{");
-        if (pos > k.length - 3) {
-          str = str.slice(0, pos);
-          parentToChild = true;
-        }
-        try {
-          const ev = eval("scope." + v);
-          if (ev !== void 0) {
-            instance.props[str] = ev;
-            return;
-          }
-        } catch (e) {
-          try {
-            const res = new Function("return " + v).bind(that)();
-            instance.props[str] = res;
-          } catch (e2) {
-          }
-        }
-        if (parentToChild) {
-          const set2 = () => {
-            instance.props[str] = Function.apply(null, [
-              "",
-              "return " + v
-            ]).bind(that)();
-          };
-          (_b2 = v.match(/this(.\w){0,}/g)) == null ? void 0 : _b2.forEach((item) => {
-            item = item.slice(5);
-            that.addSubscribe(item, set2, scopeId);
-          });
-          set2();
-        }
-        if (childToParent) {
-          instance.addSubscribe("props." + str, (value) => {
-            if (!_.isEqual(getFromPath(that, v.slice(5)), value)) {
-              setByPath(that, v.slice(5), value);
-            }
-          });
-        }
-      }
-    });
-    instance.$$parent = that;
-    element = document.createElement("div");
-    instance.$$rootElement = element;
-    instance.mount();
+    element = new ComponentDirective(that).render(templateEl, scope, scopeId);
+  } else if (templateEl.type === ElementType.Tag && templateEl.name === "slot" && ((_d = that.$$slots) == null ? void 0 : _d[templateEl.attribs.name || "default"])) {
+    const filler = (_e = that.$$slots) == null ? void 0 : _e[templateEl.attribs.name || "default"].filler;
+    if (filler && (that == null ? void 0 : that.$$parent)) {
+      console.log("fillerIs", filler, that);
+      element = appendElFromTemplate(that == null ? void 0 : that.$$parent, filler == null ? void 0 : filler.children, void 0, scope, scopeId) || "";
+    } else {
+      element = "";
+    }
   } else if ((templateEl.type === ElementType.Tag || templateEl.type === ElementType.Style) && templateEl.name) {
     const tEl = templateEl;
     element = document.createElement(tEl.name);
     tEl.children.forEach((child) => {
-      appendElFromTemplate(that, element, child, scope, scopeId);
+      appendElFromTemplate(that, child, element, scope, scopeId);
     });
     if (tEl.attribs)
       Object.entries(tEl.attribs).forEach(([attrName, attrValue]) => {
@@ -5723,14 +5892,15 @@ const appendElFromTemplate = (that, htmlParentEl, templateEl, scope = void 0, sc
           const code = attrValue;
           if (!code)
             return;
-          element.addEventListener(event, ($event) => {
-            const args = ["$event", code];
-            const fn2 = Function.apply(null, args);
-            try {
-              fn2.bind(that)($event);
-            } catch (e) {
-            }
-          });
+          if (element instanceof HTMLStyleElement || element instanceof HTMLElement)
+            element.addEventListener(event, ($event) => {
+              const args = ["$event", code];
+              const fn = Function.apply(null, args);
+              try {
+                fn.bind(that)($event);
+              } catch (e) {
+              }
+            });
         } else if (attrName === "$") {
           const set2 = () => {
             Function.apply(null, ["$", attrValue]).bind(that)(element);
@@ -5788,20 +5958,22 @@ const appendElFromTemplate = (that, htmlParentEl, templateEl, scope = void 0, sc
             set2();
           }
           if (childToParent) {
-            element.addEventListener("change", (event) => {
-              var _a3;
-              const value = (_a3 = event.currentTarget) == null ? void 0 : _a3[str];
-              if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
-                setByPath(that, attrValue.slice(5), value);
-              }
-            });
-            element.addEventListener("input", (event) => {
-              var _a3;
-              const value = (_a3 = event.currentTarget) == null ? void 0 : _a3[str];
-              if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
-                setByPath(that, attrValue.slice(5), value);
-              }
-            });
+            if (element instanceof HTMLStyleElement || element instanceof HTMLElement) {
+              element.addEventListener("change", (event) => {
+                var _a3;
+                const value = (_a3 = event.currentTarget) == null ? void 0 : _a3[str];
+                if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
+                  setByPath(that, attrValue.slice(5), value);
+                }
+              });
+              element.addEventListener("input", (event) => {
+                var _a3;
+                const value = (_a3 = event.currentTarget) == null ? void 0 : _a3[str];
+                if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
+                  setByPath(that, attrValue.slice(5), value);
+                }
+              });
+            }
           }
           if (!parentToChild && !childToParent) {
             element.setAttribute(attrName, attrValue);
@@ -5813,28 +5985,29 @@ const appendElFromTemplate = (that, htmlParentEl, templateEl, scope = void 0, sc
     element = document.createTextNode(el.data);
     const set = () => {
       var _a2;
-      element.textContent = ((_a2 = el.data) == null ? void 0 : _a2.replace(/\{\{.+?}}((\(\d{0,10}\))){0,1}/g, (match) => {
-        var _a3, _b2;
-        let rawLength = (_b2 = (_a3 = match.match(/\{\{.+?}}/g)) == null ? void 0 : _a3[0]) == null ? void 0 : _b2.length;
-        const scopeStr = match.substr(2, match.length - 4 - (match.length - (rawLength || 0))).trim();
-        try {
-          const ev = eval("scope." + scopeStr);
-          if (ev !== void 0) {
-            return ev;
+      if (element instanceof Text)
+        element.textContent = ((_a2 = el.data) == null ? void 0 : _a2.replace(/\{\{.+?}}((\(\d{0,10}\))){0,1}/g, (match) => {
+          var _a3, _b2;
+          let rawLength = (_b2 = (_a3 = match.match(/\{\{.+?}}/g)) == null ? void 0 : _a3[0]) == null ? void 0 : _b2.length;
+          const scopeStr = match.substr(2, match.length - 4 - (match.length - (rawLength || 0))).trim();
+          try {
+            const ev = eval("scope." + scopeStr);
+            if (ev !== void 0) {
+              return ev;
+            }
+          } catch (e) {
           }
-        } catch (e) {
-        }
-        try {
-          const res = new Function("return " + scopeStr).bind(that)();
-          return res;
-        } catch (e) {
-        }
-      })) || "";
+          try {
+            const res = new Function("return " + scopeStr).bind(that)();
+            return res;
+          } catch (e) {
+          }
+        })) || "";
     };
-    (_f = (_e = element.textContent) == null ? void 0 : _e.match(/<[\?]js.*/g)) == null ? void 0 : _f.forEach((match2) => {
+    (_g = (_f = element.textContent) == null ? void 0 : _f.match(/<[\?]js.*/g)) == null ? void 0 : _g.forEach((match2) => {
       console.log("js block", match2);
     });
-    (_h = (_g = element.textContent) == null ? void 0 : _g.match(/\{\{.+?}}((\(\d{0,10}\))){0,1}/g)) == null ? void 0 : _h.forEach((match2) => {
+    (_i = (_h = element.textContent) == null ? void 0 : _h.match(/\{\{.+?}}((\(\d{0,10}\))){0,1}/g)) == null ? void 0 : _i.forEach((match2) => {
       var _a2, _b2, _c2;
       const thrMatch = (_a2 = match2.match(/\}\}\(\d{0,10}\)/g)) == null ? void 0 : _a2[0];
       const throttleStr = (thrMatch == null ? void 0 : thrMatch.slice(3, thrMatch.length - 1)) || "0";
@@ -5853,7 +6026,22 @@ const appendElFromTemplate = (that, htmlParentEl, templateEl, scope = void 0, sc
   } else {
     element = document.createElement("none");
   }
-  htmlParentEl.append(element);
+  if (Array.isArray(element)) {
+    const h = (parent, element2) => {
+      if (!Array.isArray(element2)) {
+        parent.append(element2);
+      } else {
+        element2.forEach((el2) => {
+          h(parent, el2);
+        });
+      }
+    };
+    if (htmlParentEl)
+      h(htmlParentEl, element);
+  } else {
+    (_j = htmlParentEl == null ? void 0 : htmlParentEl.append) == null ? void 0 : _j.call(htmlParentEl, element);
+  }
+  return element;
 };
 class BVRElement extends Puya {
   constructor() {
@@ -5861,6 +6049,7 @@ class BVRElement extends Puya {
     __publicField(this, "$$rootElement", document.createElement("div"));
     __publicField(this, "$$parent");
     __publicField(this, "$$elementSelector");
+    __publicField(this, "$$slots", {});
     __publicField(this, "props", {});
     __publicField(this, "$$directives", []);
     __publicField(this, "$$elements", {});
@@ -5890,7 +6079,7 @@ class BVRElement extends Puya {
     let bvrElements = [];
     let parsed = document.createElement("div");
     this.$$template = this.template() || this.$$template;
-    appendElFromTemplate(this, this.$$rootElement, this.$$template, void 0, void 0);
+    appendElFromTemplate(this, this.$$template, this.$$rootElement, void 0, void 0);
     bvrElements.forEach((bvrElement) => {
       parsed.innerHTML = parsed.innerHTML.replace(`__$$__${bvrElement.$id}__$$__`, `<div phid=${bvrElement.$id}></div>`);
       const rootElement = parsed.querySelector(`[phid="${bvrElement.$id}"]`);

@@ -8,8 +8,7 @@ export default class ComponentDirective {
 
     static tagName = 'if'
 
-    render(templateEl: Element,scope: any, parentScopeId: string) {
-
+    render(templateEl: Element, _: any, parentScopeId: string) {
         const fn = Function.apply(null, ['cmp', 'return new cmp(' + ')'])
 
         const cmp = this.bvrElement.$$elements?.[(templateEl as Element).name]
@@ -23,7 +22,6 @@ export default class ComponentDirective {
             if (node.name === 'slot') {
                 const slotName = node?.attribs?.['name'] || 'default'
                 let filler
-
                 ;(templateEl.children as (Partial<Element> & { children: Element })[]).forEach(
                     (child) => {
                         if (
@@ -79,11 +77,7 @@ export default class ComponentDirective {
 
                 v.match(/this(.\w){0,}/g)?.forEach((item) => {
                     item = item.slice(5) //item.replace(/this\./, '')
-                    this.bvrElement.addSubscribe(
-                        item,
-                        set,
-                        parentScopeId
-                    )
+                    this.bvrElement.addSubscribe(item, set, parentScopeId)
                 })
 
                 set()

@@ -4,6 +4,6 @@ export default class ForDirective {
     private bvrElement;
     constructor(bvrElement: BVRElement);
     static tagName: string;
-    render(templateEl: Element, parentScopeId: string): HTMLElement;
+    render(templateEl: Element, scope: any, parentScopeId: string): (HTMLElement | Comment)[];
 }
 //# sourceMappingURL=for.d.ts.map

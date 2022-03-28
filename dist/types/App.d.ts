@@ -1,4 +1,5 @@
 import BVRElement from './BVRElement';
+import _ from 'lodash';
 import TextInput from './TextInput';
 export default class App extends BVRElement {
     $$elements: {
@@ -12,6 +13,7 @@ export default class App extends BVRElement {
     beforeMount(): void;
     mounted(): Promise<void>;
     checked: boolean;
+    _: _.LoDashStatic;
     template(): Partial<import("domhandler").Element>;
 }
 //# sourceMappingURL=App.d.ts.map
