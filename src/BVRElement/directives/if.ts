@@ -8,8 +8,9 @@ export default class IfDirective {
     static tagName = 'if'
 
     render(templateEl: Element, parentScopeId: string) {
+
         const tEl = templateEl as Element
-        const element = document.createElement(tEl.name)
+        let element: (HTMLElement | Comment)[] = []
 
         const vars = tEl.attribs['exp'].match(/[$](\w)+/g)?.join(',')
         const exp = tEl.attribs['exp'].replace(/this(.\w)+/, ($propStr) => {
@@ -20,13 +21,14 @@ export default class IfDirective {
         })
         const code = `
                     var that = this;
-                    (function() {
                         if( ${exp} ){
-                            tEl.children.forEach((tChild)=>{
-                                appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
+                            return tEl.children.map((tChild)=>{
+                                return appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
                             })
+                        }else {
+                            return []
                         }
-                    })()`
+                    `
 
         const args = ['appendElFromTemplate,those,tEl,elem,scopeId', code]
 
@@ -35,22 +37,80 @@ export default class IfDirective {
             if (lastId) {
                 this.bvrElement.removeSubscribeByClass(lastId)
             }
+
+            function getComments(context: HTMLElement) {
+                var foundComments: Comment[] = []
+                var elementPath: (ChildNode | undefined)[] = [context]
+                while (elementPath.length > 0) {
+                    var el = elementPath.pop()
+                    for (var i = 0; i < (el?.childNodes.length || 0); i++) {
+                        var node = el?.childNodes[i]
+                        if (node?.nodeType === Node.COMMENT_NODE && node instanceof Comment) {
+                            foundComments.push(node)
+                        } else {
+                            elementPath.push(node)
+                        }
+                    }
+                }
+
+                return foundComments
+            }
+
+            let start: Comment | undefined
+            let end: Comment | undefined
+
             const $scopeId = nanoid(6)
-            lastId = $scopeId
-            ;(element as HTMLDivElement).innerHTML = ''
+            let first = false
+            if (!lastId) {
+                first = true
+                lastId = $scopeId
+                start = document.createComment('if:' + $scopeId)
+                end = document.createComment('endif:' + $scopeId)
+                element = [start, end]
+            } else {
+                start = getComments(this.bvrElement.$$rootElement).find(
+                    (cmnt) => cmnt.nodeValue === 'if:' + lastId
+                )
+                end = getComments(this.bvrElement.$$rootElement).find(
+                    (cmnt) => cmnt.nodeValue === 'endif:' + lastId
+                )
+                //let cursor = start?.nextSibling
+                while (start?.nextSibling !== end && start?.nextSibling) {
+                    start?.parentElement?.removeChild(start?.nextSibling)
+                }
+            }
 
             try {
                 const fn = Function.apply(null, args)
-
-                fn.bind(this.bvrElement)(
+                //const elems = [document.createComment('if:' + $scopeId)]
+                const elems = fn.bind(this.bvrElement)(
                     appendElFromTemplate,
                     this.bvrElement,
                     tEl,
-                    element,
+                    undefined,
                     $scopeId
-                )
+                ) as HTMLElement[]
+                //elems.push(document.createComment('endif:' + $scopeId))
+                if (first) {
+                    element = [element[0], ...elems, element[1]]
+                } else {
+                    const h = (
+                        endElement: Comment,
+                        element: HTMLElement | Comment | (HTMLElement | Comment)[]
+                    ) => {
+                        if (!Array.isArray(element)) {
+                            endElement.before(element)
+                        } else {
+                            element.forEach((el) => {
+                                h(endElement, el)
+                            })
+                        }
+                    }
+                    if (end) h(end, elems)
+                }
             } catch (e) {
                 console.error(e)
+                element = []
             }
         }
 

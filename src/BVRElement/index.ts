@@ -48,17 +48,17 @@ function domReady() {
 
 export const appendElFromTemplate = (
     that: BVRElement,
-    templateEl: Partial<Element | DataNode | Document>,
+    templateEl: Partial<Element | DataNode | Document> | Partial<Element | DataNode | Document>[],
     htmlParentEl?: HTMLElement,
     scope: any = undefined,
     scopeId?: string
-): string | HTMLElement | Text | undefined => {
-    let element: HTMLElement | Text | string // = document.createTextNode('')
-    if (templateEl.type === ElementType.Root) {
-        ;(templateEl as Document).children.forEach((child) => {
-            appendElFromTemplate(that, child, htmlParentEl, scope, scopeId)
+): string | HTMLElement | Text | undefined | (HTMLElement | Comment)[] => {
+    let element: HTMLElement | Text | string | (HTMLElement | Comment)[] // = document.createTextNode('')
+    if (Array.isArray(templateEl) || templateEl.type === ElementType.Root) {
+        const iter = (templateEl as Document).children || templateEl
+        return iter.map((child) => {
+            return appendElFromTemplate(that, child, htmlParentEl, scope, scopeId) as HTMLElement
         })
-        return
     } else if (
         templateEl.type === ElementType.Tag &&
         (templateEl as Element).name?.toLowerCase() === 'for'
@@ -83,7 +83,14 @@ export const appendElFromTemplate = (
         const filler = that.$$slots?.[(templateEl as Element).attribs.name || 'default'].filler
         if (filler && that?.$$parent) {
             console.log('fillerIs', filler, that)
-            element = appendElFromTemplate(that?.$$parent, filler, undefined, scope, scopeId) || ''
+            element =
+                appendElFromTemplate(
+                    that?.$$parent,
+                    (filler as { children: Partial<Element | DataNode | Document>[] })?.children,
+                    undefined,
+                    scope,
+                    scopeId
+                ) || ''
         } else {
             element = ''
         }
@@ -104,14 +111,14 @@ export const appendElFromTemplate = (
                     const event = attrName.replace('@', '')
                     const code = attrValue
                     if (!code) return
-
-                    element.addEventListener(event, ($event) => {
-                        const args = ['$event', code]
-                        const fn = Function.apply(null, args)
-                        try {
-                            fn.bind(that)($event)
-                        } catch (e) {}
-                    })
+                    if (element instanceof HTMLStyleElement || element instanceof HTMLElement)
+                        element.addEventListener(event, ($event) => {
+                            const args = ['$event', code]
+                            const fn = Function.apply(null, args)
+                            try {
+                                fn.bind(that)($event)
+                            } catch (e) {}
+                        })
                 } else if (attrName === '$') {
                     const set = () => {
                         Function.apply(null, ['$', attrValue]).bind(that)(element)
@@ -176,18 +183,21 @@ export const appendElFromTemplate = (
 
                     if (childToParent) {
                         //TODO specify currect listener for each element type
-                        element.addEventListener('change', (event) => {
-                            const value = (event.currentTarget as any)?.[str]
-                            if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
-                                setByPath(that, attrValue.slice(5), value)
-                            }
-                        })
-                        element.addEventListener('input', (event) => {
-                            const value = (event.currentTarget as any)?.[str]
-                            if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
-                                setByPath(that, attrValue.slice(5), value)
-                            }
-                        })
+                        if (element instanceof HTMLStyleElement || element instanceof HTMLElement) {
+                            element.addEventListener('change', (event) => {
+                                const value = (event.currentTarget as any)?.[str]
+                                if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
+                                    setByPath(that, attrValue.slice(5), value)
+                                }
+                            })
+
+                            element.addEventListener('input', (event) => {
+                                const value = (event.currentTarget as any)?.[str]
+                                if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
+                                    setByPath(that, attrValue.slice(5), value)
+                                }
+                            })
+                        }
                     }
 
                     if (!parentToChild && !childToParent) {
@@ -201,36 +211,37 @@ export const appendElFromTemplate = (
         element = document.createTextNode(el.data)
 
         const set = () => {
-            element.textContent =
-                el.data?.replace(/\{\{.+?}}((\(\d{0,10}\))){0,1}/g, (match) => {
-                    let rawLength = match.match(/\{\{.+?}}/g)?.[0]?.length
+            if (element instanceof Text)
+                element.textContent =
+                    el.data?.replace(/\{\{.+?}}((\(\d{0,10}\))){0,1}/g, (match) => {
+                        let rawLength = match.match(/\{\{.+?}}/g)?.[0]?.length
 
-                    const scopeStr = match
-                        .substr(2, match.length - 4 - (match.length - (rawLength || 0)))
-                        .trim()
+                        const scopeStr = match
+                            .substr(2, match.length - 4 - (match.length - (rawLength || 0)))
+                            .trim()
 
-                    //Check if there is instance of a class in the scope
+                        //Check if there is instance of a class in the scope
 
-                    try {
-                        const ev = eval('scope.' + scopeStr)
-                        if (ev !== undefined) {
-                            return ev
-                        }
-                    } catch (e) {}
-                    try {
-                        const res = new Function('return ' + scopeStr).bind(that)()
-                        return res
-                    } catch (e) {}
-                    /* try {
+                        try {
+                            const ev = eval('scope.' + scopeStr)
+                            if (ev !== undefined) {
+                                return ev
+                            }
+                        } catch (e) {}
+                        try {
+                            const res = new Function('return ' + scopeStr).bind(that)()
+                            return res
+                        } catch (e) {}
+                        /* try {
                             const ev = eval(scopeStr)
                             if (ev !== undefined) return ev
                         } catch {} */
-                    /* if (scopeStr.slice(0, 5) === 'this.')
+                        /* if (scopeStr.slice(0, 5) === 'this.')
                             return getFromPath(
                                 that,
                                 scopeStr.replace('this.', '')
                             ) */
-                }) || ''
+                    }) || ''
         }
 
         element.textContent?.match(/<[\?]js.*/g)?.forEach((match) => {
@@ -261,7 +272,23 @@ export const appendElFromTemplate = (
         element = document.createElement('none')
     }
 
-    htmlParentEl?.append?.(element)
+    if (Array.isArray(element)) {
+        const h = (
+            parent: HTMLElement,
+            element: HTMLElement | Comment | (HTMLElement | Comment)[]
+        ) => {
+            if (!Array.isArray(element)) {
+                parent.append(element)
+            } else {
+                element.forEach((el) => {
+                    h(parent, el)
+                })
+            }
+        }
+        if (htmlParentEl) h(htmlParentEl, element)
+    } else {
+        htmlParentEl?.append?.(element)
+    }
     return element
 }
 

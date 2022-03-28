@@ -10,7 +10,7 @@ export default class TextInput extends BVRElement {
     $$template = html`
         <div>
             <slot name="prepend"></slot>
-            <button @click="ok">Btn</button>
+            <button>Btn</button>
             <input
                 @input="this.props.value = $event.target.value"
                 $="$.setAttribute('ok', this.props.value); $.value = this.props.value"

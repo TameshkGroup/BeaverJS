@@ -14,7 +14,7 @@ export default class App extends BVRElement {
 
     value = 'va'
 
-    arr: number[] = _.range(1, 3)
+    arr: number[] = _.range(1, 5)
     x: any
     y: number = 100
     beforeMount(): void {
@@ -34,39 +34,38 @@ export default class App extends BVRElement {
                 @mouseMove="//this.x.x = $event.clientX; this.y = $event.clientY;"
                 style="background-color: black;color:white; height: 100%"
             >
-                {{this.checked}}
-                {{ this.checked?100:200 }}
+                {{this.checked}} {{ this.checked?100:200 }}
                 <br />
-                <input type="checkbox" checked{}="this.checked"/>
-                <if exp="this.y > 100">
-                    <div style="background: red; width: 100px; height: 100px;"></div>
+                <input type="checkbox" checked{}="this.checked" />
+                <if exp="this.checked">
+                    11
+                    <div style="background: blue; width: 100px; height: 100px;"></div>
+                    <if exp="this.x.x > 10"> mm </if>
+                    <TextInput bi.value="this.x.x" />
                 </if>
+                <for exp="i in _.range(0,10)">
+                    <div>{{i}}</div>
+                </for>
                 <input value{="this.checked ?100:200" value}="this.x.x" />
-                
+
                 {{this.x.x}} {{this.y}}
                 <div>--{{JSON.stringify(this.x)}}--</div>
                 {{this.value}}
-                <TextInput value{="this.checked ?100:200" value}="this.x.x">
+                <TextInput set.value="this.checked ?100:200" get.value="this.x.x">
                     <filler>
                         The Filler
                         <div>aa</div>
-                        <TextInput value{="this.x.x" value}="this.x.x" bi.value="" set.value="this.x.x" get.value="this.x.x = Number.parseInt($)" >
-                            <args>
-                                <value>
-                            <args/>
-                            <filler slot="prepend">
-                                prepend1 {{JSON.stringify(this.x)}}
-                            </filler>
-                            <filler>
-                                defult {{this.x.x}}
-                            </filler>
-                        </Textinput>
+                        <TextInput set.value="this.x.x" get.value="this.x.x = Number.parseInt($)">
+                            <filler slot="prepend"> prepend1 {{JSON.stringify(this.x)}} </filler>
+                            <filler> defult {{this.x.x}} </filler>
+                        </TextInput>
                     </filler>
-                </Textarea>
-                <TextInput value}="this.y" $="$.props.value = this.checked?100:200" />
-                <for exp="var $j in this.arr">
-                </for>
+                </TextInput>
+                <TextInput get.value="this.y"></TextInput>
+
+                <for exp="var $j in this.arr"> 1111 </for>
             </div>
+
             <div id="ok">
                 <style>
                     #ok{
