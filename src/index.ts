@@ -1,8 +1,9 @@
 import BVRElement, { html } from "./BVRElement";
-import { Puya } from "./Puya";
+import { Puya, AsPuya } from "./Puya";
 
 export {
     BVRElement,
     Puya,
-    html
+    html,
+    AsPuya
 }

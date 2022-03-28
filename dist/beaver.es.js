@@ -780,7 +780,7 @@ var lodash = { exports: {} };
         function object() {
         }
         return function(proto) {
-          if (!isObject(proto)) {
+          if (!isObject2(proto)) {
             return {};
           }
           if (objectCreate) {
@@ -1142,7 +1142,7 @@ var lodash = { exports: {} };
         if (result2 !== undefined$1) {
           return result2;
         }
-        if (!isObject(value)) {
+        if (!isObject2(value)) {
           return value;
         }
         var isArr = isArray(value);
@@ -1489,7 +1489,7 @@ var lodash = { exports: {} };
         return true;
       }
       function baseIsNative(value) {
-        if (!isObject(value) || isMasked(value)) {
+        if (!isObject2(value) || isMasked(value)) {
           return false;
         }
         var pattern = isFunction(value) ? reIsNative : reIsHostCtor;
@@ -1529,7 +1529,7 @@ var lodash = { exports: {} };
         return result2;
       }
       function baseKeysIn(object) {
-        if (!isObject(object)) {
+        if (!isObject2(object)) {
           return nativeKeysIn(object);
         }
         var isProto = isPrototype(object), result2 = [];
@@ -1574,7 +1574,7 @@ var lodash = { exports: {} };
         }
         baseFor(source, function(srcValue, key) {
           stack || (stack = new Stack());
-          if (isObject(srcValue)) {
+          if (isObject2(srcValue)) {
             baseMergeDeep(object, source, key, srcIndex, baseMerge, customizer, stack);
           } else {
             var newValue = customizer ? customizer(safeGet(object, key), srcValue, key + "", object, source, stack) : undefined$1;
@@ -1614,7 +1614,7 @@ var lodash = { exports: {} };
             newValue = objValue;
             if (isArguments(objValue)) {
               newValue = toPlainObject(objValue);
-            } else if (!isObject(objValue) || isFunction(objValue)) {
+            } else if (!isObject2(objValue) || isFunction(objValue)) {
               newValue = initCloneObject(srcValue);
             }
           } else {
@@ -1753,7 +1753,7 @@ var lodash = { exports: {} };
         return shuffleSelf(array, baseClamp(n, 0, array.length));
       }
       function baseSet(object, path, value, customizer) {
-        if (!isObject(object)) {
+        if (!isObject2(object)) {
           return object;
         }
         path = castPath(path, object);
@@ -1767,7 +1767,7 @@ var lodash = { exports: {} };
             var objValue = nested[key];
             newValue = customizer ? customizer(objValue, key, nested) : undefined$1;
             if (newValue === undefined$1) {
-              newValue = isObject(objValue) ? objValue : isIndex(path[index + 1]) ? [] : {};
+              newValue = isObject2(objValue) ? objValue : isIndex(path[index + 1]) ? [] : {};
             }
           }
           assignValue(nested, key, newValue);
@@ -2217,7 +2217,7 @@ var lodash = { exports: {} };
               return new Ctor(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
           }
           var thisBinding = baseCreate(Ctor.prototype), result2 = Ctor.apply(thisBinding, args);
-          return isObject(result2) ? result2 : thisBinding;
+          return isObject2(result2) ? result2 : thisBinding;
         };
       }
       function createCurry(func, bitmask, arity) {
@@ -2531,7 +2531,7 @@ var lodash = { exports: {} };
         return objValue;
       }
       function customDefaultsMerge(objValue, srcValue, key, object, source, stack) {
-        if (isObject(objValue) && isObject(srcValue)) {
+        if (isObject2(objValue) && isObject2(srcValue)) {
           stack.set(srcValue, objValue);
           baseMerge(objValue, srcValue, undefined$1, customDefaultsMerge, stack);
           stack["delete"](srcValue);
@@ -2879,7 +2879,7 @@ var lodash = { exports: {} };
         return !!length && (type == "number" || type != "symbol" && reIsUint.test(value)) && (value > -1 && value % 1 == 0 && value < length);
       }
       function isIterateeCall(value, index, object) {
-        if (!isObject(object)) {
+        if (!isObject2(object)) {
           return false;
         }
         var type = typeof index;
@@ -2922,7 +2922,7 @@ var lodash = { exports: {} };
         return value === proto;
       }
       function isStrictComparable(value) {
-        return value === value && !isObject(value);
+        return value === value && !isObject2(value);
       }
       function matchesStrictComparable(key, srcValue) {
         return function(object) {
@@ -3804,7 +3804,7 @@ var lodash = { exports: {} };
           throw new TypeError2(FUNC_ERROR_TEXT);
         }
         wait = toNumber(wait) || 0;
-        if (isObject(options)) {
+        if (isObject2(options)) {
           leading = !!options.leading;
           maxing = "maxWait" in options;
           maxWait = maxing ? nativeMax(toNumber(options.maxWait) || 0, wait) : maxWait;
@@ -3974,7 +3974,7 @@ var lodash = { exports: {} };
         if (typeof func != "function") {
           throw new TypeError2(FUNC_ERROR_TEXT);
         }
-        if (isObject(options)) {
+        if (isObject2(options)) {
           leading = "leading" in options ? !!options.leading : leading;
           trailing = "trailing" in options ? !!options.trailing : trailing;
         }
@@ -4082,7 +4082,7 @@ var lodash = { exports: {} };
         return typeof value == "number" && nativeIsFinite(value);
       }
       function isFunction(value) {
-        if (!isObject(value)) {
+        if (!isObject2(value)) {
           return false;
         }
         var tag = baseGetTag(value);
@@ -4094,7 +4094,7 @@ var lodash = { exports: {} };
       function isLength(value) {
         return typeof value == "number" && value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER;
       }
-      function isObject(value) {
+      function isObject2(value) {
         var type = typeof value;
         return value != null && (type == "object" || type == "function");
       }
@@ -4201,9 +4201,9 @@ var lodash = { exports: {} };
         if (isSymbol(value)) {
           return NAN;
         }
-        if (isObject(value)) {
+        if (isObject2(value)) {
           var other = typeof value.valueOf == "function" ? value.valueOf() : value;
-          value = isObject(other) ? other + "" : other;
+          value = isObject2(other) ? other + "" : other;
         }
         if (typeof value != "string") {
           return value === 0 ? value : +value;
@@ -4424,7 +4424,7 @@ var lodash = { exports: {} };
           var Ctor = object && object.constructor;
           if (isArrLike) {
             accumulator = isArr ? new Ctor() : [];
-          } else if (isObject(object)) {
+          } else if (isObject2(object)) {
             accumulator = isFunction(Ctor) ? baseCreate(getPrototype(object)) : {};
           } else {
             accumulator = {};
@@ -4706,7 +4706,7 @@ var lodash = { exports: {} };
       }
       function truncate(string, options) {
         var length = DEFAULT_TRUNC_LENGTH, omission = DEFAULT_TRUNC_OMISSION;
-        if (isObject(options)) {
+        if (isObject2(options)) {
           var separator = "separator" in options ? options.separator : separator;
           length = "length" in options ? toInteger(options.length) : length;
           omission = "omission" in options ? baseToString(options.omission) : omission;
@@ -4836,13 +4836,13 @@ var lodash = { exports: {} };
       });
       function mixin(object, source, options) {
         var props = keys(source), methodNames = baseFunctions(source, props);
-        if (options == null && !(isObject(source) && (methodNames.length || !props.length))) {
+        if (options == null && !(isObject2(source) && (methodNames.length || !props.length))) {
           options = source;
           source = object;
           object = this;
           methodNames = baseFunctions(source, keys(source));
         }
-        var chain2 = !(isObject(options) && "chain" in options) || !!options.chain, isFunc = isFunction(object);
+        var chain2 = !(isObject2(options) && "chain" in options) || !!options.chain, isFunc = isFunction(object);
         arrayEach(methodNames, function(methodName) {
           var func = source[methodName];
           object[methodName] = func;
@@ -5188,7 +5188,7 @@ var lodash = { exports: {} };
       lodash2.isNil = isNil;
       lodash2.isNull = isNull;
       lodash2.isNumber = isNumber;
-      lodash2.isObject = isObject;
+      lodash2.isObject = isObject2;
       lodash2.isObjectLike = isObjectLike;
       lodash2.isPlainObject = isPlainObject;
       lodash2.isRegExp = isRegExp;
@@ -5451,6 +5451,7 @@ var lodash = { exports: {} };
   }).call(commonjsGlobal);
 })(lodash, lodash.exports);
 var _ = lodash.exports;
+const isObject = (val) => val !== null && typeof val === "object";
 const getFromPath = (obj, strPath) => {
   return strPath.split(".").reduce((_2, key) => {
     return _2[key];
@@ -5464,6 +5465,85 @@ const setByPath = (obj, path, value) => {
   path.slice(0, -1).reduce((a, c, i) => Object(a[c]) === a[c] ? a[c] : a[c] = Math.abs(Number.parseInt(path[i + 1])) >> 0 === +path[i + 1] ? [] : {}, obj)[path[path.length - 1]] = value;
   return obj;
 };
+function AsPuya(target) {
+  return class extends target {
+    constructor(...args) {
+      super(...args);
+      __publicField(this, "$$context", {});
+      __publicField(this, "setByPath", (path, value, klass) => {
+        if (!Array.isArray(path))
+          path = path.toString().match(/[^.[\]]+/g) || [];
+        path.slice(0, -1).reduce((a, c, i) => Object(a[c]) === a[c] ? a[c] : a[c] = Math.abs(Number.parseInt(path[i + 1])) >> 0 === +path[i + 1] ? [] : {}, this.$$context)[path[path.length - 1]] = value;
+      });
+      var _a;
+      const createHandler = (path = []) => ({
+        get: (target2, key) => {
+          if (key == "isProxy")
+            return true;
+          if (typeof target2[key] === "object" && target2[key] != null)
+            return new Proxy(target2[key], createHandler([...path, key]));
+          return target2[key];
+        },
+        set: (target2, key, value) => {
+          var _a2, _b, _c, _d, _e;
+          target2[key] = value;
+          (_a2 = this.$$subscribes[""]) == null ? void 0 : _a2.forEach((subscribe) => {
+            subscribe.fn(this);
+          });
+          const propParts = [...path, key];
+          if (typeof propParts[0] === "string") {
+            (_c = (_b = this.$$subscribes) == null ? void 0 : _b[propParts[0]]) == null ? void 0 : _c.forEach((subscribe) => {
+              try {
+                subscribe.fn(target2);
+              } catch {
+              }
+            });
+          }
+          let acm = "";
+          for (let part of propParts.slice(1)) {
+            acm += (acm ? "." : "") + part;
+            (_e = (_d = this.$$subscribes) == null ? void 0 : _d[propParts[0] + "." + acm]) == null ? void 0 : _e.forEach((subscribe) => {
+              const value2 = getFromPath(target2, acm);
+              subscribe.fn(value2);
+            });
+          }
+          return true;
+        }
+      });
+      (_a = Object.keys(this).filter((key) => key[0] !== "$" && typeof this[key] !== "function")) == null ? void 0 : _a.forEach((prop) => {
+        const prevValue = this[prop];
+        if (this[prop]) {
+          this.$$context[prop] = this[prop];
+        }
+        Object.defineProperty(this, prop, {
+          get: () => {
+            return this.$$context[prop];
+          },
+          set: (value) => {
+            var _a2, _b;
+            if (isObject(value)) {
+              this.$$context["$_" + prop] = value;
+              this.$$context[prop] = new Proxy(this.$$context["$_" + prop], createHandler([prop]));
+            } else {
+              this.$$context[prop] = value;
+            }
+            (_a2 = this.$$subscribes[""]) == null ? void 0 : _a2.forEach((subscribe) => {
+              subscribe.fn(this);
+            });
+            (_b = this.$$subscribes[prop]) == null ? void 0 : _b.forEach((subscribe) => {
+              subscribe.fn(value);
+            });
+          },
+          configurable: false
+        });
+        if (isObject(this[prop])) {
+          this[prop] = this.$$context[prop];
+        }
+        this[prop] = prevValue;
+      });
+    }
+  };
+}
 class Puya {
   constructor() {
     __publicField(this, "$$subscribes", {});
@@ -6094,4 +6174,4 @@ class BVRElement extends Puya {
   }
 }
 __publicField(BVRElement, "$$includedElems", {});
-export { BVRElement, Puya, html };
+export { AsPuya, BVRElement, Puya, html };
