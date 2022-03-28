@@ -62,13 +62,15 @@ export default class App extends BVRElement {
                         </TextInput>
                     </filler>
                 </TextInput>
-                <TextInput get.value="this.y"></TextInput>
+                <TextInput get.value="this.y" set.value="this.y"></TextInput>
 
-                <for exp="let $j in this.arr">
-                    1 {{$j}}
-                    <if exp="$j < 2"> m </if>
-                    <if exp="$j >= 2"> n </if>
-                </for>
+                <if exp="this.x.x > 10">
+                    <for exp="let $j in this.arr">
+                        1 {{$j}}
+                        <if exp="$j < 2"> m </if>
+                        <if exp="$j >= 2"> n </if>
+                    </for>
+                </if>
             </div>
 
             <div id="ok">
