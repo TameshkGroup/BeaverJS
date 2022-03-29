@@ -142,10 +142,13 @@ export const appendElFromTemplate = (
                         Function.apply(null, ['$', attrValue]).bind(that)(element)
                     }
 
-                    attrValue.match(/this(.\w){0,}/g)?.forEach((item) => {
-                        item = item.slice(5) //item.replace(/this\./, '')
-                        that.addSubscribe(item, set, scopeId)
-                    })
+                    attrValue
+                        .match(
+                            /(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g
+                        )
+                        ?.forEach((item) => {
+                            that.addSubscribe(item, set, scopeId)
+                        })
 
                     set()
                 } else {
@@ -179,9 +182,14 @@ export const appendElFromTemplate = (
                     }
 
                     if (parentToChild) {
-                        if (attrValue.slice(0, 5) == 'this.')
-                            that.addSubscribe(attrValue.slice(5), (value) => {
-                                ;(element as HTMLInputElement).value = value
+                        attrValue
+                            .match(
+                                /(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g
+                            )
+                            ?.forEach((item) => {
+                                that.addSubscribe(item, (value) => {
+                                    ;(element as HTMLInputElement).value = value
+                                })
                             })
 
                         const set = () => {
@@ -277,11 +285,11 @@ export const appendElFromTemplate = (
             if (scopeStr.match(/^(new)[\s]\w+[\s\S]+/)?.length) {
             } else {
                 //const m = _.throttle(set, 10)
-                scopeStr.match(/this(.\w){0,}/g)?.forEach((item) => {
-                    item = item.slice(5) //item.replace(/this\./, '')
-                    //console.log('item instead slice ', scopeStr, item, that)
-                    that.addSubscribe(item, set, scopeId, throttle)
-                })
+                scopeStr
+                    .match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)
+                    ?.forEach((item) => {
+                        that.addSubscribe(item, set, scopeId, throttle)
+                    })
             }
         })
 

@@ -8,7 +8,7 @@ export default class ComponentDirective {
 
     static tagName = 'if'
 
-    render(templateEl: Element, _: any, parentScopeId: string) {
+    render(templateEl: Element, __: any, parentScopeId: string) {
         const fn = Function.apply(null, ['cmp', 'return new cmp(' + ')'])
 
         const cmp = this.bvrElement.$$elements?.[(templateEl as Element).name]
@@ -90,8 +90,7 @@ export default class ComponentDirective {
                         ]).bind(this.bvrElement)()
                     }
 
-                    v.match(/this(.\w){0,}/g)?.forEach((item) => {
-                        item = item.slice(5) //item.replace(/this\./, '')
+                    v.match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)?.forEach((item) => {
                         this.bvrElement.addSubscribe(item, set, parentScopeId)
                     })
 
@@ -105,8 +104,7 @@ export default class ComponentDirective {
                         )()
                     }
 
-                    v.match(/this(.\w){0,}/g)?.forEach((item) => {
-                        item = item.slice(5) //item.replace(/this\./, '')
+                    v.match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)?.forEach((item) => {
                         this.bvrElement.addSubscribe(item, set, parentScopeId)
                     })
 
@@ -148,6 +146,7 @@ export default class ComponentDirective {
                             //DEEP Equality check
                             if (!_.isEqual(getFromPath(this.bvrElement, v.slice(5)), value)) {
                                 //that[v.slice(5)] = value;
+                                console.log('v', v)
                                 setByPath(this.bvrElement, v.slice(5), value)
                             }
                         })

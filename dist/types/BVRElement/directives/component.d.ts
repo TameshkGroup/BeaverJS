@@ -4,6 +4,6 @@ export default class ComponentDirective {
     private bvrElement;
     constructor(bvrElement: BVRElement);
     static tagName: string;
-    render(templateEl: Element, _: any, parentScopeId: string): HTMLDivElement;
+    render(templateEl: Element, __: any, parentScopeId: string): HTMLDivElement;
 }
 //# sourceMappingURL=component.d.ts.map

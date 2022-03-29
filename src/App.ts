@@ -23,8 +23,11 @@ export default class App extends BVRElement {
 
     async mounted() {
         this.x.x = 13
+        console.log('log', this.$$subscribes)
     }
+
     checked = true
+    
     _ = _
 
     template() {

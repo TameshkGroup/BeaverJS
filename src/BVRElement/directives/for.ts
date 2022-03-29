@@ -12,12 +12,20 @@ export default class ForDirective {
         let element: (HTMLElement | Comment)[] = []
 
         const vars = tEl.attribs['exp'].match(/[$](\w)+/g)?.join(',')
-        const exp = tEl.attribs['exp'].replace(/this(.\w)+/, ($propStr) => {
-            const propTrimmed = $propStr.replace('this.', '')
+        //v.match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)?.forEach((item) => {
 
-            this.bvrElement.addSubscribe(propTrimmed, () => set(), parentScopeId)
-            return $propStr.replace(/this./, 'that.')
-        })
+        const exp = tEl.attribs['exp'].replaceAll(
+            /((this\.))(?=([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g,
+            'that.'
+        )
+        tEl.attribs['exp']
+            .match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)
+            ?.forEach(($var) => {
+                //const propTrimmed = $propStr.replace('this.', '')
+                console.log('$scopestr', $var)
+                this.bvrElement.addSubscribe($var, () => set(), parentScopeId)
+            })
+        console.log('exp', exp)
         console.log('for vars', vars)
         const code = `
                     var that = this;

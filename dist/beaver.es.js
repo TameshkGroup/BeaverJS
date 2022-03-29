@@ -5610,15 +5610,16 @@ class ForDirective {
     this.bvrElement = bvrElement;
   }
   render(templateEl2, scope2, parentScopeId) {
-    var _a;
+    var _a, _b;
     const tEl2 = templateEl2;
     let element2 = [];
     const vars = (_a = tEl2.attribs["exp"].match(/[$](\w)+/g)) == null ? void 0 : _a.join(",");
-    const exp = tEl2.attribs["exp"].replace(/this(.\w)+/, ($propStr) => {
-      const propTrimmed = $propStr.replace("this.", "");
-      this.bvrElement.addSubscribe(propTrimmed, () => set2(), parentScopeId);
-      return $propStr.replace(/this./, "that.");
+    const exp = tEl2.attribs["exp"].replaceAll(/((this\.))(?=([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g, "that.");
+    (_b = tEl2.attribs["exp"].match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _b.forEach(($var) => {
+      console.log("$scopestr", $var);
+      this.bvrElement.addSubscribe($var, () => set2(), parentScopeId);
     });
+    console.log("exp", exp);
     console.log("for vars", vars);
     const code = `
                     var that = this;
@@ -5798,7 +5799,7 @@ class ComponentDirective {
   constructor(bvrElement) {
     this.bvrElement = bvrElement;
   }
-  render(templateEl2, _2, parentScopeId) {
+  render(templateEl2, __, parentScopeId) {
     var _a, _b;
     const fn = Function.apply(null, ["cmp", "return new cmp()"]);
     const cmp = (_a = this.bvrElement.$$elements) == null ? void 0 : _a[templateEl2.name];
@@ -5855,8 +5856,7 @@ class ComponentDirective {
               "return " + v
             ]).bind(this.bvrElement)();
           };
-          (_b2 = v.match(/this(.\w){0,}/g)) == null ? void 0 : _b2.forEach((item) => {
-            item = item.slice(5);
+          (_b2 = v.match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _b2.forEach((item) => {
             this.bvrElement.addSubscribe(item, set2, parentScopeId);
           });
           set2();
@@ -5865,13 +5865,12 @@ class ComponentDirective {
           const set2 = () => {
             instance.props[str2] = Function.apply(null, ["", "return " + v]).bind(this.bvrElement)();
           };
-          (_c = v.match(/this(.\w){0,}/g)) == null ? void 0 : _c.forEach((item) => {
-            item = item.slice(5);
+          (_c = v.match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _c.forEach((item) => {
             this.bvrElement.addSubscribe(item, set2, parentScopeId);
           });
           set2();
           instance.addSubscribe("props." + str2, (value) => {
-            if (!_2.isEqual(getFromPath(this.bvrElement, v.slice(5)), value)) {
+            if (!_.isEqual(getFromPath(this.bvrElement, v.slice(5)), value)) {
               setByPath(this.bvrElement, v.slice(5), value);
             }
           });
@@ -5887,13 +5886,14 @@ class ComponentDirective {
                 "$",
                 "return " + assignment.rhs
               ]).bind(this.bvrElement)(v2);
-              if (!_2.isEqual(getFromPath(this.bvrElement, assignment.lhs.slice(5)), value)) {
+              if (!_.isEqual(getFromPath(this.bvrElement, assignment.lhs.slice(5)), value)) {
                 setByPath(this.bvrElement, assignment.lhs.slice(5), value);
               }
             });
           } else {
             instance.addSubscribe("props." + str2, (value) => {
-              if (!_2.isEqual(getFromPath(this.bvrElement, v.slice(5)), value)) {
+              if (!_.isEqual(getFromPath(this.bvrElement, v.slice(5)), value)) {
+                console.log("v", v);
                 setByPath(this.bvrElement, v.slice(5), value);
               }
             });
@@ -5966,7 +5966,7 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
     });
     if (tEl.attribs)
       Object.entries(tEl.attribs).forEach(([attrName, attrValue]) => {
-        var _a2, _b2;
+        var _a2, _b2, _c2;
         if (attrName.indexOf("@") === 0) {
           const event = attrName.replace("@", "");
           const code = attrValue;
@@ -5985,8 +5985,7 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
           const set2 = () => {
             Function.apply(null, ["$", attrValue]).bind(that)(element);
           };
-          (_a2 = attrValue.match(/this(.\w){0,}/g)) == null ? void 0 : _a2.forEach((item) => {
-            item = item.slice(5);
+          (_a2 = attrValue.match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _a2.forEach((item) => {
             that.addSubscribe(item, set2, scopeId);
           });
           set2();
@@ -6021,17 +6020,18 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
             }
           }
           if (parentToChild) {
-            if (attrValue.slice(0, 5) == "this.")
-              that.addSubscribe(attrValue.slice(5), (value) => {
+            (_b2 = attrValue.match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _b2.forEach((item) => {
+              that.addSubscribe(item, (value) => {
                 element.value = value;
               });
+            });
             const set2 = () => {
               element[str] = Function.apply(null, [
                 "",
                 "return " + attrValue
               ]).bind(that)();
             };
-            (_b2 = attrValue.match(/this(.\w){0,}/g)) == null ? void 0 : _b2.forEach((item) => {
+            (_c2 = attrValue.match(/this(.\w){0,}/g)) == null ? void 0 : _c2.forEach((item) => {
               item = item.slice(5);
               that.addSubscribe(item, set2, scopeId);
             });
@@ -6096,8 +6096,7 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
       if ((_b2 = scopeStr2.match(/^(new)[\s]\w+[\s\S]+/)) == null ? void 0 : _b2.length)
         ;
       else {
-        (_c2 = scopeStr2.match(/this(.\w){0,}/g)) == null ? void 0 : _c2.forEach((item) => {
-          item = item.slice(5);
+        (_c2 = scopeStr2.match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _c2.forEach((item) => {
           that.addSubscribe(item, set, scopeId, throttle);
         });
       }
