@@ -5833,7 +5833,7 @@ class ComponentDirective {
     instance.props = {};
     console.log("ok");
     console.log("template", instance.$$template, instance, "ok");
-    loop(instance.$$template, [], instance);
+    loop(instance["$$template"], [], instance);
     Object.entries(templateEl2.attribs).forEach(([k, v]) => {
       var _a2, _b2, _c;
       if (k.indexOf("@") === 0) {

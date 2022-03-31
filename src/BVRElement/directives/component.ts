@@ -56,7 +56,7 @@ export default class ComponentDirective {
         console.log('template', instance.$$template, instance, 'ok')
 
 
-        loop(instance.$$template, [], instance)
+        loop(instance['$$template'], [], instance)
 
         Object.entries((templateEl as Element).attribs).forEach(([k, v]) => {
             if (k.indexOf('@') === 0) {
