@@ -17,7 +17,7 @@ export default class ComponentDirective {
 
         let el = instance.$$template
 
-        console.log('template', el);
+        console.log('template', el, instance);
 
         const loop = (node: Partial<Element>, path: number[]) => {
             if (node.name === 'slot') {
