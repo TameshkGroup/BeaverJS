@@ -15,10 +15,10 @@ export default class ComponentDirective {
         instance.$$elements = this.bvrElement?.$$elements
         instance.props = {}
 
-        let el = instance.$$template
+        //let el = instance.$$template
 
         console.log('ok')
-        console.log('template', el, instance, 'ok')
+        console.log('template', instance.$$template, instance, 'ok')
 
         const loop = (node: Partial<Element>, path: number[]) => {
             if (node.name === 'slot') {
@@ -55,7 +55,7 @@ export default class ComponentDirective {
             }
         }
 
-        loop(el, [])
+        loop(instance.$$template, [])
 
         Object.entries((templateEl as Element).attribs).forEach(([k, v]) => {
             if (k.indexOf('@') === 0) {

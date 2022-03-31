@@ -5806,9 +5806,8 @@ class ComponentDirective {
     const instance = fn.bind(this.bvrElement)(cmp);
     instance.$$elements = (_b = this.bvrElement) == null ? void 0 : _b.$$elements;
     instance.props = {};
-    let el2 = instance.$$template;
     console.log("ok");
-    console.log("template", el2, instance, "ok");
+    console.log("template", instance.$$template, instance, "ok");
     const loop = (node, path) => {
       var _a2;
       if (node.name === "slot") {
@@ -5834,7 +5833,7 @@ class ComponentDirective {
         loop(nodes[i], [...path, i]);
       }
     };
-    loop(el2, []);
+    loop(instance.$$template, []);
     Object.entries(templateEl2.attribs).forEach(([k, v]) => {
       var _a2, _b2, _c;
       if (k.indexOf("@") === 0) {
