@@ -19,6 +19,7 @@ export default class ComponentDirective {
 
         let el = instance.$$template
         const loop = (node: Partial<Element>, path: number[]) => {
+            console.log('inside loop', node.name, path, node)
             if (node.name === 'slot') {
                 const slotName = node?.attribs?.['name'] || 'default'
                 let filler
@@ -90,7 +91,9 @@ export default class ComponentDirective {
                         ]).bind(this.bvrElement)()
                     }
 
-                    v.match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)?.forEach((item) => {
+                    v.match(
+                        /(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g
+                    )?.forEach((item) => {
                         this.bvrElement.addSubscribe(item, set, parentScopeId)
                     })
 
@@ -104,7 +107,9 @@ export default class ComponentDirective {
                         )()
                     }
 
-                    v.match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)?.forEach((item) => {
+                    v.match(
+                        /(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g
+                    )?.forEach((item) => {
                         this.bvrElement.addSubscribe(item, set, parentScopeId)
                     })
 

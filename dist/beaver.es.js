@@ -5809,6 +5809,7 @@ class ComponentDirective {
     let el2 = instance.$$template;
     const loop = (node, path) => {
       var _a2;
+      console.log("inside loop", node.name, path, node);
       if (node.name === "slot") {
         const slotName = ((_a2 = node == null ? void 0 : node.attribs) == null ? void 0 : _a2["name"]) || "default";
         let filler;
