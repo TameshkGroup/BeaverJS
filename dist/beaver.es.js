@@ -5828,7 +5828,9 @@ class ComponentDirective {
         });
       }
       var nodes = node == null ? void 0 : node.children;
+      console.log("nodes", nodes, node);
       for (var i = 0; i < ((nodes == null ? void 0 : nodes.length) || 0); i++) {
+        console.log("inside for", i, nodes[i]);
         loop(nodes[i], [...path, i]);
       }
     };

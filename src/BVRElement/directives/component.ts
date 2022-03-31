@@ -48,7 +48,9 @@ export default class ComponentDirective {
             }
 
             var nodes = node?.children as (Partial<Element> & { children: Element })[]
+            console.log('nodes', nodes, node)
             for (var i = 0; i < (nodes?.length || 0); i++) {
+                console.log('inside for', i, nodes[i])
                 loop(nodes[i], [...path, i])
             }
         }
