@@ -5807,9 +5807,9 @@ class ComponentDirective {
     instance.$$elements = (_b = this.bvrElement) == null ? void 0 : _b.$$elements;
     instance.props = {};
     let el2 = instance.$$template;
+    console.log("template", el2);
     const loop = (node, path) => {
       var _a2;
-      console.log("inside loop", node.name, path, node);
       if (node.name === "slot") {
         const slotName = ((_a2 = node == null ? void 0 : node.attribs) == null ? void 0 : _a2["name"]) || "default";
         let filler;
@@ -5909,7 +5909,6 @@ class ComponentDirective {
     return element2;
   }
 }
-__publicField(ComponentDirective, "tagName", "if");
 var ElementType;
 (function(ElementType2) {
   ElementType2["Root"] = "root";
