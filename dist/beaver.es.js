@@ -5795,6 +5795,31 @@ class IfDirective {
   }
 }
 __publicField(IfDirective, "tagName", "if");
+const loop = (node, path, instance) => {
+  var _a;
+  if (node.name === "slot") {
+    const slotName = ((_a = node == null ? void 0 : node.attribs) == null ? void 0 : _a["name"]) || "default";
+    let filler;
+    node.children.forEach((child) => {
+      var _a2, _b;
+      if (child.type === "tag" && child.name === "filler" && (((_a2 = child.attribs) == null ? void 0 : _a2.slot) ? ((_b = child.attribs) == null ? void 0 : _b.slot) === slotName : slotName === "default")) {
+        filler = child;
+      }
+    });
+    instance.$$slots = __spreadProps(__spreadValues({}, instance.$$slots), {
+      [slotName]: {
+        templatePath: path,
+        filler
+      }
+    });
+  }
+  var nodes = node == null ? void 0 : node.children;
+  console.log("nodes", nodes, node);
+  for (var i = 0; i < ((nodes == null ? void 0 : nodes.length) || 0); i++) {
+    console.log("inside for", i, nodes[i]);
+    loop(nodes[i], [...path, i], instance);
+  }
+};
 class ComponentDirective {
   constructor(bvrElement) {
     this.bvrElement = bvrElement;
@@ -5808,32 +5833,7 @@ class ComponentDirective {
     instance.props = {};
     console.log("ok");
     console.log("template", instance.$$template, instance, "ok");
-    const loop = (node, path) => {
-      var _a2;
-      if (node.name === "slot") {
-        const slotName = ((_a2 = node == null ? void 0 : node.attribs) == null ? void 0 : _a2["name"]) || "default";
-        let filler;
-        templateEl2.children.forEach((child) => {
-          var _a3, _b2;
-          if (child.type === "tag" && child.name === "filler" && (((_a3 = child.attribs) == null ? void 0 : _a3.slot) ? ((_b2 = child.attribs) == null ? void 0 : _b2.slot) === slotName : slotName === "default")) {
-            filler = child;
-          }
-        });
-        instance.$$slots = __spreadProps(__spreadValues({}, instance.$$slots), {
-          [slotName]: {
-            templatePath: path,
-            filler
-          }
-        });
-      }
-      var nodes = node == null ? void 0 : node.children;
-      console.log("nodes", nodes, node);
-      for (var i = 0; i < ((nodes == null ? void 0 : nodes.length) || 0); i++) {
-        console.log("inside for", i, nodes[i]);
-        loop(nodes[i], [...path, i]);
-      }
-    };
-    loop(instance.$$template, []);
+    loop(instance.$$template, [], instance);
     Object.entries(templateEl2.attribs).forEach(([k, v]) => {
       var _a2, _b2, _c;
       if (k.indexOf("@") === 0) {
