@@ -3,43 +3,10 @@ import { Element } from 'domhandler/lib'
 import _ from 'lodash'
 import BVRElement from '..'
 
-
-const loop = (node: Partial<Element>, path: number[], instance: BVRElement) => {
-    if (node.name === 'slot') {
-        const slotName = node?.attribs?.['name'] || 'default'
-        let filler
-        ;(node.children as (Partial<Element> & { children: Element })[]).forEach(
-            (child) => {
-                if (
-                    child.type === 'tag' &&
-                    child.name === 'filler' &&
-                    (child.attribs?.slot
-                        ? child.attribs?.slot === slotName
-                        : slotName === 'default')
-                ) {
-                    filler = child
-                }
-            }
-        )
-
-        instance.$$slots = {
-            ...instance.$$slots,
-            [slotName]: {
-                templatePath: path,
-                filler,
-            },
-        }
-    }
-
-    var nodes = node?.children as (Partial<Element> & { children: Element })[]
-    console.log('nodes', nodes, node)
-    for (var i = 0; i < (nodes?.length || 0); i++) {
-        console.log('inside for', i, nodes[i])
-        loop(nodes[i], [...path, i], instance)
-    }
-}
 export default class ComponentDirective {
     constructor(private bvrElement: BVRElement) {}
+
+    static tagName = 'if'
 
     render(templateEl: Element, __: any, parentScopeId: string) {
         const fn = Function.apply(null, ['cmp', 'return new cmp(' + ')'])
@@ -47,16 +14,45 @@ export default class ComponentDirective {
         const cmp = this.bvrElement.$$elements?.[(templateEl as Element).name]
 
         const instance = fn.bind(this.bvrElement)(cmp) as BVRElement
+        instance.render()
         instance.$$elements = this.bvrElement?.$$elements
         instance.props = {}
 
-        //let el = instance.$$template
+        let el = instance.$$template
+        const loop = (node: Partial<Element>, path: number[]) => {
+            if (node.name === 'slot') {
+                const slotName = node?.attribs?.['name'] || 'default'
+                let filler
+                ;(templateEl.children as (Partial<Element> & { children: Element })[]).forEach(
+                    (child) => {
+                        if (
+                            child.type === 'tag' &&
+                            child.name === 'filler' &&
+                            (child.attribs?.slot
+                                ? child.attribs?.slot === slotName
+                                : slotName === 'default')
+                        ) {
+                            filler = child
+                        }
+                    }
+                )
 
-        console.log('ok')
-        console.log('template', instance.$$template, instance, 'ok')
+                instance.$$slots = {
+                    ...instance.$$slots,
+                    [slotName]: {
+                        templatePath: path,
+                        filler,
+                    },
+                }
+            }
 
+            var nodes = node?.children as (Partial<Element> & { children: Element })[]
+            for (var i = 0; i < (nodes?.length || 0); i++) {
+                loop(nodes[i], [...path, i])
+            }
+        }
 
-        loop(instance['$$template'], [], instance)
+        loop(el, [])
 
         Object.entries((templateEl as Element).attribs).forEach(([k, v]) => {
             if (k.indexOf('@') === 0) {

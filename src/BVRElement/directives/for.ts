@@ -22,18 +22,14 @@ export default class ForDirective {
             .match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)
             ?.forEach(($var) => {
                 //const propTrimmed = $propStr.replace('this.', '')
-                console.log('$scopestr', $var)
                 this.bvrElement.addSubscribe($var, () => set(), parentScopeId)
             })
-        console.log('exp', exp)
-        console.log('for vars', vars)
         const code = `
                     var that = this;
                     const {${Object.keys(scope).join(',')}} = ${JSON.stringify(scope)}
                     const elements = []
                     for( ${exp} ){
                         elements.push(...tEl.children.map((tChild)=>{
-                            console.log('vars', {${vars}})
                             return appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
                         }))
                     }

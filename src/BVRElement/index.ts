@@ -87,7 +87,6 @@ export const appendElFromTemplate = (
         templateEl.type === ElementType.Tag &&
         that.$$elements?.[(templateEl as Element).name]
     ) {
-        console.log('bvr element detected')
         element = new ComponentDirective(that).render(
             templateEl as Element,
             scope,
@@ -100,7 +99,6 @@ export const appendElFromTemplate = (
     ) {
         const filler = that.$$slots?.[(templateEl as Element).attribs.name || 'default'].filler
         if (filler && that?.$$parent) {
-            console.log('fillerIs', filler, that)
             element =
                 appendElFromTemplate(
                     that?.$$parent,
@@ -157,13 +155,11 @@ export const appendElFromTemplate = (
                     let str = attrName
                     let pos = attrName.lastIndexOf('}')
                     if (pos > attrName.length - 2) {
-                        console.log('childToParent')
                         str = str.slice(0, pos)
                         childToParent = true
                     }
                     pos = attrName.lastIndexOf('{')
                     if (pos > attrName.length - 3) {
-                        console.log('parentToChild')
                         str = str.slice(0, pos)
                         parentToChild = true
                     }

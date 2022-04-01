@@ -19,7 +19,6 @@ export default class IfDirective {
             this.bvrElement.addSubscribe(propTrimmed, () => set(), parentScopeId)
             return $propStr.replace(/this./, 'that.')
         })
-        console.log('vars', vars)
         const code = `
                     const {${scope&&Object.keys(scope).join(',')}} = ${JSON.stringify(scope)}
                     var that = this;
