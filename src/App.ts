@@ -9,7 +9,6 @@ export default class App extends BVRElement {
 
     constructor() {
         super()
-        console.log('template', this.$$rootElement)
     }
 
     value = 'va'
@@ -23,7 +22,6 @@ export default class App extends BVRElement {
 
     async mounted() {
         this.x.x = 13
-        console.log('log', this.$$subscribes)
     }
 
     checked = true

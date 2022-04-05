@@ -6,19 +6,19 @@ import BVRElement from '..'
 export default class ComponentDirective {
     constructor(private bvrElement: BVRElement) {}
 
+    static tagName = 'if'
+
     render(templateEl: Element, __: any, parentScopeId: string) {
         const fn = Function.apply(null, ['cmp', 'return new cmp(' + ')'])
 
         const cmp = this.bvrElement.$$elements?.[(templateEl as Element).name]
 
         const instance = fn.bind(this.bvrElement)(cmp) as BVRElement
+        instance.render()
         instance.$$elements = this.bvrElement?.$$elements
         instance.props = {}
 
         let el = instance.$$template
-
-        console.log('template', el);
-
         const loop = (node: Partial<Element>, path: number[]) => {
             if (node.name === 'slot') {
                 const slotName = node?.attribs?.['name'] || 'default'

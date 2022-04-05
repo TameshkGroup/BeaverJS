@@ -7,7 +7,6 @@ export default class TextInput extends BVRElement {
     click?: () => void;
 
     mounted(): void {
-        console.log('$slot', this.$$slots)
     }
 
 

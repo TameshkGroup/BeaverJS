@@ -5616,18 +5616,14 @@ class ForDirective {
     const vars = (_a = tEl2.attribs["exp"].match(/[$](\w)+/g)) == null ? void 0 : _a.join(",");
     const exp = tEl2.attribs["exp"].replaceAll(/((this\.))(?=([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g, "that.");
     (_b = tEl2.attribs["exp"].match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _b.forEach(($var) => {
-      console.log("$scopestr", $var);
       this.bvrElement.addSubscribe($var, () => set2(), parentScopeId);
     });
-    console.log("exp", exp);
-    console.log("for vars", vars);
     const code = `
                     var that = this;
                     const {${Object.keys(scope2).join(",")}} = ${JSON.stringify(scope2)}
                     const elements = []
                     for( ${exp} ){
                         elements.push(...tEl.children.map((tChild)=>{
-                            console.log('vars', {${vars}})
                             return appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
                         }))
                     }
@@ -5714,7 +5710,6 @@ class IfDirective {
       this.bvrElement.addSubscribe(propTrimmed, () => set2(), parentScopeId);
       return $propStr.replace(/this./, "that.");
     });
-    console.log("vars", vars);
     const code = `
                     const {${scope2 && Object.keys(scope2).join(",")}} = ${JSON.stringify(scope2)}
                     var that = this;
@@ -5804,10 +5799,10 @@ class ComponentDirective {
     const fn = Function.apply(null, ["cmp", "return new cmp()"]);
     const cmp = (_a = this.bvrElement.$$elements) == null ? void 0 : _a[templateEl2.name];
     const instance = fn.bind(this.bvrElement)(cmp);
+    instance.render();
     instance.$$elements = (_b = this.bvrElement) == null ? void 0 : _b.$$elements;
     instance.props = {};
     let el2 = instance.$$template;
-    console.log("template", el2);
     const loop = (node, path) => {
       var _a2;
       if (node.name === "slot") {
@@ -5909,6 +5904,7 @@ class ComponentDirective {
     return element2;
   }
 }
+__publicField(ComponentDirective, "tagName", "if");
 var ElementType;
 (function(ElementType2) {
   ElementType2["Root"] = "root";
@@ -5948,12 +5944,10 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
   } else if (templateEl.type === ElementType.Tag && ((_b = templateEl.name) == null ? void 0 : _b.toLowerCase()) === "if") {
     element = new IfDirective(that).render(templateEl, scope || {}, scopeId);
   } else if (templateEl.type === ElementType.Tag && ((_c = that.$$elements) == null ? void 0 : _c[templateEl.name])) {
-    console.log("bvr element detected");
     element = new ComponentDirective(that).render(templateEl, scope, scopeId);
   } else if (templateEl.type === ElementType.Tag && templateEl.name === "slot" && ((_d = that.$$slots) == null ? void 0 : _d[templateEl.attribs.name || "default"])) {
     const filler = (_e = that.$$slots) == null ? void 0 : _e[templateEl.attribs.name || "default"].filler;
     if (filler && (that == null ? void 0 : that.$$parent)) {
-      console.log("fillerIs", filler, that);
       element = appendElFromTemplate(that == null ? void 0 : that.$$parent, filler == null ? void 0 : filler.children, void 0, scope, scopeId) || "";
     } else {
       element = "";
@@ -5995,13 +5989,11 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
           let str = attrName;
           let pos = attrName.lastIndexOf("}");
           if (pos > attrName.length - 2) {
-            console.log("childToParent");
             str = str.slice(0, pos);
             childToParent = true;
           }
           pos = attrName.lastIndexOf("{");
           if (pos > attrName.length - 3) {
-            console.log("parentToChild");
             str = str.slice(0, pos);
             parentToChild = true;
           }
