@@ -332,6 +332,11 @@ export default class BVRElement extends Puya {
     $$slots: Record<string, Slot> = {}
     props: Record<string, any> = {}
 
+    constructor() {
+        super()
+        
+    }
+
     $$directives = []
 
     $$elements: Record<string, Constructor<BVRElement>> = {}
@@ -350,6 +355,7 @@ export default class BVRElement extends Puya {
         if (this.$$elementSelector)
             this.$$rootElement =
                 document.querySelector(this.$$elementSelector) || this.$$rootElement
+        this.$$rootElement.innerHTML = ''
         this.render()
         this.mounted()
     }

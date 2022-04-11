@@ -16,8 +16,8 @@ export default function phenomenJSX() {
                     if (src.slice(match.index - 4, match.index) === 'html') {
                         const startIndex = match.index + 1
                         const endIndex = patt.lastIndex - 1
-                        let handler = new Handler();                        
-                        
+                        let handler = new Handler()
+
                         new Parser(handler, {
                             lowerCaseAttributeNames: false,
                             lowerCaseTags: false,
@@ -43,6 +43,31 @@ export default function phenomenJSX() {
                     } else {
                     }
                 }
+
+                src = src.replace(
+                    /\$\$elements(:(.|\n)*)=( )*\{\s*(((([A-z]|_)+([A-z]|_|\d)*)\s*,\s*)*(([A-z]|_)+([A-z]|_|\d)*))\s*\}/g,
+                    (a) => {
+                        const els =
+                            /{\s*(?<all>(((([A-z]|_)+([A-z]|_|\d)*))\s*,\s*)*(([A-z]|_)+([A-z]|_|\d)*))\s*\}/g
+                                .exec(a)
+                                .groups.all.split(', ')
+                                .map((e) => e.trim())
+
+                        return `\n 
+                        constructor(){
+                            super()
+                            if(import.meta.hot){    
+                                import.meta.hot.accept(${JSON.stringify(els)}, (modules) => {
+                                    this.$$elements = Object.fromEntries(${JSON.stringify(
+                                        els
+                                    )}.map((elKey, index)=> [elKey,modules[index].default]))
+                                    this.$$rootElement.innerHTML = ''
+                                    this.render()
+                                })
+                            }
+                        } \n ${a}`
+                    }
+                )
 
                 return {
                     code: src,

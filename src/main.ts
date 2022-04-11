@@ -1,5 +1,5 @@
-import App from "./App";
+import App from './App'
 
-const main = new App();
-main.$$elementSelector = "#app";
-main.mount();
+const main = new App()
+main.$$elementSelector = '#app'
+main.mount()

@@ -5,15 +5,12 @@ import TextInput from './TextInput'
 
 @AsPuya
 export default class App extends BVRElement {
-    $$elements = { TextInput }
+    $$elements: Record<string, Constructor<BVRElement>> = { TextInput }
 
-    constructor() {
-        super()
-    }
 
-    value = 'va'
+    value = 'value'
 
-    arr: number[] = _.range(1, 5)
+    arr: number[] = _.range(1, 2)
     x: any
     y: number = 100
     beforeMount(): void {
@@ -25,29 +22,26 @@ export default class App extends BVRElement {
     }
 
     checked = true
-    
+
     _ = _
 
     template() {
         return html`
+            1
             <div
                 tabindex="1"
                 @click="this.reset(); console.log('$event',$event)"
-                @mouseMove="//this.x.x = $event.clientX; this.y = $event.clientY;"
-                style="background-color: black;color:white; height: 100%"
+                @mouseMove="this.x.x = $event.clientX; this.y = $event.clientY;"
+                style="background-color: black;color:white; height: 70%"
             >
                 {{this.checked}} {{ this.checked?100:200 }}
                 <br />
                 <input type="checkbox" checked{}="this.checked" />
                 <if exp="this.checked">
-                    11
                     <div style="background: blue; width: 100px; height: 100px;"></div>
-                    <if exp="this.x.x > 10"> mm </if>
-                    <TextInput bi.value="this.x.x" />
+                    <if exp="this.x.x > 10"> {__}111 </if>
+                    <TextInput bi.value="this.x.x"></TextInput>
                 </if>
-                <for exp="i in this._.range(0,10)">
-                    <div>{{i}}</div>
-                </for>
                 <input value{="this.checked ?100:200" value}="this.x.x" />
 
                 {{this.x.x}} {{this.y}}
@@ -61,6 +55,7 @@ export default class App extends BVRElement {
                             <filler slot="prepend"> prepend1 {{JSON.stringify(this.x)}} </filler>
                             <filler> defult {{this.x.x}} </filler>
                         </TextInput>
+                        11
                     </filler>
                 </TextInput>
                 <TextInput get.value="this.y" set.value="this.y"></TextInput>
@@ -86,8 +81,28 @@ export default class App extends BVRElement {
                     }
                 </style>
             </div>
+            ____++
             <button @click="this.arr = [1,2,3]">Set 1,2,3</button>
             <button @click="console.log('subscribes',this.$$subscribes)">Log Subscribes</button>
         `
     }
 }
+
+/* if (import.meta.hot) {
+    import.meta.hot.accept((accept) => {
+        console.log('aai', { accept })
+    })
+    import.meta.hot.accept('./TextInput', (accept) => {
+        console.log('a1', { accept })
+    })
+    import.meta.hot.on('vite:beforeUpdate', (payload) => {
+        console.log('vite:beforeUpdate', payload)
+    })
+    import.meta.hot.accept((newModule) => {
+        console.log('updated: count is now ')
+        console.log('n', newModule)
+    })
+    import.meta.hot.on('special-update', (su) => {
+        console.log('specialUpdate', su)
+    })
+} */
