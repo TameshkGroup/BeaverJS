@@ -20,5 +20,5 @@
         },
         "outDir": "dist"
     },
-    "include": ["./src/**.ts", "./src/**.pts", "./src/*.ts", "src/App.ts", "src/main.tsp", "src/samples/Puya.ts"]
+    "include": ["./src/**.ts", "./src/**.pts", "./src/*.ts", "src/App.ts", "src/main.tsp", "src/samples/Puya.ts", "src/CheckInput.ts"]
 }

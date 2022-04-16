@@ -2,11 +2,11 @@ import BVRElement, { html } from './BVRElement'
 import _ from 'lodash'
 import { AsPuya } from './Puya'
 import TextInput from './TextInput'
+import CheckInput from './CheckInput'
 
 @AsPuya
 export default class App extends BVRElement {
-    $$elements: Record<string, Constructor<BVRElement>> = { TextInput }
-
+    $$elements: Record<string, Constructor<BVRElement>> = { TextInput, CheckInput }
 
     value = 'value'
 
@@ -34,8 +34,9 @@ export default class App extends BVRElement {
                 @mouseMove="this.x.x = $event.clientX; this.y = $event.clientY;"
                 style="background-color: black;color:white; height: 70%"
             >
-                {{this.checked}} {{ this.checked?100:200 }}
+                <CheckInput set.value="this.checked" get.value="this.checked" set.label="'label'"></CheckInput>
                 <br />
+                {{this.checked}}
                 <input type="checkbox" checked{}="this.checked" />
                 <if exp="this.checked">
                     <div style="background: blue; width: 100px; height: 100px;"></div>
@@ -44,9 +45,14 @@ export default class App extends BVRElement {
                 </if>
                 <input value{="this.checked ?100:200" value}="this.x.x" />
 
+
+
                 {{this.x.x}} {{this.y}}
                 <div>--{{JSON.stringify(this.x)}}--</div>
                 {{this.value}}
+
+
+
                 <TextInput set.value="this.checked ?100:200" get.value="this.x.x">
                     <filler>
                         The Filler
@@ -58,6 +64,7 @@ export default class App extends BVRElement {
                         11
                     </filler>
                 </TextInput>
+                
                 <TextInput get.value="this.y" set.value="this.y"></TextInput>
 
                 <if exp="this.x.x > 10">
