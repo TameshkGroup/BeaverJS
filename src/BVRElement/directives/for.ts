@@ -19,10 +19,10 @@ export default class ForDirective {
             'that.'
         )
         tEl.attribs['exp']
-            .match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)
+            .match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)
             ?.forEach(($var) => {
                 //const propTrimmed = $propStr.replace('this.', '')
-                this.bvrElement.addSubscribe($var, () => set(), parentScopeId)
+                this.bvrElement.addSubscribe($var.substring(5), () => set(), parentScopeId)
             })
         const code = `
                     var that = this;

@@ -92,9 +92,9 @@ export default class ComponentDirective {
                     }
 
                     v.match(
-                        /(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g
+                        /this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g
                     )?.forEach((item) => {
-                        this.bvrElement.addSubscribe(item, set, parentScopeId)
+                        this.bvrElement.addSubscribe(item.substring(5), set, parentScopeId)
                     })
 
                     set()
@@ -108,9 +108,9 @@ export default class ComponentDirective {
                     }
 
                     v.match(
-                        /(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g
+                        /this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g
                     )?.forEach((item) => {
-                        this.bvrElement.addSubscribe(item, set, parentScopeId)
+                        this.bvrElement.addSubscribe(item.substring(5), set, parentScopeId)
                     })
 
                     set()

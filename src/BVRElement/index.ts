@@ -141,11 +141,9 @@ export const appendElFromTemplate = (
                     }
 
                     attrValue
-                        .match(
-                            /(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g
-                        )
+                        .match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)
                         ?.forEach((item) => {
-                            that.addSubscribe(item, set, scopeId)
+                            that.addSubscribe(item.substring(5), set, scopeId)
                         })
 
                     set()
@@ -179,11 +177,9 @@ export const appendElFromTemplate = (
 
                     if (parentToChild) {
                         attrValue
-                            .match(
-                                /(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g
-                            )
+                            .match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)
                             ?.forEach((item) => {
-                                that.addSubscribe(item, (value) => {
+                                that.addSubscribe(item.substring(5), (value) => {
                                     ;(element as HTMLInputElement).value = value
                                 })
                             })
@@ -282,9 +278,9 @@ export const appendElFromTemplate = (
             } else {
                 //const m = _.throttle(set, 10)
                 scopeStr
-                    .match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)
+                    .match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)
                     ?.forEach((item) => {
-                        that.addSubscribe(item, set, scopeId, throttle)
+                        that.addSubscribe(item.substring(5), set, scopeId, throttle)
                     })
             }
         })
@@ -334,7 +330,6 @@ export default class BVRElement extends Puya {
 
     constructor() {
         super()
-        
     }
 
     $$directives = []
