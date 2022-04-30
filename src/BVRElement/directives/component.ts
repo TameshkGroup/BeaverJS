@@ -2,11 +2,10 @@ import { getFromPath, setByPath } from '../../shared'
 import { Element } from 'domhandler/lib'
 import _ from 'lodash'
 import BVRElement from '..'
+import { nanoid } from 'nanoid'
 
 export default class ComponentDirective {
     constructor(private bvrElement: BVRElement) {}
-
-    static tagName = 'if'
 
     render(templateEl: Element, __: any, parentScopeId: string) {
         const fn = Function.apply(null, ['cmp', 'return new cmp(' + ')'])
@@ -14,46 +13,92 @@ export default class ComponentDirective {
         const cmp = this.bvrElement.$$elements?.[(templateEl as Element).name]
 
         const instance = fn.bind(this.bvrElement)(cmp) as BVRElement
+        instance.$$element = cmp
+        instance.$$elementName = (templateEl as Element).name
         instance.render()
         instance.$$elements = this.bvrElement?.$$elements
         instance.props = {}
 
         let el = instance.$$template
-        const loop = (node: Partial<Element>, path: number[]) => {
+
+        /* Handle Slots */
+        const findSlotsInTemplate = (node: Partial<Element>, path: number[]) => {
             if (node.name === 'slot') {
                 const slotName = node?.attribs?.['name'] || 'default'
                 let filler
-                ;(templateEl.children as (Partial<Element> & { children: Element })[]).forEach(
-                    (child) => {
+                let nonFillerElements = [] as Element[]
+                ;(templateEl.children as Element[]).forEach((child) => {
+                    if (
+                        child.type === 'tag' &&
+                        child.name === 'filler' &&
+                        (child.attribs?.slot
+                            ? child.attribs?.slot === slotName
+                            : slotName === 'default') &&
+                        !child.attribs['set.name']
+                    ) {
+                        filler = child
+                    } else if (child?.name !== 'filler' && !child.attribs?.['set.name']) {
                         if (
-                            child.type === 'tag' &&
-                            child.name === 'filler' &&
-                            (child.attribs?.slot
-                                ? child.attribs?.slot === slotName
-                                : slotName === 'default')
+                            child.type !== 'text' ||
+                            (child as any as Text).data.trim().replace(/\n/g, '') !== ''
                         ) {
-                            filler = child
+                            nonFillerElements.push(child) //NONFiller element inside BVRElement
                         }
                     }
-                )
-
-                instance.$$slots = {
-                    ...instance.$$slots,
-                    [slotName]: {
-                        templatePath: path,
-                        filler,
-                    },
+                })
+                if (!filler && slotName === 'default' && nonFillerElements?.length) {
+                    filler = new Element('filler', { slot: 'default' }, nonFillerElements)
                 }
+
+                if (filler)
+                    instance.$$slots = {
+                        ...instance.$$slots,
+                        [slotName]: {
+                            templatePath: path,
+                            filler,
+                        },
+                    }
             }
 
             var nodes = node?.children as (Partial<Element> & { children: Element })[]
             for (var i = 0; i < (nodes?.length || 0); i++) {
-                loop(nodes[i], [...path, i])
+                findSlotsInTemplate(nodes[i], [...path, i])
             }
         }
 
-        loop(el, [])
+        findSlotsInTemplate(el, [])
+        /* End Handle Slots */
 
+        /* Handle fillers without slot */
+        const fillers: Element[] = []
+        const nonFillerElements: Element[] = []
+        ;(templateEl.children as Element[]).forEach((child) => {
+            if (child.type === 'tag' && child.name === 'filler') {
+                fillers.push(child)
+            } else {
+                if (
+                    child.type !== 'text' ||
+                    (child as any as Text).data.trim().replace(/\n/g, '') !== ''
+                ) {
+                    nonFillerElements.push(child) //NONFiller element inside BVRElement
+                }
+            }
+        })
+        if (nonFillerElements?.length && !instance.$$slots.default) {
+            fillers.push(new Element('filler', { slot: 'default' }, nonFillerElements))
+        }
+        fillers.forEach((filler) => {
+            instance.$$slots = {
+                ...instance.$$slots,
+                [filler.attribs?.slot]: {
+                    filler,
+                    templatePath: [],
+                },
+            }
+        })
+        /* End handle fillers without slot */
+
+        /* Handle Attributes */
         Object.entries((templateEl as Element).attribs).forEach(([k, v]) => {
             if (k.indexOf('@') === 0) {
                 //TODO
@@ -151,7 +196,6 @@ export default class ComponentDirective {
                             //DEEP Equality check
                             if (!_.isEqual(getFromPath(this.bvrElement, v.slice(5)), value)) {
                                 //that[v.slice(5)] = value;
-                                console.log('v', v)
                                 setByPath(this.bvrElement, v.slice(5), value)
                             }
                         })
@@ -213,6 +257,7 @@ export default class ComponentDirective {
         })
 
         instance.$$parent = this.bvrElement
+        this.bvrElement.$$elementInstances[instance.$id] = instance
         const element = document.createElement('div')
         //element.replaceChild(element,root)
         instance.$$rootElement = element

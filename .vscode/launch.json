@@ -5,27 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Attach to Chrome",
-            "port": 9222,
-            "request": "attach",
-            "type": "pwa-chrome",
-            "webRoot": "${workspaceFolder}"
-        },
-        {
-            "name": "Launch",
+            "command": "yarn vite",
+            "name": "Run yarn vite",
             "request": "launch",
-            "runtimeArgs": [
-                "vite",
-                // "run-script",
-                // "debug"
-            ],
-            "runtimeExecutable": "yarn",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "type": "pwa-node"
+            "type": "node-terminal"
         }
-        
-
     ]
 }

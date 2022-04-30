@@ -51,7 +51,8 @@ export const appendElFromTemplate = (
     templateEl: Partial<Element | DataNode | Document> | Partial<Element | DataNode | Document>[],
     htmlParentEl?: HTMLElement,
     scope: Record<string, any> = {},
-    scopeId?: string
+    scopeId?: string,
+    replace = false
 ): string | HTMLElement | Text | undefined | (HTMLElement | Comment)[] => {
     let element: HTMLElement | Text | string | (HTMLElement | Comment)[] // = document.createTextNode('')
     if (Array.isArray(templateEl) || templateEl.type === ElementType.Root) {
@@ -87,29 +88,62 @@ export const appendElFromTemplate = (
         templateEl.type === ElementType.Tag &&
         that.$$elements?.[(templateEl as Element).name]
     ) {
+        console.log('rerender', replace, that, templateEl)
         element = new ComponentDirective(that).render(
             templateEl as Element,
             scope,
             scopeId as string
         )
-    } else if (
-        templateEl.type === ElementType.Tag &&
-        (templateEl as Element).name === 'slot' &&
-        that.$$slots?.[(templateEl as Element).attribs.name || 'default']
-    ) {
-        const filler = that.$$slots?.[(templateEl as Element).attribs.name || 'default'].filler
-        if (filler && that?.$$parent) {
-            element =
-                appendElFromTemplate(
-                    that?.$$parent,
-                    (filler as { children: Partial<Element | DataNode | Document>[] })?.children,
-                    undefined,
-                    scope,
-                    scopeId
-                ) || ''
+    } else if (templateEl.type === ElementType.Tag && (templateEl as Element).name === 'slot') {
+        console.log(
+            'slot name',
+            (templateEl as Element).attribs.name,
+            (templateEl as Element).attribs['set.name']
+        )
+        if (that?.$$parent && (templateEl as Element)?.attribs?.['name']) {
+            const filler = that.$$slots?.[(templateEl as Element).attribs.name || 'default']?.filler
+            if (filler)
+                element =
+                    appendElFromTemplate(
+                        that?.$$parent,
+                        (filler as { children: Partial<Element | DataNode | Document>[] })
+                            ?.children,
+                        undefined,
+                        scope,
+                        scopeId
+                    ) || ''
         } else {
-            element = ''
+            console.log(
+                'dynamic slot detected',
+                scope,
+                templateEl as Element,
+                `
+            const {${scope && Object.keys(scope).join(',')}} = ${JSON.stringify(scope)}
+            return ` + (templateEl as Element).attribs['set.name']
+            )
+            if ((templateEl as Element).attribs['set.name'] && that?.$$parent) {
+                const slotName = Function.apply(null, [
+                    '',
+                    `
+                    const {${scope && Object.keys(scope).join(',')}} = ${JSON.stringify(scope)};
+                    return ` + (templateEl as Element).attribs['set.name'],
+                ]).bind(that)()
+                const filler = that.$$slots?.[slotName]?.filler
+                console.log('dynamic filler', filler)
+                if (filler)
+                    element =
+                        appendElFromTemplate(
+                            that?.$$parent,
+                            filler as Element,
+                            undefined,
+                            scope,
+                            scopeId
+                        ) || ''
+            }
+            //element = ''
         }
+        //@ts-ignore
+        if (typeof element === 'undefined') element = ''
         //element = JSON.stringify(that.$$slots)
     } else if (
         (templateEl.type === ElementType.Tag || templateEl.type === ElementType.Style) &&
@@ -326,6 +360,7 @@ export default class BVRElement extends Puya {
     $$parent?: BVRElement
     $$elementSelector?: string
     $$slots: Record<string, Slot> = {}
+    $$elementInstances: Record<string, BVRElement> = {}
     props: Record<string, any> = {}
 
     constructor() {
@@ -335,6 +370,8 @@ export default class BVRElement extends Puya {
     $$directives = []
 
     $$elements: Record<string, Constructor<BVRElement>> = {}
+    $$element!: Constructor<BVRElement>
+    $$elementName!: string
 
     template(): Partial<Element> | void {}
 
@@ -360,55 +397,14 @@ export default class BVRElement extends Puya {
         tagName: 'div',
     }
 
+    reRender() {
+        //this.$$template = this.template() || this.$$template
+        appendElFromTemplate(this, this.$$template, this.$$rootElement, undefined, undefined, true)
+    }
+
     render() {
         this.$$template = this.template() || this.$$template
-        let bvrElements: BVRElement[] = []
-        let parsed: HTMLElement = document.createElement('div')
 
-        const findTargetElement = (el: HTMLElement, path: number[]): HTMLElement => {
-            if (!Array.isArray(path[0])) {
-                return el
-            } else {
-                return findTargetElement(parsed.childNodes[path[0]] as HTMLElement, path.slice(1))
-            }
-        }
-
-        this.$$template = this.template() || this.$$template
-
-        const createDOM = (template: Partial<Element>, path: number[] = []) => {
-            if (path.length === 0) {
-                parsed = document.createElement(template.tagName || 'div')
-                template.children?.forEach((childTemplate, index) => {
-                    createDOM(childTemplate, [...path, index])
-                })
-            } else {
-                template.children?.forEach((childTemplate, index) => {
-                    createDOM(childTemplate, [...path, index])
-                })
-                const parentElement = findTargetElement(parsed, path.slice(undefined, -1))
-                appendElFromTemplate(this, template, parentElement, undefined, undefined)
-            }
-
-            template.tagName
-        }
-
-        //createDOM(this.$$template, [])
         appendElFromTemplate(this, this.$$template, this.$$rootElement, undefined, undefined)
-
-        bvrElements.forEach((bvrElement) => {
-            parsed.innerHTML = parsed.innerHTML.replace(
-                `__$$__${bvrElement.$id}__$$__`, //'<div><!--THIS DATA SHOULD BE REPLACED--></div>',
-                `<div phid=${bvrElement.$id}></div>`
-            )
-            const rootElement = parsed.querySelector(`[phid="${bvrElement.$id}"]`)
-            if (!rootElement || !(rootElement instanceof HTMLElement)) {
-                return
-            }
-            bvrElement.$$rootElement = rootElement
-
-            bvrElement.mount()
-        })
-
-        if (this.$$rootElement) this.$$rootElement.appendChild(parsed)
     }
 }

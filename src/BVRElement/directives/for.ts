@@ -1,7 +1,8 @@
 import { Element } from 'domhandler/lib'
 import { nanoid } from 'nanoid'
 import BVRElement, { appendElFromTemplate } from '..'
-
+/* import * as ts from 'typescript'
+ */
 export default class ForDirective {
     constructor(private bvrElement: BVRElement) {}
 
@@ -11,7 +12,20 @@ export default class ForDirective {
         const tEl = templateEl as Element
         let element: (HTMLElement | Comment)[] = []
 
-        const vars = tEl.attribs['exp'].match(/[$](\w)+/g)?.join(',')
+        /* TODO Method of detect variables not work as expected */
+        const vars = tEl.attribs['exp']
+            .match(/(let|const|var)( |	|\n)+([A-z]|\$|_)+/g)
+            ?.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ''))
+            ?.join(',')
+        /*  const node = ts.createSourceFile('', tEl.attribs['exp'], ts.ScriptTarget.Latest)
+        const vars: string[] = []
+        node.forEachChild((child) => {
+            if (ts.isVariableDeclaration(child)) {
+                vars.push(child.getFullText())
+            }
+        }) */
+        console.log('forVArs', vars)
+
         //v.match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)?.forEach((item) => {
 
         const exp = tEl.attribs['exp'].replaceAll(

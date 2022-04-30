@@ -3,7 +3,12 @@ import * as _ from 'lodash'
 
 import { Parser } from 'htmlparser2/lib/Parser'
 import { DomHandler as Handler } from 'domhandler'
-import {} from 'vite'
+import { PluginHooks, TransformPluginContext } from 'rollup'
+import parseImports from 'parse-es6-imports'
+import recast from 'recast'
+import typescript from 'recast/parsers/typescript'
+import * as ts from 'typescript'
+import { ClassExpression, SyntaxKind } from 'typescript'
 
 export default function phenomenJSX() {
     let config
@@ -11,47 +16,8 @@ export default function phenomenJSX() {
     return {
         name: 'phenomenJSX',
         enforce: 'pre',
-        configResolved(resolvedConfig) {
-            // store the resolved config
-            config = resolvedConfig
-        },
-        configureServer(_server) {
-            server = _server
-        },
-        moduleParsed(...args) {
-            console.log('args', args)
-        },
-        resolveFileUrl(...args) {
-            console.log('rfu', args)
-        },
-        load(...args) {
-            //console.log('load', args)
-        },
-        buildStart(...args) {
-            //console.log('bs', args)
-        },
-        resolveId(...args) {
-            //console.log('resolveId', args)
-            console.log('mInfo', args[0], this.getModuleInfo(args[0]))
-        },
-        resolveDynamicImport(...args) {
-            console.log('di', ...args)
-        },
-        renderStart(...args) {
-            console.log('rs', args)
-        },
         transform(src: string, id, ...args) {
             //console.log(id, args, server)
-            const mIds = this.getModuleIds()
-            console.log(
-                'mInfo',
-                id,
-                //@ts-ignore
-                Array.from(mIds).find((mId: string) => {
-                    //console.log(mId)
-                    id.indexOf(mId.replace('./', '').replace('../', '')) >= 0
-                })
-            )
 
             if (fileRegex.test(id)) {
                 let match
@@ -88,14 +54,58 @@ export default function phenomenJSX() {
                     }
                 }
 
+                const node = ts.createSourceFile(id, src, ts.ScriptTarget.Latest)
+                const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed })
+                const importMap = node.statements
+                    .filter((statement) => statement.kind === SyntaxKind.ImportDeclaration)
+                    .map((statement) =>
+                        (statement.importClause.name?.escapedText
+                            ? [statement.importClause.name?.escapedText]
+                            : statement.importClause.namedBindings.elements.map(
+                                  (elem) => elem.name?.escapedText
+                              )
+                        ).map((item) => ({ [item]: statement.moduleSpecifier.text }))
+                    )
+                    .flat()
+                    .reduce((obj, item) => ({ ...obj, ...item }), {})
+                //if (id.indexOf('App') >= 0) {
+                const bvrElements = node.statements
+                    .map((statement) => {
+                        const classExpression = statement?.declarationList?.declarations.find(
+                            (d) => d?.initializer
+                        ).initializer
+                        if (
+                            classExpression?.kind === SyntaxKind.ClassExpression &&
+                            classExpression.heritageClauses[0].types[0].expression.escapedText ===
+                                'BVRElement'
+                        ) {
+                            return classExpression as ClassExpression
+                        }
+                    })
+                    .filter((exp) => exp)
+
+                const imports = bvrElements.reduce<string[]>((acm, el) => {
+                    const $elements = el.members.find((m) => m.name.escapedText === '$$elements')
+                    return [
+                        ...acm,
+                        ...$elements.initializer.properties.map((p) => p.name.escapedText),
+                    ]
+                }, [])
+
+                bvrElements.map((el) => {})
+                console.log('importMap', imports, importMap)
+
                 src = src.replace(
-                    /\$\$elements(:(.|\n)*)=( )*\{\s*(((([A-z]|_)+([A-z]|_|\d)*)\s*,\s*)*(([A-z]|_)+([A-z]|_|\d)*))\s*\}/g,
+                    /\$\$elements( )*(:(.|\n)+)?( )*=( )*\{\s*(((([A-z]|_)+([A-z]|_|\d)*)\s*,\s*)*(([A-z]|_)+([A-z]|_|\d)*))\s*\}/gm,
                     (a) => {
+                        console.log('e')
                         const els =
-                            /{\s*(?<all>(((([A-z]|_)+([A-z]|_|\d)*))\s*,\s*)*(([A-z]|_)+([A-z]|_|\d)*))\s*\}/g
+                            /{\s*(?<all>(((([A-z]|_)+([A-z]|_|\d)*))\s*,\s*)*(([A-z]|_)+([A-z]|_|\d)*))\s*\}/gm
                                 .exec(a)
                                 .groups.all.split(', ')
-                                .map((e) => e.trim())
+
+                        const elsImports = els.map((e) => importMap[e.trim()])
+                        console.log('els', els)
 
                         //console.log({ els })
 
@@ -103,24 +113,64 @@ export default function phenomenJSX() {
                         constructor(){
                             super()
                             if(import.meta.hot){    
-                                import.meta.hot.accept(${JSON.stringify(els)}, (modules) => {
-                                    console.log('modules', modules)
-                                    this.$$elements = Object.fromEntries(${JSON.stringify(
-                                        els
-                                    )}.map((elKey, index)=> [elKey,modules[index]?modules[index].default:this.$$elements[elKey]]))
-                                    this.$$rootElement.innerHTML = ''
-                                    this.render()
+                                import.meta.hot.accept(${JSON.stringify(elsImports)},(modules) => {
+                                    //console.log('modules', modules)
+                                    //let changedEls = Object.entries(this.$$elementInstances).filter( ([elKey,e]) => Object.entries(this.$$elements).reduce((acm, [k,m], index)=> {console.log('insideReduce', k,m, acm, modules, index , (e instanceof m)); return acm || (modules[index] && (e instanceof m))},false))
+                                    //console.log('changed-els', changedEls);
+                                    //let data = Object.fromEntries(changedEls.map(([k, e]) => { return [k, Object.fromEntries(Object.entries(e).filter(([k,v])=> k.indexOf('$$subscribes') === 0 || k.indexOf('$$') !== 0 && k.indexOf('props') !== 0))]}))
+                                    //console.log('hmr-data', data);
+                                    this.$$elements = Object.fromEntries(
+                                        ${JSON.stringify(els)}
+                                        .map((elKey, index)=> [elKey,modules[index] ? modules[index].default:this.$$elements[elKey]])
+                                    );
+                                    const updatedElementNames =
+                                        ${JSON.stringify(els)}
+                                        .filter((elKey, index)=> !!modules[index])
+                                        .map((k)=> k)
+                                
+                                    //this.$$rootElement.innerHTML = '';
+                                    console.log('rerender', this.$$elementInstances, updatedElementNames);
+                                    Object.entries(this.$$elementInstances).filter(([k,$el])=> { console.log($el);return updatedElementNames.includes($el.$$elementName)}).forEach(([k,v])=>{ // TOOD Should recursively do this
+                                        console.log('reloading', v, this.$$elements[v.$$elementName].$$template);
+                                        const newInst = (new this.$$elements[v.$$elementName]);
+                                        console.log('newInstant', newInst);
+                                        Object.entries(newInst).forEach(([propName, prop])=>{
+                                            if(typeof prop === 'function' || propName === '$$elements')
+                                                v[propName] = prop;
+                                        })
+                                        v.$$template = newInst.$$template
+                                        v.template = newInst.template.bind(v)
+                                        v.$$rootElement.innerHTML = '';
+                                        v.reRender();
+                                    })
+                                    //this.reRender();
+                                    //Object.values(this.$$elementInstances).filter((e)=> data[e.$id]).forEach((e)=> Object.entries(data[e.$id]).forEach(([k,v])=> {console.log(e.$id, 'setting', k, v, e[k]);if(k!== '$id'){e[k] = v}} ))
                                 })
                             }
                         } \n ${a}`
                     }
                 )
+                //}
 
+                try {
+                    /* recast.parse(src, {
+                        parser: typescript,
+                    }) */
+                } catch (e) {
+                    console.error(e)
+                }
+
+                //this.parse(src, { })
+                //return src
                 return {
                     code: src,
                     map: null, // provide source map if available
                 }
             }
         },
-    }
+        buildEnd(info) {
+            console.log('be', info)
+            console.log('ids', Array.from(this.getModuleIds()))
+        },
+    } as Partial<PluginHooks>
 }
