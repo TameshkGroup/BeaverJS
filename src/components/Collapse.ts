@@ -5,7 +5,6 @@ import { AsPuya } from '../Puya'
 export default class Collapse extends BVRElement {
     constructor() {
         super()
-        console.log('collapseSlots', this)
         setTimeout(() => {
             this.x = 200
         }, 3000)
@@ -33,7 +32,7 @@ export default class Collapse extends BVRElement {
         </div>
 
         <style>
-            .collapse {
+            div[instance_id="B9bly"].collapse {
                 border: 1px solid #bebebe;
             }
         </style> `

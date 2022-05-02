@@ -24,7 +24,6 @@ export default class ForDirective {
                 vars.push(child.getFullText())
             }
         }) */
-        console.log('forVArs', vars)
 
         //v.match(/(?<=this\.)(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)?.forEach((item) => {
 

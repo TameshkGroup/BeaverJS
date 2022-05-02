@@ -5,6 +5,7 @@ import { getFromPath, setByPath } from '../shared'
 import ForDirective from './directives/for'
 import IfDirective from './directives/if'
 import ComponentDirective from './directives/component'
+import StyleDirective from './directives/style'
 
 export enum ElementType {
     /** Type for the root element of a document */
@@ -88,18 +89,15 @@ export const appendElFromTemplate = (
         templateEl.type === ElementType.Tag &&
         that.$$elements?.[(templateEl as Element).name]
     ) {
-        console.log('rerender', replace, that, templateEl)
         element = new ComponentDirective(that).render(
             templateEl as Element,
             scope,
             scopeId as string
         )
+    } else if (templateEl.type === ElementType.Style) {
+        console.log('styleDetected')
+        element = new StyleDirective(that).render(templateEl as Element, scope, scopeId as string)
     } else if (templateEl.type === ElementType.Tag && (templateEl as Element).name === 'slot') {
-        console.log(
-            'slot name',
-            (templateEl as Element).attribs.name,
-            (templateEl as Element).attribs['set.name']
-        )
         if (that?.$$parent && (templateEl as Element)?.attribs?.['name']) {
             const filler = that.$$slots?.[(templateEl as Element).attribs.name || 'default']?.filler
             if (filler)
@@ -113,14 +111,6 @@ export const appendElFromTemplate = (
                         scopeId
                     ) || ''
         } else {
-            console.log(
-                'dynamic slot detected',
-                scope,
-                templateEl as Element,
-                `
-            const {${scope && Object.keys(scope).join(',')}} = ${JSON.stringify(scope)}
-            return ` + (templateEl as Element).attribs['set.name']
-            )
             if ((templateEl as Element).attribs['set.name'] && that?.$$parent) {
                 const slotName = Function.apply(null, [
                     '',
@@ -129,7 +119,6 @@ export const appendElFromTemplate = (
                     return ` + (templateEl as Element).attribs['set.name'],
                 ]).bind(that)()
                 const filler = that.$$slots?.[slotName]?.filler
-                console.log('dynamic filler', filler)
                 if (filler)
                     element =
                         appendElFromTemplate(
@@ -145,10 +134,7 @@ export const appendElFromTemplate = (
         //@ts-ignore
         if (typeof element === 'undefined') element = ''
         //element = JSON.stringify(that.$$slots)
-    } else if (
-        (templateEl.type === ElementType.Tag || templateEl.type === ElementType.Style) &&
-        (templateEl as Element).name
-    ) {
+    } else if (templateEl.type === ElementType.Tag && (templateEl as Element).name) {
         const tEl = templateEl as Element
         element = document.createElement(tEl.name)
 
@@ -258,6 +244,9 @@ export const appendElFromTemplate = (
                 }
                 //}
             })
+        element.setAttribute('instance_id', that.$id)
+        console.log('parent', parent)
+        
     } else if (templateEl.type === ElementType.Text && (templateEl as DataNode).data) {
         const el = templateEl as DataNode
         element = document.createTextNode(el.data)
