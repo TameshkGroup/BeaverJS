@@ -18,14 +18,24 @@ export default class TextInput extends BVRElement {
     }
 
     $$template = html`
-        <div>
-            <slot name="prepend"></slot>
-            <input
-                @input="this.props.value = $event.target.value"
-                $="$.setAttribute('ok', this.props.value); $.value = this.props.value"
-            />
-            <slot></slot>
-            <button @click="this.click()">Click</button>
+        <div
+            style="border: 1px #efefef solid;background: #fefefe;display: inline-block;  border-radius: 8px"
+        >
+            <div style="display: flex;">
+                <IF exp="this.$$slots.prepend">
+                    <div style="padding: 6px">
+                        <slot name="prepend"></slot>
+                    </div>
+                </IF>
+                <input
+                    style="border: none;outline: none; background: none; margin: 6px"
+                    @input="this.props.value = $event.target.value"
+                    $="$.setAttribute('ok', this.props.value); $.value = this.props.value"
+                />
+                <div style="padding: 6px">
+                    <slot name="append"></slot>
+                </div>
+            </div>
         </div>
     `
 }

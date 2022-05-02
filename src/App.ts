@@ -20,6 +20,9 @@ export default class App extends BVRElement {
 
     async mounted() {
         this.x.x = 13
+        setInterval(() => {
+            this.x.x = this.x.x + 1
+        }, 1000)
     }
 
     checked = true
@@ -27,16 +30,28 @@ export default class App extends BVRElement {
     _ = _
 
     $$template = html` <div>
+        <span style="font-weight: bold">{{ this.x.x }}</span>
+        {{this.value}}
+        <br />
+        <TextInput bi.value="this.value" />
+            <filler slot="append">
+                @
+            </filler>
+        </TextInput>
+        <br />
+        <TextInput bi.value="this.value" />
+            <filler slot="prepend">
+                #
+            </filler>
+        </TextInput>
+        <br />
+
         <Collapse>
             <filler slot="content-1">
-                Text
-                <TextInput bi.value="this.value"></TextInput>
-                <CheckInput></CheckInput>
+                Content-1
             </filler>
             <filler slot="content-2">
-                Text
-                <TextInput bi.value="this.value" /></TextInput>
-                <CheckInput></CheckInput>
+                Content-2
             </filler>
         </Collapse>
     </div>`

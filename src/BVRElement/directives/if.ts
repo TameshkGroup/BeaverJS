@@ -11,7 +11,10 @@ export default class IfDirective {
         const tEl = templateEl as Element
         let element: (HTMLElement | Comment)[] = []
 
-        const vars = tEl.attribs['exp'].match(/[$](\w)+/g)?.join(',')
+        const vars = tEl.attribs['exp']
+            .match(/(let|const|var)( |	|\n)+([A-z]|\$|_)+/g)
+            ?.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ''))
+            ?.join(',')
 
         const exp = tEl.attribs['exp'].replace(/this(.\w)+/, ($propStr) => {
             const propTrimmed = $propStr.replace('this.', '')

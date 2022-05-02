@@ -83,7 +83,7 @@ export default class ComponentDirective {
                     nonFillerElements.push(child) //NONFiller element inside BVRElement
                 }
             }
-        })
+        });
         if (nonFillerElements?.length && !instance.$$slots.default) {
             fillers.push(new Element('filler', { slot: 'default' }, nonFillerElements))
         }
