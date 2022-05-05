@@ -44,11 +44,14 @@ export default class App extends BVRElement {
                 #
             </filler>
         </TextInput>
+        <div class="collapse">Collapse</div>
         <br />
 
         <Collapse>
             <filler slot="content-1">
-                Content-1
+                <div>
+                    Content-1
+                </div>
             </filler>
             <filler slot="content-2">
                 Content-2
