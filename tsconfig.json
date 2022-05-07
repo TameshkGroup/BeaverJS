@@ -21,5 +21,5 @@
         "outDir": "dist"
     },
     "exclude": ["node_modules/**"],
-    "include": ["vite-beaver-plugin/index.ts","./src/**.ts", "./src/**.pts", "./src/*.ts", "src/App.ts", "src/main.tsp", "src/samples/Puya.ts", "src/components/CheckInput.ts"]
+    "include": ["./src/**.ts", "./src/**.pts", "./src/*.ts", "src/App.ts", "src/main.tsp", "src/samples/Puya.ts", "src/components/CheckInput.ts"]
 }

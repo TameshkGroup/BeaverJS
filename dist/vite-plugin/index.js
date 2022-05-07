@@ -1,9 +1,30 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
 const fileRegex = /\.(ts)$/;
-import { Parser } from 'htmlparser2/lib/Parser';
-import { DomHandler as Handler } from 'domhandler';
-import * as ts from 'typescript';
-import { SyntaxKind } from 'typescript';
-export default function phenomenJSX() {
+const Parser_1 = require("htmlparser2/lib/Parser");
+const domhandler_1 = require("domhandler");
+const ts = __importStar(require("typescript"));
+const typescript_1 = require("typescript");
+function phenomenJSX() {
     return {
         name: 'phenomenJSX',
         enforce: 'pre',
@@ -16,8 +37,8 @@ export default function phenomenJSX() {
                     if (src.slice(match.index - 4, match.index) === 'html') {
                         const startIndex = match.index + 1;
                         const endIndex = patt.lastIndex - 1;
-                        let handler = new Handler();
-                        new Parser(handler, {
+                        let handler = new domhandler_1.DomHandler();
+                        new Parser_1.Parser(handler, {
                             lowerCaseAttributeNames: false,
                             lowerCaseTags: false,
                         }).end(src.slice(startIndex, endIndex));
@@ -46,7 +67,7 @@ export default function phenomenJSX() {
                 }
                 const node = ts.createSourceFile(id, src, ts.ScriptTarget.Latest);
                 const importMap = node.statements
-                    .filter((statement) => statement.kind === SyntaxKind.ImportDeclaration)
+                    .filter((statement) => statement.kind === typescript_1.SyntaxKind.ImportDeclaration)
                     .map((statement) => 
                 //@ts-ignore
                 (statement.importClause.name?.escapedText
@@ -130,4 +151,5 @@ export default function phenomenJSX() {
         },
     };
 }
+exports.default = phenomenJSX;
 //# sourceMappingURL=index.js.map
