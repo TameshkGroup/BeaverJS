@@ -1,6 +1,10 @@
-import BVRElement from './BVRElement';
+import BVRElement from '../BVRElement';
+import CheckInput from './CheckInput';
 export default class TextInput extends BVRElement {
-    value: string;
+    $$elements: {
+        CheckInput: typeof CheckInput;
+    };
+    value: number;
     click?: () => void;
     mounted(): void;
     $$template: Partial<import("domhandler").Element>;

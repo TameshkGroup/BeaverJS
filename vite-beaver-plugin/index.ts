@@ -1,22 +1,17 @@
 const fileRegex = /\.(ts)$/
-import * as _ from 'lodash'
+import _ from 'lodash'
 
 import { Parser } from 'htmlparser2/lib/Parser'
 import { DomHandler as Handler } from 'domhandler'
-import { PluginHooks, TransformPluginContext } from 'rollup'
-import parseImports from 'parse-es6-imports'
-import recast from 'recast'
-import typescript from 'recast/parsers/typescript'
+import { PluginHooks } from 'rollup'
 import * as ts from 'typescript'
-import { ClassExpression, SyntaxKind } from 'typescript'
+import { SyntaxKind } from 'typescript'
 
 export default function phenomenJSX() {
-    let config
-    let server
     return {
         name: 'phenomenJSX',
         enforce: 'pre',
-        transform(src: string, id, ...args) {
+        transform(src: string, id): { code: string } {
             //console.log(id, args, server)
 
             if (fileRegex.test(id)) {
@@ -33,7 +28,7 @@ export default function phenomenJSX() {
                             lowerCaseTags: false,
                         }).end(src.slice(startIndex, endIndex))
                         const root = handler.root
-                        var cache = []
+                        let cache: string[] | null = []
                         src =
                             src.slice(0, startIndex - 5) +
                             JSON.stringify(root, (key, value) => {
@@ -44,7 +39,7 @@ export default function phenomenJSX() {
                                     if (cache.includes(value)) return
 
                                     // Store value in our collection
-                                    cache.push(value)
+                                    cache?.push(value)
                                 }
                                 return value
                             }) +
@@ -55,45 +50,24 @@ export default function phenomenJSX() {
                 }
 
                 const node = ts.createSourceFile(id, src, ts.ScriptTarget.Latest)
-                const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed })
                 const importMap = node.statements
                     .filter((statement) => statement.kind === SyntaxKind.ImportDeclaration)
                     .map((statement) =>
+                        //@ts-ignore
                         (statement.importClause.name?.escapedText
-                            ? [statement.importClause.name?.escapedText]
-                            : statement.importClause.namedBindings.elements.map(
+                            ? //@ts-ignore
+                              [statement.importClause.name?.escapedText]
+                            : //@ts-ignore
+                              statement.importClause.namedBindings.elements.map(
+                                  //@ts-ignore
                                   (elem) => elem.name?.escapedText
                               )
-                        ).map((item) => ({ [item]: statement.moduleSpecifier.text }))
+                        )
+                            //@ts-ignore
+                            .map((item) => ({ [item]: statement.moduleSpecifier.text }))
                     )
                     .flat()
                     .reduce((obj, item) => ({ ...obj, ...item }), {})
-                //if (id.indexOf('App') >= 0) {
-                const bvrElements = node.statements
-                    .map((statement) => {
-                        const classExpression = statement?.declarationList?.declarations.find(
-                            (d) => d?.initializer
-                        ).initializer
-                        if (
-                            classExpression?.kind === SyntaxKind.ClassExpression &&
-                            classExpression.heritageClauses[0].types[0].expression.escapedText ===
-                                'BVRElement'
-                        ) {
-                            return classExpression as ClassExpression
-                        }
-                    })
-                    .filter((exp) => exp)
-
-                const imports = bvrElements.reduce<string[]>((acm, el) => {
-                    const $elements = el.members.find((m) => m.name.escapedText === '$$elements')
-                    return [
-                        ...acm,
-                        ...$elements.initializer.properties.map((p) => p.name.escapedText),
-                    ]
-                }, [])
-
-                bvrElements.map((el) => {})
-                console.log('importMap', imports, importMap)
 
                 src = src.replace(
                     /\$\$elements( )*(:(.|\n)+)?( )*=( )*\{\s*(((([A-z]|_)+([A-z]|_|\d)*)\s*,\s*)*(([A-z]|_)+([A-z]|_|\d)*))\s*\}/gm,
@@ -102,10 +76,9 @@ export default function phenomenJSX() {
                         const els =
                             /{\s*(?<all>(((([A-z]|_)+([A-z]|_|\d)*))\s*,\s*)*(([A-z]|_)+([A-z]|_|\d)*))\s*\}/gm
                                 .exec(a)
-                                .groups.all.split(', ')
+                                ?.groups?.all.split(', ')
 
-                        const elsImports = els.map((e) => importMap[e.trim()])
-                        console.log('els', els)
+                        const elsImports = els?.map((e) => importMap[e.trim()])
 
                         //console.log({ els })
 
@@ -164,13 +137,12 @@ export default function phenomenJSX() {
                 //return src
                 return {
                     code: src,
-                    map: null, // provide source map if available
+                }
+            } else {
+                return {
+                    code: src,
                 }
             }
-        },
-        buildEnd(info) {
-            console.log('be', info)
-            console.log('ids', Array.from(this.getModuleIds()))
         },
     } as Partial<PluginHooks>
 }

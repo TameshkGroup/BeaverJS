@@ -5,16 +5,15 @@ import { AsPuya } from '../Puya'
 export default class Collapse extends BVRElement {
     constructor() {
         super()
-        setTimeout(() => {
+        setInterval(() => {
             this.x++
-        }, 100)
-
-        for (let i = 0; i < 100; i++) {
-
-        }
+            if (this.x >= 60) {
+                this.x = 0
+            }
+        }, 1000)
     }
 
-    x = 100
+    x = 0
 
     $$template = html`<div class="collapse">
             <div></div>
@@ -31,9 +30,12 @@ export default class Collapse extends BVRElement {
             </IF>
         </div>
 
-        <style>
-            .collapse > div{
-                height: v(--this-x)px
+        <style angle="this.x">
+            .collapse > div {
+                height: 3px;
+                transform: translateX(100px) rotateZ(calc(var(--angle) * 6deg  - 90deg)) translateX(40px) ;
+                background: #bebebe;
+                width: 100px;
             }
             .collapse > div:hover {
                 background: #7e7e7e;

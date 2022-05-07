@@ -33,13 +33,18 @@ export default class BVRElement extends Puya {
     $$parent?: BVRElement;
     $$elementSelector?: string;
     $$slots: Record<string, Slot>;
+    $$elementInstances: Record<string, BVRElement>;
     props: Record<string, any>;
+    constructor();
     $$directives: never[];
     $$elements: Record<string, Constructor<BVRElement>>;
+    $$element: Constructor<BVRElement>;
+    $$elementName: string;
     template(): Partial<Element> | void;
     mounted(): void;
     mount(): Promise<void>;
     $$template: Partial<Element>;
+    reRender(): void;
     render(): void;
 }
 export {};

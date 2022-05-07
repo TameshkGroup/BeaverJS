@@ -53,7 +53,6 @@ export const appendElFromTemplate = (
     htmlParentEl?: HTMLElement,
     scope: Record<string, any> = {},
     scopeId?: string,
-    replace = false
 ): string | HTMLElement | Text | undefined | (HTMLElement | Comment)[] => {
     let element: HTMLElement | Text | string | (HTMLElement | Comment)[] // = document.createTextNode('')
     if (Array.isArray(templateEl) || templateEl.type === ElementType.Root) {
@@ -388,7 +387,7 @@ export default class BVRElement extends Puya {
 
     reRender() {
         //this.$$template = this.template() || this.$$template
-        appendElFromTemplate(this, this.$$template, this.$$rootElement, undefined, undefined, true)
+        appendElFromTemplate(this, this.$$template, this.$$rootElement, undefined, undefined)
     }
 
     render() {

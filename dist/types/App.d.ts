@@ -1,11 +1,7 @@
 import BVRElement from './BVRElement';
 import _ from 'lodash';
-import TextInput from './TextInput';
 export default class App extends BVRElement {
-    $$elements: {
-        TextInput: typeof TextInput;
-    };
-    constructor();
+    $$elements: Record<string, Constructor<BVRElement>>;
     value: string;
     arr: number[];
     x: any;
@@ -14,6 +10,6 @@ export default class App extends BVRElement {
     mounted(): Promise<void>;
     checked: boolean;
     _: _.LoDashStatic;
-    template(): Partial<import("domhandler").Element>;
+    $$template: Partial<import("domhandler").Element>;
 }
 //# sourceMappingURL=App.d.ts.map

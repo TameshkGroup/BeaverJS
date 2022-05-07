@@ -7,7 +7,6 @@
         "lib": ["es2019", "DOM"],
         "moduleResolution": "Node",
         "strict": true,
-        "jsx": "react-jsx",
         "sourceMap": true,
         "resolveJsonModule": true,
         "esModuleInterop": true,
@@ -16,10 +15,9 @@
         "noImplicitReturns": true,
         "baseUrl": ".",
         "paths": {
-            "@/*": ["./src/*"]
         },
         "outDir": "dist"
     },
     "exclude": ["node_modules/**"],
-    "include": ["vite-beaver-plugin/index.ts","./src/**.ts", "./src/**.pts", "./src/*.ts", "src/App.ts", "src/main.tsp", "src/samples/Puya.ts", "src/components/CheckInput.ts"]
+    "include": ["./index.ts"]
 }

@@ -2,7 +2,6 @@ import { getFromPath, setByPath } from '../../shared'
 import { Element } from 'domhandler/lib'
 import _ from 'lodash'
 import BVRElement from '..'
-import { nanoid } from 'nanoid'
 
 export default class ComponentDirective {
     constructor(private bvrElement: BVRElement) {}
