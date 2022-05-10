@@ -11,7 +11,7 @@
     "scripts": {
         "serve": "vite",
         "build": "vite build && yarn gen:types && yarn build:vite-plugin",
-        "build:vite-plugin": "tsc -d  -p ./vite-beaver-plugin/tsconfig.json --outDir ./dist/vite-plugin ",
+        "build:vite-plugin": "tsc -d  -p ./vite-beaver-plugin/tsconfig.json --outDir ./dist/vite-plugin --declarationDir dist/types/vite-plugin",
         "gen:types": "tsc -d --declarationDir dist/types --declarationMap --emitDeclarationOnly"
     },
     "files": [
