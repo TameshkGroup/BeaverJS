@@ -24,10 +24,7 @@
             "import": "./dist/beaver.es.js",
             "require": "./dist/beaver.umd.js"
         },
-        "./vite-plugin": {
-            "import": "./dist/vite-plugin/index.js",
-            "types": "./dist/vite-plugin/index.d.ts"
-        }
+        "./vite-plugin": "./dist/vite-plugin/index.js"
     },
     "devDependencies": {
         "@types/lodash": "^4.14.177",
