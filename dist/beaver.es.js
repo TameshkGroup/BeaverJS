@@ -5628,7 +5628,10 @@ class ForDirective {
     var _a, _b, _c;
     const tEl2 = templateEl2;
     let element2 = [];
-    const vars = (_b = (_a = tEl2.attribs["exp"].match(/(let|const|var)( |	|\n)+([A-z]|\$|_)+/g)) == null ? void 0 : _a.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ""))) == null ? void 0 : _b.join(",");
+    const vars = (_b = [
+      ...((_a = tEl2.attribs["exp"].match(/(let|const|var)( |	|\n)+([A-z]|\$|_)+/g)) == null ? void 0 : _a.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ""))) || [],
+      ...Object.keys(scope2)
+    ]) == null ? void 0 : _b.join(",");
     const exp = tEl2.attribs["exp"].replaceAll(/((this\.))(?=([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g, "that.");
     (_c = tEl2.attribs["exp"].match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _c.forEach(($var) => {
       this.bvrElement.addSubscribe($var.substring(5), () => set2(), parentScopeId);
