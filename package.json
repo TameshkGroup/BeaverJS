@@ -1,50 +1,50 @@
 {
-  "name": "@beaver/core",
-  "version": "0.0.1",
-  "description": "Minimal and simple js framework",
-  "author": "MohamadKhani",
-  "license": "MIT",
-  "mainDir": "src",
-  "private": true,
-  "type": "commonjs",
-  "types": "dist/types",
-  "scripts": {
-    "serve": "vite",
-    "build": "vite build && yarn gen:types && yarn build:vite-plugin",
-    "build:vite-plugin": "tsc -d  -p ./vite-beaver-plugin/tsconfig.json --outDir ./dist/vite-plugin ",
-    "gen:types": "tsc -d --declarationDir dist/types --declarationMap --emitDeclarationOnly"
-  },
-  "files": [
-    "dist"
-  ],
-  "main": "./dist/beaver.umd.js",
-  "module": "./dist/beaver.es.js",
-  "exports": {
-    ".": {
-      "import": "./dist/beaver.es.js",
-      "require": "./dist/beaver.umd.js"
+    "name": "@beaver/core",
+    "version": "0.0.1",
+    "description": "Minimal and simple js framework",
+    "author": "MohamadKhani",
+    "license": "MIT",
+    "mainDir": "src",
+    "private": true,
+    "type": "commonjs",
+    "types": "dist/types",
+    "scripts": {
+        "serve": "vite",
+        "build": "vite build && yarn gen:types && yarn build:vite-plugin",
+        "build:vite-plugin": "tsc -d  -p ./vite-beaver-plugin/tsconfig.json --outDir ./dist/vite-plugin ",
+        "gen:types": "tsc -d --declarationDir dist/types --declarationMap --emitDeclarationOnly"
     },
-    "./vite-plugin": "./dist/vite-plugin/index.js"
-  },
-  "devDependencies": {
-    "@types/lodash": "^4.14.177",
-    "lodash": "^4.17.21",
-    "nodemon": "^2.0.15",
-    "parse-es6-imports": "^1.0.1",
-    "recast": "^0.20.5",
-    "ts-node": "^10.4.0",
-    "typescript": "^4.5.2",
-    "vite": "^2.6.14",
-    "vite-plugin-static-copy": "^0.4.1"
-  },
-  "dependencies": {
-    "@types/css": "^0.0.33",
-    "@types/nanoid": "^3.0.0",
-    "css": "^3.0.0",
-    "htmlparser2": "^7.2.0",
-    "nanoid": "^3.1.30",
-    "rollup": "^2.70.2",
-    "rollup-plugin-jsx": "^1.0.3",
-    "rollup-plugin-pug": "^1.1.1"
-  }
+    "files": [
+        "dist"
+    ],
+    "main": "./dist/beaver.umd.js",
+    "module": "./dist/beaver.es.js",
+    "exports": {
+        ".": {
+            "import": "./dist/beaver.es.js",
+            "require": "./dist/beaver.umd.js"
+        },
+        "./vite-plugin": "./dist/vite-plugin/index.js"
+    },
+    "devDependencies": {
+        "@types/lodash": "^4.14.177",
+        "lodash": "^4.17.21",
+        "nodemon": "^2.0.15",
+        "parse-es6-imports": "^1.0.1",
+        "recast": "^0.20.5",
+        "ts-node": "^10.4.0",
+        "typescript": "^4.5.2",
+        "vite": "^2.6.14",
+        "vite-plugin-static-copy": "^0.4.1"
+    },
+    "dependencies": {
+        "htmlparser2": "^7.2.0",
+        "@types/css": "^0.0.33",
+        "@types/nanoid": "^3.0.0",
+        "css": "^3.0.0",
+        "nanoid": "^3.1.30",
+        "rollup": "^2.70.2",
+        "rollup-plugin-jsx": "^1.0.3",
+        "rollup-plugin-pug": "^1.1.1"
+    }
 }

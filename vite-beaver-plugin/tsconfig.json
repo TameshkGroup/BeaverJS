@@ -3,7 +3,7 @@
         "experimentalDecorators": true,
         "target": "ESNext",
         "useDefineForClassFields": true,
-        "module": "ESNext",
+        "module": "UMD",
         "lib": ["esnext", "DOM"],
         "moduleResolution": "Node",
         "strict": true,
