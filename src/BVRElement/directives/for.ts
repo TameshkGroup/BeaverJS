@@ -13,10 +13,12 @@ export default class ForDirective {
         let element: (HTMLElement | Comment)[] = []
 
         /* TODO Method of detect variables not work as expected */
-        const vars = tEl.attribs['exp']
-            .match(/(let|const|var)( |	|\n)+([A-z]|\$|_)+/g)
-            ?.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ''))
-            ?.join(',')
+        const vars = [
+            ...(tEl.attribs['exp']
+                .match(/(let|const|var)( |	|\n)+([A-z]|\$|_)+/g)
+                ?.map((v) => v.replace(/(let|const|var)( |	|\n)/g, '')) || []),
+            ...Object.keys(scope),
+        ]?.join(',')
         /*  const node = ts.createSourceFile('', tEl.attribs['exp'], ts.ScriptTarget.Latest)
         const vars: string[] = []
         node.forEachChild((child) => {

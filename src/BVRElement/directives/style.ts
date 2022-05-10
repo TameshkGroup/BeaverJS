@@ -8,7 +8,6 @@ export default class StyleDirective {
     constructor(private bvrElement: BVRElement) {}
 
     render(templateEl: Element, _scope: any, parentScopeId: string): (HTMLElement | Comment)[] {
-        console.log((templateEl.children[0] as unknown as Text).data)
         const parsed = css.parse((templateEl.children[0] as unknown as Text).data)
         if (!parsed.stylesheet) return []
 
@@ -44,7 +43,6 @@ export default class StyleDirective {
         const set = () => {
             styleVarsElement.innerHTML =
                 Object.entries(templateEl.attribs).reduce((acm, [name, value]) => {
-                    console.log('this.bvrElement', this.bvrElement, value.replace('this.', ''))
                     return (
                         acm +
                         '--' +

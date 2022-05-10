@@ -1,15 +1,15 @@
-import BVRElement from './BVRElement';
-import _ from 'lodash';
+import { BVRElement } from '.';
+import Collapse from './components/Collapse';
 export default class App extends BVRElement {
-    $$elements: Record<string, Constructor<BVRElement>>;
-    value: string;
+    $$elements: {
+        Collapse: typeof Collapse;
+    };
+    test: string;
     arr: number[];
-    x: any;
-    y: number;
-    beforeMount(): void;
+    inputValue?: number | undefined;
+    check: boolean;
     mounted(): Promise<void>;
-    checked: boolean;
-    _: _.LoDashStatic;
-    $$template: Partial<import("domhandler").Element>;
+    inputChanged(value: string): void;
+    template(): Partial<import("domhandler").Element>;
 }
 //# sourceMappingURL=App.d.ts.map

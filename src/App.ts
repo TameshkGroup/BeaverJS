@@ -1,80 +1,55 @@
-import BVRElement, { html } from './BVRElement'
+import { BVRElement, html, AsPuya } from '.'
 import _ from 'lodash'
-import { AsPuya } from './Puya'
-import TextInput from './components/TextInput'
-import CheckInput from './components/CheckInput'
 import Collapse from './components/Collapse'
 
 @AsPuya
 export default class App extends BVRElement {
-    $$elements: Record<string, Constructor<BVRElement>> = { TextInput, CheckInput, Collapse }
-
-    value = 'value2'
-
-    arr: number[] = _.range(1, 2)
-    x: any
-    y: number = 100
-    beforeMount(): void {
-        this.x = { x: 10 }
-    }
+    $$elements = { Collapse }
+    test = 'ok'
+    arr = _.range(0, 10)
+    inputValue? = 12
+    check = false
 
     async mounted() {
-        this.x.x = 13
-        setInterval(() => {
-            this.x.x = this.x.x + 1
-        }, 1000)
+        this.inputValue = 13
+        document.title = 'BVR.JS'
     }
 
-    checked = true
+    inputChanged(value: string) {
+        const parsed: number | undefined = Number.parseInt(value)
+        this.inputValue = isNaN(parsed) ? undefined : parsed
+    }
 
-    _ = _
+    template() {
+        return html`<div>run</div>
+            {{ this.test }}
+            <for exp="let $i of this.arr">
+                <div>{{$i}}</div>
+            </for>
+            <br />
+            <div>{{ this.inputValue }}</div>
+            <if exp="this.arr.length > 10"> larger </if>
 
-    $$template = html` <div>
-        <span style="font-weight: bold">{{ this.x.x }}</span>
-        {{this.value}}
-        <br />
-        <TextInput bi.value="this.value" />
-            <filler slot="append">
-                @
-            </filler>
-        </TextInput>
-        <br />
-        <TextInput bi.value="this.value" />
-            <filler slot="prepend">
-                #
-            </filler>
-        </TextInput>
-        <div class="collapse">Collapse</div>
-        <br />
+            <NumberInput bi.value="this.inputValue">
+                <filler slot="prefix">111</filler>
+                <p></p>
+            </NumberInput>
+            <button @click="this.arr.push(this.inputValue)">add</button>
+            <br />
+            <Collapse>
+                <div>First</div>
+                <div>Second</div>
+                <filler slot="title-1"> Third </filler>
+                <filler slot="title-2"> Forth </filler>
+                <filler slot="content-1"> Third content </filler>
+                <filler slot="content-2"> Forth content </filler>
+            </Collapse>
 
-        <Collapse>
-            <filler slot="content-1">
-                <div>
-                    Content-1
-                </div>
-            </filler>
-            <filler slot="content-2">
-                Content-2
-            </filler>
-        </Collapse>
-    </div>`
+            <input set.value="this.inputValue" get.input="this.inputValue = $.value" type="text" />
+            <br />
+            {{this.check}}
+            <input set.checked="this.check" @input="this.check = $.checked" type="checkbox" /> 
+            <input set.checked="this.check" @input="this.check = $.checked" type="checkbox" /> 
+            `
+    }
 }
-
-/* if (import.meta.hot) {
-    import.meta.hot.accept((accept) => {
-        console.log('aai', { accept })
-    })
-    import.meta.hot.accept('./TextInput', (accept) => {
-        console.log('a1', { accept })
-    })
-    import.meta.hot.on('vite:beforeUpdate', (payload) => {
-        console.log('vite:beforeUpdate', payload)
-    })
-    import.meta.hot.accept((newModule) => {
-        console.log('updated: count is now ')
-        console.log('n', newModule)
-    })
-    import.meta.hot.on('special-update', (su) => {
-        console.log('specialUpdate', su)
-    })
-} */

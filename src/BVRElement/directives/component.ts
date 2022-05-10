@@ -82,14 +82,14 @@ export default class ComponentDirective {
                     nonFillerElements.push(child) //NONFiller element inside BVRElement
                 }
             }
-        });
+        })
         if (nonFillerElements?.length && !instance.$$slots.default) {
             fillers.push(new Element('filler', { slot: 'default' }, nonFillerElements))
         }
         fillers.forEach((filler) => {
             instance.$$slots = {
                 ...instance.$$slots,
-                [filler.attribs?.slot]: {
+                [filler.attribs?.slot || 'default']: {
                     filler,
                     templatePath: [],
                 },

@@ -7,14 +7,16 @@ export default class IfDirective {
 
     static tagName = 'if'
 
-    render(templateEl: Element, scope: any, parentScopeId: string) {
+    render(templateEl: Element, scope: Record<string, any>, parentScopeId: string) {
         const tEl = templateEl as Element
         let element: (HTMLElement | Comment)[] = []
 
-        const vars = tEl.attribs['exp']
-            .match(/(let|const|var)( |	|\n)+([A-z]|\$|_)+/g)
-            ?.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ''))
-            ?.join(',')
+        const vars = [
+            ...(tEl.attribs['exp']
+                .match(/(let|const|var)( |	|\n)+([A-z]|\$|_)+/g)
+                ?.map((v) => v.replace(/(let|const|var)( |	|\n)/g, '')) || []),
+            ...Object.keys(scope),
+        ]?.join(',')
 
         const exp = tEl.attribs['exp'].replace(/this(.\w)+/, ($propStr) => {
             const propTrimmed = $propStr.replace('this.', '')
@@ -23,7 +25,7 @@ export default class IfDirective {
             return $propStr.replace(/this./, 'that.')
         })
         const code = `
-                    const {${scope&&Object.keys(scope).join(',')}} = ${JSON.stringify(scope)}
+                    const {${scope && Object.keys(scope).join(',')}} = ${JSON.stringify(scope)}
                     var that = this;
 
                     if( ${exp} ){

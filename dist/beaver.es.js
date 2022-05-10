@@ -1417,7 +1417,7 @@ var lodash = { exports: {} };
       }
       function baseInvoke(object, path, args) {
         path = castPath(path, object);
-        object = parent2(object, path);
+        object = parent(object, path);
         var func = object == null ? object : object[toKey(last(path))];
         return func == null ? undefined$1 : apply(func, object, args);
       }
@@ -1950,7 +1950,7 @@ var lodash = { exports: {} };
       }
       function baseUnset(object, path) {
         path = castPath(path, object);
-        object = parent2(object, path);
+        object = parent(object, path);
         return object == null || delete object[toKey(last(path))];
       }
       function baseUpdate(object, path, updater, customizer) {
@@ -3021,7 +3021,7 @@ var lodash = { exports: {} };
           return apply(func, this, otherArgs);
         };
       }
-      function parent2(object, path) {
+      function parent(object, path) {
         return path.length < 2 ? object : baseGet(object, baseSlice(path, 0, -1));
       }
       function reorder(array, indexes) {
@@ -3567,9 +3567,9 @@ var lodash = { exports: {} };
         return this;
       }
       function wrapperPlant(value) {
-        var result2, parent3 = this;
-        while (parent3 instanceof baseLodash) {
-          var clone2 = wrapperClone(parent3);
+        var result2, parent2 = this;
+        while (parent2 instanceof baseLodash) {
+          var clone2 = wrapperClone(parent2);
           clone2.__index__ = 0;
           clone2.__values__ = undefined$1;
           if (result2) {
@@ -3578,7 +3578,7 @@ var lodash = { exports: {} };
             result2 = clone2;
           }
           var previous = clone2;
-          parent3 = parent3.__wrapped__;
+          parent2 = parent2.__wrapped__;
         }
         previous.__wrapped__ = value;
         return result2;
@@ -5719,7 +5719,10 @@ class IfDirective {
     var _a, _b;
     const tEl2 = templateEl2;
     let element2 = [];
-    const vars = (_b = (_a = tEl2.attribs["exp"].match(/(let|const|var)( |	|\n)+([A-z]|\$|_)+/g)) == null ? void 0 : _a.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ""))) == null ? void 0 : _b.join(",");
+    const vars = (_b = [
+      ...((_a = tEl2.attribs["exp"].match(/(let|const|var)( |	|\n)+([A-z]|\$|_)+/g)) == null ? void 0 : _a.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ""))) || [],
+      ...Object.keys(scope2)
+    ]) == null ? void 0 : _b.join(",");
     const exp = tEl2.attribs["exp"].replace(/this(.\w)+/, ($propStr) => {
       const propTrimmed = $propStr.replace("this.", "");
       this.bvrElement.addSubscribe(propTrimmed, () => set2(), parentScopeId);
@@ -5904,8 +5907,8 @@ var Node$1 = function() {
     get: function() {
       return this.parent;
     },
-    set: function(parent2) {
-      this.parent = parent2;
+    set: function(parent) {
+      this.parent = parent;
     },
     enumerable: false,
     configurable: true
@@ -6310,20 +6313,20 @@ function cloneChildren(childs) {
       }
     };
     DomHandler2.prototype.addNode = function(node2) {
-      var parent2 = this.tagStack[this.tagStack.length - 1];
-      var previousSibling = parent2.children[parent2.children.length - 1];
+      var parent = this.tagStack[this.tagStack.length - 1];
+      var previousSibling = parent.children[parent.children.length - 1];
       if (this.options.withStartIndices) {
         node2.startIndex = this.parser.startIndex;
       }
       if (this.options.withEndIndices) {
         node2.endIndex = this.parser.endIndex;
       }
-      parent2.children.push(node2);
+      parent.children.push(node2);
       if (previousSibling) {
         node2.prev = previousSibling;
         previousSibling.next = node2;
       }
-      node2.parent = parent2;
+      node2.parent = parent;
       this.lastNode = null;
     };
     return DomHandler2;
@@ -6396,7 +6399,7 @@ class ComponentDirective {
     fillers.forEach((filler) => {
       var _a2;
       instance.$$slots = __spreadProps(__spreadValues({}, instance.$$slots), {
-        [(_a2 = filler.attribs) == null ? void 0 : _a2.slot]: {
+        [((_a2 = filler.attribs) == null ? void 0 : _a2.slot) || "default"]: {
           filler,
           templatePath: []
         }
@@ -6837,9 +6840,9 @@ var parse = function(css2, options) {
 function trim(str2) {
   return str2 ? str2.replace(/^\s+|\s+$/g, "") : "";
 }
-function addParent(obj, parent2) {
+function addParent(obj, parent) {
   var isNode = obj && typeof obj.type === "string";
-  var childParent = isNode ? obj : parent2;
+  var childParent = isNode ? obj : parent;
   for (var k in obj) {
     var value = obj[k];
     if (Array.isArray(value)) {
@@ -6855,7 +6858,7 @@ function addParent(obj, parent2) {
       configurable: true,
       writable: true,
       enumerable: false,
-      value: parent2 || null
+      value: parent || null
     });
   }
   return obj;
@@ -9190,7 +9193,6 @@ class StyleDirective {
     this.bvrElement = bvrElement;
   }
   render(templateEl2, _scope, parentScopeId) {
-    console.log(templateEl2.children[0].data);
     const parsed = css.parse(templateEl2.children[0].data);
     if (!parsed.stylesheet)
       return [];
@@ -9216,7 +9218,6 @@ class StyleDirective {
     styleElement.innerHTML = cssString;
     const set2 = () => {
       styleVarsElement.innerHTML = Object.entries(templateEl2.attribs).reduce((acm, [name, value]) => {
-        console.log("this.bvrElement", this.bvrElement, value.replace("this.", ""));
         return acm + "--" + name + ":" + Function.apply(null, ["", "return " + value]).bind(this.bvrElement)() + "; \n";
       }, `[instance_id=${this.bvrElement.$id}] {
 `) + "}";
@@ -9272,7 +9273,6 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
   } else if (templateEl.type === ElementType.Tag && ((_c = that.$$elements) == null ? void 0 : _c[templateEl.name])) {
     element = new ComponentDirective(that).render(templateEl, scope, scopeId);
   } else if (templateEl.type === ElementType.Style) {
-    console.log("styleDetected");
     element = new StyleDirective(that).render(templateEl, scope, scopeId);
   } else if (templateEl.type === ElementType.Tag && templateEl.name === "slot") {
     if ((that == null ? void 0 : that.$$parent) && ((_d = templateEl == null ? void 0 : templateEl.attribs) == null ? void 0 : _d["name"])) {
@@ -9302,7 +9302,7 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
     });
     if (tEl.attribs)
       Object.entries(tEl.attribs).forEach(([attrName, attrValue]) => {
-        var _a2, _b2, _c2;
+        var _a2, _b2, _c2, _d2;
         if (attrName.indexOf("@") === 0) {
           const event = attrName.replace("@", "");
           const code = attrValue;
@@ -9310,11 +9310,15 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
             return;
           if (element instanceof HTMLStyleElement || element instanceof HTMLElement)
             element.addEventListener(event, ($event) => {
-              const args = ["$event", code];
+              const args = [
+                `$event,$,{${scope && Object.keys(scope).join(",")}}`,
+                code
+              ];
               const fn = Function.apply(null, args);
               try {
-                fn.bind(that)($event);
+                fn.bind(that)($event, element, scope);
               } catch (e) {
+                console.error(e);
               }
             });
         } else if (attrName === "$") {
@@ -9326,6 +9330,49 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
           });
           set2();
         } else {
+          if (attrName.indexOf("set.") === 0) {
+            const set2 = () => {
+              element[attrName.replace("set.", "")] = Function.apply(null, [
+                "",
+                "return " + attrValue
+              ]).bind(that)();
+            };
+            (_b2 = attrValue.match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _b2.forEach((item) => {
+              that.addSubscribe(item.substring(5), set2, scopeId);
+            });
+            set2();
+          } else if (attrName.indexOf("get.") === 0) {
+            const str2 = attrName.replace("get.", "");
+            if (element instanceof HTMLStyleElement || element instanceof HTMLElement) {
+              if (attrValue.indexOf("=") >= 0) {
+                let assignment = {
+                  rhs: attrValue.slice(attrValue.indexOf("=") + 1).trim(),
+                  lhs: attrValue.slice(0, attrValue.indexOf("=")).trim()
+                };
+                element.addEventListener(str2, ($event) => {
+                  const value = Function.apply(null, [
+                    "$,$event",
+                    "return " + assignment.rhs
+                  ]).bind(that)(element, $event);
+                  if (!_.isEqual(getFromPath(that, assignment.lhs.slice(5)), value)) {
+                    setByPath(that, assignment.lhs.slice(5), value);
+                  }
+                });
+              } else {
+                element.addEventListener(str2, ($event) => {
+                  let value;
+                  if (element instanceof HTMLInputElement && ["text", "tel", "password"].includes(element.type))
+                    value = $event.target.value;
+                  else if (element instanceof HTMLInputElement && ["checkbox"].includes(element.type)) {
+                    value = $event.target.checked;
+                  }
+                  if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
+                    setByPath(that, attrValue.slice(5), value);
+                  }
+                });
+              }
+            }
+          }
           let childToParent = false;
           let parentToChild = false;
           let str = attrName;
@@ -9354,7 +9401,7 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
             }
           }
           if (parentToChild) {
-            (_b2 = attrValue.match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _b2.forEach((item) => {
+            (_c2 = attrValue.match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _c2.forEach((item) => {
               that.addSubscribe(item.substring(5), (value) => {
                 element.value = value;
               });
@@ -9365,7 +9412,7 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
                 "return " + attrValue
               ]).bind(that)();
             };
-            (_c2 = attrValue.match(/this(.\w){0,}/g)) == null ? void 0 : _c2.forEach((item) => {
+            (_d2 = attrValue.match(/this(.\w){0,}/g)) == null ? void 0 : _d2.forEach((item) => {
               item = item.slice(5);
               that.addSubscribe(item, set2, scopeId);
             });
@@ -9395,7 +9442,6 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
         }
       });
     element.setAttribute("instance_id", that.$id);
-    console.log("parent", parent);
   } else if (templateEl.type === ElementType.Text && templateEl.data) {
     const el = templateEl;
     element = document.createTextNode(el.data);
@@ -9442,12 +9488,12 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
     element = document.createElement("none");
   }
   if (Array.isArray(element)) {
-    const h = (parent2, element2) => {
+    const h = (parent, element2) => {
       if (!Array.isArray(element2)) {
-        parent2.append(element2);
+        parent.append(element2);
       } else {
         element2.forEach((el2) => {
-          h(parent2, el2);
+          h(parent, el2);
         });
       }
     };

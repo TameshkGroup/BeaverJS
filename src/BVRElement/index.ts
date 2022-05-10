@@ -52,7 +52,7 @@ export const appendElFromTemplate = (
     templateEl: Partial<Element | DataNode | Document> | Partial<Element | DataNode | Document>[],
     htmlParentEl?: HTMLElement,
     scope: Record<string, any> = {},
-    scopeId?: string,
+    scopeId?: string
 ): string | HTMLElement | Text | undefined | (HTMLElement | Comment)[] => {
     let element: HTMLElement | Text | string | (HTMLElement | Comment)[] // = document.createTextNode('')
     if (Array.isArray(templateEl) || templateEl.type === ElementType.Root) {
@@ -94,7 +94,6 @@ export const appendElFromTemplate = (
             scopeId as string
         )
     } else if (templateEl.type === ElementType.Style) {
-        console.log('styleDetected')
         element = new StyleDirective(that).render(templateEl as Element, scope, scopeId as string)
     } else if (templateEl.type === ElementType.Tag && (templateEl as Element).name === 'slot') {
         if (that?.$$parent && (templateEl as Element)?.attribs?.['name']) {
@@ -148,11 +147,16 @@ export const appendElFromTemplate = (
                     if (!code) return
                     if (element instanceof HTMLStyleElement || element instanceof HTMLElement)
                         element.addEventListener(event, ($event) => {
-                            const args = ['$event', code]
+                            const args = [
+                                `$event,$,{${scope && Object.keys(scope).join(',')}}`,
+                                code,
+                            ]
                             const fn = Function.apply(null, args)
                             try {
-                                fn.bind(that)($event)
-                            } catch (e) {}
+                                fn.bind(that)($event, element, scope)
+                            } catch (e) {
+                                console.error(e)
+                            }
                         })
                 } else if (attrName === '$') {
                     const set = () => {
@@ -167,6 +171,69 @@ export const appendElFromTemplate = (
 
                     set()
                 } else {
+                    if (attrName.indexOf('set.') === 0) {
+                        const set = () => {
+                            ;(element as any)[attrName.replace('set.', '')] = Function.apply(null, [
+                                '',
+                                'return ' + attrValue,
+                            ]).bind(that)()
+                        }
+
+                        attrValue
+                            .match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)
+                            ?.forEach((item) => {
+                                that.addSubscribe(item.substring(5), set, scopeId)
+                            })
+
+                        set()
+                    } else if (attrName.indexOf('get.') === 0) {
+                        const str = attrName.replace('get.', '')
+
+                        if (element instanceof HTMLStyleElement || element instanceof HTMLElement) {
+                            if (attrValue.indexOf('=') >= 0) {
+                                let assignment: { rhs: string; lhs: string } = {
+                                    rhs: attrValue.slice(attrValue.indexOf('=') + 1).trim(),
+                                    lhs: attrValue.slice(0, attrValue.indexOf('=')).trim(),
+                                }
+                                element.addEventListener(str, ($event) => {
+                                    const value = Function.apply(null, [
+                                        '$,$event',
+                                        'return ' + assignment.rhs,
+                                    ]).bind(that)(element, $event)
+
+                                    //DEEP Equality check
+                                    if (
+                                        !_.isEqual(
+                                            getFromPath(that, assignment.lhs.slice(5)),
+                                            value
+                                        )
+                                    ) {
+                                        setByPath(that, assignment.lhs.slice(5), value)
+                                    }
+                                })
+                            } else {
+                                element.addEventListener(str, ($event) => {
+                                    let value: any
+                                    if (
+                                        element instanceof HTMLInputElement &&
+                                        ['text', 'tel', 'password'].includes(element.type)
+                                    )
+                                        value = ($event.target as HTMLInputElement).value
+                                    else if (
+                                        element instanceof HTMLInputElement &&
+                                        ['checkbox'].includes(element.type)
+                                    ) {
+                                        value = ($event.target as HTMLInputElement).checked
+                                    }
+                                    if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
+                                        //DEEP Equality check
+                                        //that[v.slice(5)] = value;
+                                        setByPath(that, attrValue.slice(5), value)
+                                    }
+                                })
+                            }
+                        }
+                    }
                     let childToParent = false
                     let parentToChild = false
                     let str = attrName
@@ -244,8 +311,6 @@ export const appendElFromTemplate = (
                 //}
             })
         element.setAttribute('instance_id', that.$id)
-        console.log('parent', parent)
-        
     } else if (templateEl.type === ElementType.Text && (templateEl as DataNode).data) {
         const el = templateEl as DataNode
         element = document.createTextNode(el.data)

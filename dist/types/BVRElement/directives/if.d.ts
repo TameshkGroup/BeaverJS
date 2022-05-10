@@ -4,6 +4,6 @@ export default class IfDirective {
     private bvrElement;
     constructor(bvrElement: BVRElement);
     static tagName: string;
-    render(templateEl: Element, scope: any, parentScopeId: string): (HTMLElement | Comment)[];
+    render(templateEl: Element, scope: Record<string, any>, parentScopeId: string): (HTMLElement | Comment)[];
 }
 //# sourceMappingURL=if.d.ts.map
