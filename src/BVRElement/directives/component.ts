@@ -65,8 +65,11 @@ export default class ComponentDirective {
             }
         }
 
+        
+
         findSlotsInTemplate(el, [])
         /* End Handle Slots */
+
 
         /* Handle fillers without slot */
         const fillers: Element[] = []
@@ -96,6 +99,9 @@ export default class ComponentDirective {
             }
         })
         /* End handle fillers without slot */
+
+
+        console.log('slots', instance.$$slots);
 
         /* Handle Attributes */
         Object.entries((templateEl as Element).attribs).forEach(([k, v]) => {
@@ -136,7 +142,7 @@ export default class ComponentDirective {
                     }
 
                     v.match(
-                        /this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g
+                        /this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g
                     )?.forEach((item) => {
                         this.bvrElement.addSubscribe(item.substring(5), set, parentScopeId)
                     })
@@ -152,7 +158,7 @@ export default class ComponentDirective {
                     }
 
                     v.match(
-                        /this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g
+                        /this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g
                     )?.forEach((item) => {
                         this.bvrElement.addSubscribe(item.substring(5), set, parentScopeId)
                     })

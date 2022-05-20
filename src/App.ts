@@ -37,19 +37,20 @@ export default class App extends BVRElement {
             <button @click="this.arr.push(this.inputValue)">add</button>
             <br />
             <Collapse>
-                <div>First</div>
-                <div>Second</div>
                 <filler slot="title-1"> Third </filler>
                 <filler slot="title-2"> Forth </filler>
                 <filler slot="content-1"> Third content </filler>
                 <filler slot="content-2"> Forth content </filler>
+                <FOR exp="let $i of this.arr">
+                    <filler set.slot="'content-' + $i"> Dyn Content </filler>
+                    <filler set.slot="'title-' + $i"> Dyn Header </filler>
+                </FOR>
             </Collapse>
 
             <input set.value="this.inputValue" get.input="this.inputValue = $.value" type="text" />
             <br />
             {{this.check}}
-            <input set.checked="this.check" @input="this.check = $.checked" type="checkbox" /> 
-            <input set.checked="this.check" @input="this.check = $.checked" type="checkbox" /> 
-            `
+            <input set.checked="this.check" @input="this.check = $.checked" type="checkbox" />
+            <input set.checked="this.check" @input="this.check = $.checked" type="checkbox" /> `
     }
 }

@@ -164,7 +164,9 @@ export const appendElFromTemplate = (
                     }
 
                     attrValue
-                        .match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)
+                        .match(
+                            /this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g
+                        )
                         ?.forEach((item) => {
                             that.addSubscribe(item.substring(5), set, scopeId)
                         })
@@ -173,16 +175,24 @@ export const appendElFromTemplate = (
                 } else {
                     if (attrName.indexOf('set.') === 0) {
                         const set = () => {
-                            ;(element as any)[attrName.replace('set.', '')] = Function.apply(null, [
-                                '',
-                                'return ' + attrValue,
-                            ]).bind(that)()
+                            Function.apply(null, [
+                                `$,{${scope && Object.keys(scope).join(',')}}`,
+                                `$.${attrName.replace('set.', '')} = ${attrValue}`,
+                            ]).bind(that)(element, scope)
+
+                            //setByPath(element as any, attrName.replace('set.', '').split('.'), v)
                         }
 
                         attrValue
-                            .match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)
+                            .match(
+                                /this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\[[^]]+\])?(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d\)*))(\[[^]]+\])?)*/g
+                            )
                             ?.forEach((item) => {
-                                that.addSubscribe(item.substring(5), set, scopeId)
+                                that.addSubscribe(
+                                    item.replace(/(\[[^]]+\])/g, '.*').substring(5),
+                                    set,
+                                    scopeId
+                                )
                             })
 
                         set()
@@ -195,116 +205,77 @@ export const appendElFromTemplate = (
                                     rhs: attrValue.slice(attrValue.indexOf('=') + 1).trim(),
                                     lhs: attrValue.slice(0, attrValue.indexOf('=')).trim(),
                                 }
-                                element.addEventListener(str, ($event) => {
-                                    const value = Function.apply(null, [
-                                        '$,$event',
-                                        'return ' + assignment.rhs,
-                                    ]).bind(that)(element, $event)
+                                {
+                                    element.addEventListener(str, ($event) => {
+                                        const value = Function.apply(null, [
+                                            '$,$event',
+                                            'return ' + assignment.rhs,
+                                        ]).bind(that)(element, $event)
 
-                                    //DEEP Equality check
-                                    if (
-                                        !_.isEqual(
-                                            getFromPath(that, assignment.lhs.slice(5)),
-                                            value
-                                        )
-                                    ) {
-                                        setByPath(that, assignment.lhs.slice(5), value)
-                                    }
-                                })
-                            } else {
-                                element.addEventListener(str, ($event) => {
-                                    let value: any
-                                    if (
-                                        element instanceof HTMLInputElement &&
-                                        ['text', 'tel', 'password'].includes(element.type)
-                                    )
-                                        value = ($event.target as HTMLInputElement).value
-                                    else if (
-                                        element instanceof HTMLInputElement &&
-                                        ['checkbox'].includes(element.type)
-                                    ) {
-                                        value = ($event.target as HTMLInputElement).checked
-                                    }
-                                    if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
                                         //DEEP Equality check
-                                        //that[v.slice(5)] = value;
-                                        setByPath(that, attrValue.slice(5), value)
-                                    }
-                                })
+                                        if (
+                                            !_.isEqual(
+                                                getFromPath(that, assignment.lhs.slice(5)),
+                                                value
+                                            )
+                                        ) {
+                                            Function.apply(null, [
+                                                `$,{${scope && Object.keys(scope).join(',')}}`,
+                                                assignment.lhs + ' = ' + assignment.rhs,
+                                            ]).bind(that)(element, scope)
+                                            //setByPath(that, assignment.lhs.slice(5), value)
+                                        }
+                                    })
+                                }
+                            } else {
+                                if (str.indexOf('boundingRect') === 0) {
+                                    const setFn = Function.apply(null, [
+                                        `$value,{${scope && Object.keys(scope).join(',')}}`,
+                                        `
+                                        if(${attrValue}?.height !== $value?.height)
+                                            ${attrValue} = $value.height
+                                        `,
+                                    ]).bind(that)
+                                    new ResizeObserver((entries) => {
+                                        for (let entry of entries) {
+                                            const cr = entry.contentRect
+                                            setFn(cr.toJSON(), scope)
+                                            //setByPath(that, attrValue.slice(5), _.clone(cr))
+                                        }
+                                    }).observe(element)
+                                    /* setTimeout(() => {
+                                        setByPath(
+                                            that,
+                                            attrValue.slice(5),
+                                            (element as HTMLElement).getClientRects()
+                                        )
+                                    }, 100) */
+                                } else {
+                                    element.addEventListener(str, ($event) => {
+                                        let value: any
+                                        if (
+                                            element instanceof HTMLInputElement &&
+                                            ['text', 'tel', 'password'].includes(element.type)
+                                        )
+                                            value = ($event.target as HTMLInputElement).value
+                                        else if (
+                                            element instanceof HTMLInputElement &&
+                                            ['checkbox'].includes(element.type)
+                                        ) {
+                                            value = ($event.target as HTMLInputElement).checked
+                                        }
+                                        if (
+                                            !_.isEqual(getFromPath(that, attrValue.slice(5)), value)
+                                        ) {
+                                            //DEEP Equality check
+                                            //that[v.slice(5)] = value;
+                                            setByPath(that, attrValue.slice(5), value)
+                                        }
+                                    })
+                                }
                             }
                         }
-                    }
-                    let childToParent = false
-                    let parentToChild = false
-                    let str = attrName
-                    let pos = attrName.lastIndexOf('}')
-                    if (pos > attrName.length - 2) {
-                        str = str.slice(0, pos)
-                        childToParent = true
-                    }
-                    pos = attrName.lastIndexOf('{')
-                    if (pos > attrName.length - 3) {
-                        str = str.slice(0, pos)
-                        parentToChild = true
-                    }
-
-                    try {
-                        const ev = eval('scope.' + attrValue)
-                        if (ev !== undefined) {
-                            ;(element as any)[str] = ev
-                            return
-                        }
-                    } catch (e) {
-                        try {
-                            const res: any = new Function('return ' + attrValue).bind(that)()
-                            ;(element as any)[str] = res //.setAttribute(str, res)
-                        } catch (e) {}
-                    }
-
-                    if (parentToChild) {
-                        attrValue
-                            .match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)
-                            ?.forEach((item) => {
-                                that.addSubscribe(item.substring(5), (value) => {
-                                    ;(element as HTMLInputElement).value = value
-                                })
-                            })
-
-                        const set = () => {
-                            ;(element as any)[str] = Function.apply(null, [
-                                '',
-                                'return ' + attrValue,
-                            ]).bind(that)()
-                        }
-
-                        attrValue.match(/this(.\w){0,}/g)?.forEach((item) => {
-                            item = item.slice(5) //item.replace(/this\./, '')
-                            that.addSubscribe(item, set, scopeId)
-                        })
-
-                        set()
-                    }
-
-                    if (childToParent) {
-                        //TODO specify currect listener for each element type
-                        if (element instanceof HTMLStyleElement || element instanceof HTMLElement) {
-                            element.addEventListener('change', (event) => {
-                                const value = (event.currentTarget as any)?.[str]
-                                if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
-                                    setByPath(that, attrValue.slice(5), value)
-                                }
-                            })
-
-                            element.addEventListener('input', (event) => {
-                                const value = (event.currentTarget as any)?.[str]
-                                if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
-                                    setByPath(that, attrValue.slice(5), value)
-                                }
-                            })
-                        }
-                    }
-
-                    if (!parentToChild && !childToParent) {
+                    } else {
                         ;(element as HTMLElement).setAttribute(attrName, attrValue)
                     }
                 }
@@ -325,16 +296,11 @@ export const appendElFromTemplate = (
                             .substr(2, match.length - 4 - (match.length - (rawLength || 0)))
                             .trim()
 
-                        //Check if there is instance of a class in the scope
-
                         try {
-                            const ev = eval('scope.' + scopeStr)
-                            if (ev !== undefined) {
-                                return ev
-                            }
-                        } catch (e) {}
-                        try {
-                            const res = new Function('return ' + scopeStr).bind(that)()
+                            const res = Function.apply(null, [
+                                `{${scope && Object.keys(scope).join(',')}}`,
+                                'return ' + scopeStr,
+                            ]).bind(that)(scope)
                             return res
                         } catch (e) {}
                         /* try {
@@ -365,7 +331,9 @@ export const appendElFromTemplate = (
             } else {
                 //const m = _.throttle(set, 10)
                 scopeStr
-                    .match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)
+                    .match(
+                        /this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g
+                    )
                     ?.forEach((item) => {
                         that.addSubscribe(item.substring(5), set, scopeId, throttle)
                     })

@@ -20,7 +20,7 @@ export default class StyleDirective {
                         const splitted = part.split(':')
                         return (
                             acm +
-                            (splitted[0] + `[instance_id=${this.bvrElement.$id}]`) +
+                            (splitted[0] + `[instance_id='${this.bvrElement.$id}']`) +
                             (splitted[1] ? ':' + splitted[1] : '')
                         )
                         //return acm + part + `[instance_id=${this.bvrElement.$id}]`;
@@ -55,7 +55,7 @@ export default class StyleDirective {
         }
         Object.values(templateEl.attribs).forEach((value) => {
             value
-                .match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)
+                .match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)
                 ?.forEach((item) => {
                     this.bvrElement.addSubscribe(item.substring(5), set, parentScopeId)
                 })

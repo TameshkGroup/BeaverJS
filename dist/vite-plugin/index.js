@@ -90,9 +90,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
                         .map((item) => ({ [item]: statement.moduleSpecifier.text })))
                         .flat()
                         .reduce((obj, item) => ({ ...obj, ...item }), {});
-                    src = src.replace(/\$\$elements( )*(:(.|\n)+)?( )*=( )*\{\s*(((([A-z]|_)+([A-z]|_|\d)*)\s*,\s*)*(([A-z]|_)+([A-z]|_|\d)*))\s*\}/gm, (a) => {
+                    src = src.replace(/\$\$elements( )*(:(.|\n)+)?( )*=( )*\{\s*(((([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)\s*,\s*)*(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))\s*\}/gm, (a) => {
                         console.log('e');
-                        const els = /{\s*(?<all>(((([A-z]|_)+([A-z]|_|\d)*))\s*,\s*)*(([A-z]|_)+([A-z]|_|\d)*))\s*\}/gm
+                        const els = /{\s*(?<all>(((([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))\s*,\s*)*(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))\s*\}/gm
                             .exec(a)
                             ?.groups?.all.split(', ');
                         const elsImports = els?.map((e) => importMap[e.trim()]);

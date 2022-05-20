@@ -44,8 +44,9 @@ export const toRawType = (value: unknown): string => {
 }
 
 export const getFromPath = (obj: any, strPath: string) => {
+    //console.log('obj', obj, strPath, strPath.split('.'))
     return strPath.split('.').reduce((_, key) => {
-        return _[key]
+        return _?.[key]
     }, obj)
 }
 

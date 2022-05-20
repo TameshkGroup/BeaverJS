@@ -4,7 +4,10 @@
         "target": "ESNext",
         "useDefineForClassFields": true,
         "module": "ESNext",
-        "lib": ["esNext", "DOM"],
+        "lib": [
+            "esNext",
+            "DOM"
+        ],
         "moduleResolution": "Node",
         "strict": true,
         "jsx": "react-jsx",
@@ -16,10 +19,28 @@
         "noImplicitReturns": true,
         "baseUrl": ".",
         "paths": {
-            "@/*": ["./src/*"]
+            "@/*": [
+                "./src/*"
+            ]
         },
         "outDir": "dist"
     },
-    "exclude": ["node_modules/**"],
-    "include": ["./src/**.ts", "./src/**.pts", "./src/*.ts", "src/App.ts", "src/main.tsp", "src/samples/Puya.ts", "src/components/CheckInput.ts"]
+    "ts-node": {
+        "compilerOptions": {
+            "esModuleInterop": true,
+            "module": "CommonJS"
+        }
+    },
+    "exclude": [
+        "node_modules/**"
+    ],
+    "include": [
+        "./src/**.ts",
+        "./src/**.pts",
+        "./src/*.ts",
+        "src/App.ts",
+        "src/main.tsp",
+        "src/samples/Puya.ts",
+        "src/components/CheckInput.ts"
+    ]
 }

@@ -131,7 +131,7 @@ var lodash = { exports: {} };
       rsEmoji
     ].join("|"), "g");
     var reHasUnicode = RegExp("[" + rsZWJ + rsAstralRange + rsComboRange + rsVarRange + "]");
-    var reHasUnicodeWord = /[a-z][A-Z]|[A-Z]{2}[a-z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/;
+    var reHasUnicodeWord = /[a-zA-Z][a-zA-Z]|[a-zA-Z]{2}[a-zA-Z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/;
     var contextProps = [
       "Array",
       "Buffer",
@@ -5629,11 +5629,11 @@ class ForDirective {
     const tEl2 = templateEl2;
     let element2 = [];
     const vars = (_b = [
-      ...((_a = tEl2.attribs["exp"].match(/(let|const|var)( |	|\n)+([A-z]|\$|_)+/g)) == null ? void 0 : _a.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ""))) || [],
+      ...((_a = tEl2.attribs["exp"].match(/(let|const|var)( |	|\n)+([a-zA-Z]|\$|_)+/g)) == null ? void 0 : _a.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ""))) || [],
       ...Object.keys(scope2)
     ]) == null ? void 0 : _b.join(",");
-    const exp = tEl2.attribs["exp"].replaceAll(/((this\.))(?=([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g, "that.");
-    (_c = tEl2.attribs["exp"].match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _c.forEach(($var) => {
+    const exp = tEl2.attribs["exp"].replaceAll(/((this\.))(?=([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g, "that.");
+    (_c = tEl2.attribs["exp"].match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _c.forEach(($var) => {
       this.bvrElement.addSubscribe($var.substring(5), () => set2(), parentScopeId);
     });
     const code = `
@@ -5723,7 +5723,7 @@ class IfDirective {
     const tEl2 = templateEl2;
     let element2 = [];
     const vars = (_b = [
-      ...((_a = tEl2.attribs["exp"].match(/(let|const|var)( |	|\n)+([A-z]|\$|_)+/g)) == null ? void 0 : _a.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ""))) || [],
+      ...((_a = tEl2.attribs["exp"].match(/(let|const|var)( |	|\n)+([a-zA-Z]|\$|_)+/g)) == null ? void 0 : _a.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ""))) || [],
       ...Object.keys(scope2)
     ]) == null ? void 0 : _b.join(",");
     const exp = tEl2.attribs["exp"].replace(/this(.\w)+/, ($propStr) => {
@@ -6433,7 +6433,7 @@ class ComponentDirective {
               "return " + v
             ]).bind(this.bvrElement)();
           };
-          (_b2 = v.match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _b2.forEach((item) => {
+          (_b2 = v.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _b2.forEach((item) => {
             this.bvrElement.addSubscribe(item.substring(5), set2, parentScopeId);
           });
           set2();
@@ -6442,7 +6442,7 @@ class ComponentDirective {
           const set2 = () => {
             instance.props[str2] = Function.apply(null, ["", "return " + v]).bind(this.bvrElement)();
           };
-          (_c = v.match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _c.forEach((item) => {
+          (_c = v.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _c.forEach((item) => {
             this.bvrElement.addSubscribe(item.substring(5), set2, parentScopeId);
           });
           set2();
@@ -6646,7 +6646,7 @@ var parse = function(css2, options) {
     var m;
     var vals = [];
     var pos2 = position();
-    while (m = match2(/^((\d+\.\d+|\.\d+|\d+)%?|[a-z]+)\s*/)) {
+    while (m = match2(/^((\d+\.\d+|\.\d+|\d+)%?|[a-zA-Z]+)\s*/)) {
       vals.push(m[1]);
       match2(/^,\s*/);
     }
@@ -8813,7 +8813,7 @@ function resolveUrl() {
   });
 }
 function convertWindowsPath(aPath) {
-  return pathLib.sep === "\\" ? aPath.replace(/\\/g, "/").replace(/^[a-z]:\/?/i, "/") : aPath;
+  return pathLib.sep === "\\" ? aPath.replace(/\\/g, "/").replace(/^[a-zA-Z]:\/?/i, "/") : aPath;
 }
 function customDecodeUriComponent(string) {
   return decodeUriComponentLib(string.replace(/\+/g, "%2B"));
@@ -9109,7 +9109,7 @@ var sourceMapResolve = {
   var path = require$$3;
   module.exports = mixin;
   const makeFriendlyPath = function(aPath) {
-    return path.sep === "\\" ? aPath.replace(/\\/g, "/").replace(/^[a-z]:\/?/i, "/") : aPath;
+    return path.sep === "\\" ? aPath.replace(/\\/g, "/").replace(/^[a-zA-Z]:\/?/i, "/") : aPath;
   };
   function mixin(compiler2) {
     compiler2._comment = compiler2.comment;
@@ -9227,7 +9227,7 @@ class StyleDirective {
     };
     Object.values(templateEl2.attribs).forEach((value) => {
       var _a;
-      (_a = value.match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _a.forEach((item) => {
+      (_a = value.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _a.forEach((item) => {
         this.bvrElement.addSubscribe(item.substring(5), set2, parentScopeId);
       });
     });
@@ -9328,7 +9328,7 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
           const set2 = () => {
             Function.apply(null, ["$", attrValue]).bind(that)(element);
           };
-          (_a2 = attrValue.match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _a2.forEach((item) => {
+          (_a2 = attrValue.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _a2.forEach((item) => {
             that.addSubscribe(item.substring(5), set2, scopeId);
           });
           set2();
@@ -9340,7 +9340,7 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
                 "return " + attrValue
               ]).bind(that)();
             };
-            (_b2 = attrValue.match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _b2.forEach((item) => {
+            (_b2 = attrValue.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _b2.forEach((item) => {
               that.addSubscribe(item.substring(5), set2, scopeId);
             });
             set2();
@@ -9404,7 +9404,7 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
             }
           }
           if (parentToChild) {
-            (_c2 = attrValue.match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _c2.forEach((item) => {
+            (_c2 = attrValue.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _c2.forEach((item) => {
               that.addSubscribe(item.substring(5), (value) => {
                 element.value = value;
               });
@@ -9481,7 +9481,7 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
       if ((_b2 = scopeStr2.match(/^(new)[\s]\w+[\s\S]+/)) == null ? void 0 : _b2.length)
         ;
       else {
-        (_c2 = scopeStr2.match(/this\.(([A-z]|_)+([A-z]|_|\d)*)(\.(([A-z]|_)+([A-z]|_|\d)*))*/g)) == null ? void 0 : _c2.forEach((item) => {
+        (_c2 = scopeStr2.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _c2.forEach((item) => {
           that.addSubscribe(item.substring(5), set, scopeId, throttle);
         });
       }

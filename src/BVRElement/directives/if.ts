@@ -13,7 +13,7 @@ export default class IfDirective {
 
         const vars = [
             ...(tEl.attribs['exp']
-                .match(/(let|const|var)( |	|\n)+([A-z]|\$|_)+/g)
+                .match(/(let|const|var)( |	|\n)+([a-zA-Z]|\$|_)+/g)
                 ?.map((v) => v.replace(/(let|const|var)( |	|\n)/g, '')) || []),
             ...Object.keys(scope),
         ]?.join(',')

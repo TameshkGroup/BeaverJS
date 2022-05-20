@@ -70,11 +70,11 @@ export default function phenomenJSX() {
                     .reduce((obj, item) => ({ ...obj, ...item }), {})
 
                 src = src.replace(
-                    /\$\$elements( )*(:(.|\n)+)?( )*=( )*\{\s*(((([A-z]|_)+([A-z]|_|\d)*)\s*,\s*)*(([A-z]|_)+([A-z]|_|\d)*))\s*\}/gm,
+                    /\$\$elements( )*(:(.|\n)+)?( )*=( )*\{\s*(((([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)\s*,\s*)*(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))\s*\}/gm,
                     (a) => {
                         console.log('e')
                         const els =
-                            /{\s*(?<all>(((([A-z]|_)+([A-z]|_|\d)*))\s*,\s*)*(([A-z]|_)+([A-z]|_|\d)*))\s*\}/gm
+                            /{\s*(?<all>(((([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))\s*,\s*)*(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))\s*\}/gm
                                 .exec(a)
                                 ?.groups?.all.split(', ')
 
