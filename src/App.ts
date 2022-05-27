@@ -41,10 +41,10 @@ export default class App extends BVRElement {
                 <filler slot="title-2"> Forth </filler>
                 <filler slot="content-1"> Third content </filler>
                 <filler slot="content-2"> Forth content </filler>
-                <FOR exp="let $i of this.arr">
-                    <filler set.slot="'content-' + $i"> Dyn Content </filler>
-                    <filler set.slot="'title-' + $i"> Dyn Header </filler>
-                </FOR>
+                <for exp="let $i of this.arr">
+                    <filler set.slot="'content-' + $i"> Dyn Content {{$i}} </filler>
+                    <filler set.slot="'title-' + $i"> Dyn Header {{$i}} </filler>
+                </for>
             </Collapse>
 
             <input set.value="this.inputValue" get.input="this.inputValue = $.value" type="text" />

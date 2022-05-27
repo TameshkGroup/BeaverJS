@@ -98,25 +98,35 @@ export const appendElFromTemplate = (
     } else if (templateEl.type === ElementType.Tag && (templateEl as Element).name === 'slot') {
         if (that?.$$parent && (templateEl as Element)?.attribs?.['name']) {
             const filler = that.$$slots?.[(templateEl as Element).attribs.name || 'default']?.filler
-            if (filler)
+            if (filler) {
+                console.log(
+                    'slot',
+                    that.$$slots?.[(templateEl as Element).attribs.name || 'default']
+                )
                 element =
                     appendElFromTemplate(
                         that?.$$parent,
                         (filler as { children: Partial<Element | DataNode | Document>[] })
                             ?.children,
                         undefined,
-                        scope,
+                        that.$$slots?.[(templateEl as Element).attribs.name || 'default']?.scope ||
+                            scope,
                         scopeId
                     ) || ''
+            }
         } else {
             if ((templateEl as Element).attribs['set.name'] && that?.$$parent) {
+                console.log('set.name', (templateEl as Element).attribs['set.name'], scope)
+                Object.values(that.$$slots).forEach((slot) => console.log(slot))
                 const slotName = Function.apply(null, [
                     '',
                     `
                     const {${scope && Object.keys(scope).join(',')}} = ${JSON.stringify(scope)};
                     return ` + (templateEl as Element).attribs['set.name'],
                 ]).bind(that)()
+                console.log('slotName', slotName, scope)
                 const filler = that.$$slots?.[slotName]?.filler
+                delete (filler as Element).attribs['set.name']
                 if (filler)
                     element =
                         appendElFromTemplate(
@@ -373,6 +383,7 @@ export const appendElFromTemplate = (
 type Slot = {
     filler?: Partial<Element | DataNode | Document>
     templatePath: number[]
+    scope: any
 }
 
 export default class BVRElement extends Puya {

@@ -59,12 +59,13 @@ export default class Collapse extends BVRElement {
             .collapse-item {
                 border-radius: 16px;
                 border: 1px solid #bebebe;
+                margin: 10px 0;
             }
             .collapse-header {
                 cursor: pointer;
                 user-select: none;
                 padding: 16px;
-                border-radius: 16px
+                border-radius: 16px;
             }
             .collapse-header:hover {
                 background: rgba(0, 0, 0, 0.1);

@@ -1,7 +1,7 @@
 import { getFromPath, setByPath } from '../../shared'
 import { Element } from 'domhandler/lib'
 import _ from 'lodash'
-import BVRElement from '..'
+import BVRElement, { appendElFromTemplate } from '..'
 
 export default class ComponentDirective {
     constructor(private bvrElement: BVRElement) {}
@@ -36,6 +36,8 @@ export default class ComponentDirective {
                         !child.attribs['set.name']
                     ) {
                         filler = child
+                    } else if (child.type === 'tag' && child.name === 'for') {
+                        console.log('for found in slot')
                     } else if (child?.name !== 'filler' && !child.attribs?.['set.name']) {
                         if (
                             child.type !== 'text' ||
@@ -65,18 +67,58 @@ export default class ComponentDirective {
             }
         }
 
-        
-
         findSlotsInTemplate(el, [])
         /* End Handle Slots */
-
 
         /* Handle fillers without slot */
         const fillers: Element[] = []
         const nonFillerElements: Element[] = []
+        const dynamicFillers: { elem: Element; scope: any }[] = []
         ;(templateEl.children as Element[]).forEach((child) => {
             if (child.type === 'tag' && child.name === 'filler') {
                 fillers.push(child)
+            } else if (child.type === 'tag' && child.name.toLocaleLowerCase() === 'for') {
+                const slots = child.children.filter((child) => (child as Element).name === 'filler')
+                const vars = [
+                    ...(child.attribs['exp']
+                        .match(/(let|const|var)( |	|\n)+([a-zA-Z]|\$|_)+/g)
+                        ?.map((v) => v.replace(/(let|const|var)( |	|\n)/g, '')) || []),
+                ]?.join(',')
+                console.log(`
+                const elements = []
+                for(${child.attribs['exp']}){
+                    elements.push(...slots.map((tChild)=>{
+                        console.log('slots8', slots, tChild);
+                        return {elem: tChild, scope: {${vars}}};//appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
+                    }))
+                }
+
+                console.log('elems', elements);
+                return elements;
+            `)
+                const elems = Function.apply(null, [
+                    'slots,appendElFromTemplate,those,elem,scopeId',
+                    `
+                    const elements = []
+                    for(${child.attribs['exp']}){
+                        console.log('slots8', slots);
+                        elements.push(...slots.map((tChild)=>{
+                            return {elem: tChild, scope: {${vars}}};//appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
+                        }))
+                    }
+                    return elements;
+                `,
+                ]).bind(this.bvrElement)(
+                    slots,
+                    appendElFromTemplate,
+                    this.bvrElement,
+                    undefined,
+                    undefined
+                )
+                console.log('dyn slots', elems)
+                elems.forEach(({ elem, scope }: { elem: Element; scope: any }) =>
+                    dynamicFillers.push({ elem, scope })
+                )
             } else {
                 if (
                     child.type !== 'text' ||
@@ -100,8 +142,26 @@ export default class ComponentDirective {
         })
         /* End handle fillers without slot */
 
+        dynamicFillers.forEach(({ elem, scope }) => {
+            const dynFillerName = elem.attribs?.['set.slot']
+            //TODO add subscriber for watching and applying changes if needed
+            const fillerName = Function.apply(null, [
+                `{${Object.keys(scope).join(',')}}`,
+                'return ' + dynFillerName,
+            ]).bind(this.bvrElement)(scope)
+            elem.attribs['set.slot']
+            //elem.attribs['slot'] = fillerName
+            instance.$$slots = {
+                ...instance.$$slots,
+                [fillerName]: {
+                    filler: elem,
+                    templatePath: [],
+                    scope: scope,
+                },
+            }
+        })
 
-        console.log('slots', instance.$$slots);
+        console.log('slots', instance.$$slots, fillers)
 
         /* Handle Attributes */
         Object.entries((templateEl as Element).attribs).forEach(([k, v]) => {
