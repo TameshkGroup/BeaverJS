@@ -43,7 +43,7 @@ export default class ForDirective {
 
                 this.bvrElement.addSubscribe(
                     $var.substring(5),
-                    (...args) => {
+                    () => {
                         const state = Function.apply(null, [
                             `{${scope && Object.keys(scope).join(',')}}`,
                             tEl.attribs?.['key']
@@ -63,6 +63,8 @@ export default class ForDirective {
                 )
             })
 
+        //TODO fix it
+        //@ts-ignore
         let lhs: string
         let rhs: string
         if (exp.indexOf('in') > 0) {

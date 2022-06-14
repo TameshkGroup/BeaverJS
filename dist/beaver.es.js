@@ -131,7 +131,7 @@ var lodash = { exports: {} };
       rsEmoji
     ].join("|"), "g");
     var reHasUnicode = RegExp("[" + rsZWJ + rsAstralRange + rsComboRange + rsVarRange + "]");
-    var reHasUnicodeWord = /[a-zA-Z][a-zA-Z]|[a-zA-Z]{2}[a-zA-Z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/;
+    var reHasUnicodeWord = /[a-z][A-Z]|[A-Z]{2}[a-z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/;
     var contextProps = [
       "Array",
       "Buffer",
@@ -690,16 +690,16 @@ var lodash = { exports: {} };
       }
       return result;
     }
-    function setToArray(set2) {
-      var index = -1, result = Array(set2.size);
-      set2.forEach(function(value) {
+    function setToArray(set) {
+      var index = -1, result = Array(set.size);
+      set.forEach(function(value) {
         result[++index] = value;
       });
       return result;
     }
-    function setToPairs(set2) {
-      var index = -1, result = Array(set2.size);
-      set2.forEach(function(value) {
+    function setToPairs(set) {
+      var index = -1, result = Array(set.size);
+      set.forEach(function(value) {
         result[++index] = [value, value];
       });
       return result;
@@ -1914,9 +1914,9 @@ var lodash = { exports: {} };
           isCommon = false;
           includes2 = arrayIncludesWith;
         } else if (length >= LARGE_ARRAY_SIZE) {
-          var set3 = iteratee2 ? null : createSet(array);
-          if (set3) {
-            return setToArray(set3);
+          var set2 = iteratee2 ? null : createSet(array);
+          if (set2) {
+            return setToArray(set2);
           }
           isCommon = false;
           includes2 = cacheHas;
@@ -2812,8 +2812,8 @@ var lodash = { exports: {} };
         return { "start": start, "end": end };
       }
       function getWrapDetails(source) {
-        var match2 = source.match(reWrapDetails);
-        return match2 ? match2[1].split(reSplitDetails) : [];
+        var match = source.match(reWrapDetails);
+        return match ? match[1].split(reSplitDetails) : [];
       }
       function hasPath(object, path, hasFunc) {
         path = castPath(path, object);
@@ -3081,8 +3081,8 @@ var lodash = { exports: {} };
         if (string.charCodeAt(0) === 46) {
           result2.push("");
         }
-        string.replace(rePropName, function(match2, number, quote, subString) {
-          result2.push(quote ? subString.replace(reEscapeChar, "$1") : number || match2);
+        string.replace(rePropName, function(match, number, quote, subString) {
+          result2.push(quote ? subString.replace(reEscapeChar, "$1") : number || match);
         });
         return result2;
       });
@@ -4423,7 +4423,7 @@ var lodash = { exports: {} };
         }
         return object;
       }
-      function set2(object, path, value) {
+      function set(object, path, value) {
         return object == null ? object : baseSet(object, path, value);
       }
       function setWith(object, path, value, customizer) {
@@ -4645,7 +4645,7 @@ var lodash = { exports: {} };
         var isEscaping, isEvaluating, index = 0, interpolate = options.interpolate || reNoMatch, source = "__p += '";
         var reDelimiters = RegExp2((options.escape || reNoMatch).source + "|" + interpolate.source + "|" + (interpolate === reInterpolate ? reEsTemplate : reNoMatch).source + "|" + (options.evaluate || reNoMatch).source + "|$", "g");
         var sourceURL = "//# sourceURL=" + (hasOwnProperty.call(options, "sourceURL") ? (options.sourceURL + "").replace(/\s/g, " ") : "lodash.templateSources[" + ++templateCounter + "]") + "\n";
-        string.replace(reDelimiters, function(match2, escapeValue, interpolateValue, esTemplateValue, evaluateValue, offset) {
+        string.replace(reDelimiters, function(match, escapeValue, interpolateValue, esTemplateValue, evaluateValue, offset) {
           interpolateValue || (interpolateValue = esTemplateValue);
           source += string.slice(index, offset).replace(reUnescapedString, escapeStringChar);
           if (escapeValue) {
@@ -4659,8 +4659,8 @@ var lodash = { exports: {} };
           if (interpolateValue) {
             source += "' +\n((__t = (" + interpolateValue + ")) == null ? '' : __t) +\n'";
           }
-          index = offset + match2.length;
-          return match2;
+          index = offset + match.length;
+          return match;
         });
         source += "';\n";
         var variable = hasOwnProperty.call(options, "variable") && options.variable;
@@ -4748,13 +4748,13 @@ var lodash = { exports: {} };
         }
         if (isRegExp(separator)) {
           if (string.slice(end).search(separator)) {
-            var match2, substring = result2;
+            var match, substring = result2;
             if (!separator.global) {
               separator = RegExp2(separator.source, toString(reFlags.exec(separator)) + "g");
             }
             separator.lastIndex = 0;
-            while (match2 = separator.exec(substring)) {
-              var newEnd = match2.index;
+            while (match = separator.exec(substring)) {
+              var newEnd = match.index;
             }
             result2 = result2.slice(0, newEnd === undefined$1 ? end : newEnd);
           }
@@ -5083,7 +5083,7 @@ var lodash = { exports: {} };
       lodash2.rest = rest;
       lodash2.reverse = reverse;
       lodash2.sampleSize = sampleSize;
-      lodash2.set = set2;
+      lodash2.set = set;
       lodash2.setWith = setWith;
       lodash2.shuffle = shuffle;
       lodash2.slice = slice;
@@ -5469,7 +5469,7 @@ var _ = lodash.exports;
 const isObject = (val) => val !== null && typeof val === "object";
 const getFromPath = (obj, strPath) => {
   return strPath.split(".").reduce((_2, key) => {
-    return _2[key];
+    return _2 == null ? void 0 : _2[key];
   }, obj);
 };
 const setByPath = (obj, path, value) => {
@@ -5500,26 +5500,50 @@ function AsPuya(target) {
           return target2[key];
         },
         set: (target2, key, value) => {
-          var _a2, _b, _c, _d, _e;
+          var _a2;
           target2[key] = value;
           (_a2 = this.$$subscribes[""]) == null ? void 0 : _a2.forEach((subscribe) => {
-            subscribe.fn(this);
+            subscribe.fn(this, []);
           });
           const propParts = [...path, key];
-          if (typeof propParts[0] === "string") {
-            (_c = (_b = this.$$subscribes) == null ? void 0 : _b[propParts[0]]) == null ? void 0 : _c.forEach((subscribe) => {
-              try {
-                subscribe.fn(target2);
-              } catch {
+          const findMatches = function(keys, index) {
+            if (index === 0)
+              return [["*"], [keys[index].toString()]];
+            const combPart = findMatches(keys, index - 1);
+            return combPart == null ? void 0 : combPart.reduce((acm, item) => {
+              if (index < keys.length - 1)
+                acm.push([...item, "*"]);
+              acm.push([...item, keys[index].toString()]);
+              return acm;
+            }, combPart);
+          };
+          findMatches(propParts, propParts.length - 1).forEach((keyPath) => {
+            var _a3, _b;
+            (_b = (_a3 = this.$$subscribes) == null ? void 0 : _a3[keyPath.join(".")]) == null ? void 0 : _b.forEach((subscribe) => {
+              if (keyPath.length - propParts.length >= 0) {
+                const value2 = getFromPath(target2, propParts[keyPath.length - 1].toString());
+                subscribe.fn(value2, propParts.slice(0, keyPath.length));
+              } else {
+                subscribe.fn(target2, propParts.slice(0, keyPath.length));
               }
             });
-          }
-          let acm = "";
-          for (let part of propParts.slice(1)) {
-            acm += (acm ? "." : "") + part;
-            (_e = (_d = this.$$subscribes) == null ? void 0 : _d[propParts[0] + "." + acm]) == null ? void 0 : _e.forEach((subscribe) => {
-              const value2 = getFromPath(target2, acm);
-              subscribe.fn(value2);
+          });
+          if (typeof value === "object") {
+            Object.keys(value).forEach((propName) => {
+              const nPropParts = [...propParts, propName];
+              console.log("prop matchers", findMatches(nPropParts, nPropParts.length - 1).filter((match) => match.length === nPropParts.length).forEach((keyPath) => {
+                var _a3, _b;
+                (_b = (_a3 = this.$$subscribes) == null ? void 0 : _a3[keyPath.join(".")]) == null ? void 0 : _b.forEach((subscribe) => {
+                  if (keyPath.length - nPropParts.length >= 0) {
+                    const value2 = getFromPath(target2, nPropParts[keyPath.length - 2].toString() + "." + nPropParts[keyPath.length - 1].toString());
+                    console.log(-1, value2, target2, nPropParts, keyPath.length - 1);
+                    console.log(-2, keyPath.length - 1, nPropParts[keyPath.length - 2].toString() + "." + nPropParts[keyPath.length - 1].toString());
+                    subscribe.fn(value2, nPropParts.slice(0, keyPath.length));
+                  } else {
+                    subscribe.fn(target2[propName], nPropParts.slice(0, keyPath.length));
+                  }
+                });
+              }));
             });
           }
           return true;
@@ -5539,14 +5563,17 @@ function AsPuya(target) {
             if (isObject(value)) {
               this.$$context["$_" + prop] = value;
               this.$$context[prop] = new Proxy(this.$$context["$_" + prop], createHandler([prop]));
+              Object.keys(value).forEach((key) => {
+                this.$$context[prop][key] = value[key];
+              });
             } else {
               this.$$context[prop] = value;
             }
             (_a2 = this.$$subscribes[""]) == null ? void 0 : _a2.forEach((subscribe) => {
-              subscribe.fn(this);
+              subscribe.fn(this, []);
             });
             (_b = this.$$subscribes[prop]) == null ? void 0 : _b.forEach((subscribe) => {
-              subscribe.fn(value);
+              subscribe.fn(value, [prop]);
             });
           },
           configurable: false
@@ -5622,23 +5649,44 @@ class Puya {
 }
 class ForDirective {
   constructor(bvrElement) {
+    __publicField(this, "latestState", []);
     this.bvrElement = bvrElement;
   }
-  render(templateEl2, scope2, parentScopeId) {
-    var _a, _b, _c;
-    const tEl2 = templateEl2;
-    let element2 = [];
+  render(templateEl, scope, parentScopeId) {
+    var _a, _b, _c, _d, _e;
+    const tEl = templateEl;
+    let element = [];
     const vars = (_b = [
-      ...((_a = tEl2.attribs["exp"].match(/(let|const|var)( |	|\n)+([a-zA-Z]|\$|_)+/g)) == null ? void 0 : _a.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ""))) || [],
-      ...Object.keys(scope2)
+      ...((_a = tEl.attribs["exp"].match(/(let|const|var)( |	|\n)+([a-zA-Z]|\$|_)+/g)) == null ? void 0 : _a.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ""))) || [],
+      ...Object.keys(scope)
     ]) == null ? void 0 : _b.join(",");
-    const exp = tEl2.attribs["exp"].replaceAll(/((this\.))(?=([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g, "that.");
-    (_c = tEl2.attribs["exp"].match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _c.forEach(($var) => {
-      this.bvrElement.addSubscribe($var.substring(5), () => set2(), parentScopeId);
+    const exp = tEl.attribs["exp"].replaceAll(/((this\.))(?=([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g, "that.");
+    (_c = tEl.attribs["exp"].match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _c.forEach(($var) => {
+      this.bvrElement.addSubscribe($var.substring(5), () => {
+        var _a2, _b2;
+        const state2 = Function.apply(null, [
+          `{${scope && Object.keys(scope).join(",")}}`,
+          ((_a2 = tEl.attribs) == null ? void 0 : _a2["key"]) ? "const that = this; return " + rhs + '.map((i) => i["' + ((_b2 = tEl.attribs) == null ? void 0 : _b2["key"]) + '"])' : "const that = this; return " + rhs
+        ]).bind(this.bvrElement)(scope);
+        if (!_.isEqual(state2, this.latestState)) {
+          this.latestState = _.clone(state2);
+          set();
+        }
+      }, parentScopeId);
     });
+    let rhs;
+    if (exp.indexOf("in") > 0) {
+      const splited = exp.split("in");
+      rhs = splited[1];
+    } else if (exp.indexOf("of") > 0) {
+      const splited = exp.split("of");
+      rhs = splited[1];
+    } else {
+      rhs = "";
+    }
     const code = `
-                    var that = this;
-                    const {${Object.keys(scope2).join(",")}} = ${JSON.stringify(scope2)}
+                    const that = this;
+                    const {${Object.keys(scope).join(",")}} = ${JSON.stringify(scope)}
                     const elements = []
                     for( ${exp} ){
                         elements.push(...tEl.children.map((tChild)=>{
@@ -5649,7 +5697,7 @@ class ForDirective {
                     `;
     const args = ["appendElFromTemplate,those,tEl,elem,scopeId", code];
     let lastId;
-    const set2 = () => {
+    const set = () => {
       var _a2;
       if (lastId) {
         this.bvrElement.removeSubscribeByClass(lastId);
@@ -5658,9 +5706,9 @@ class ForDirective {
         var foundComments = [];
         var elementPath = [context];
         while (elementPath.length > 0) {
-          var el2 = elementPath.pop();
-          for (var i = 0; i < ((el2 == null ? void 0 : el2.childNodes.length) || 0); i++) {
-            var node2 = el2 == null ? void 0 : el2.childNodes[i];
+          var el = elementPath.pop();
+          for (var i = 0; i < ((el == null ? void 0 : el.childNodes.length) || 0); i++) {
+            var node2 = el == null ? void 0 : el.childNodes[i];
             if ((node2 == null ? void 0 : node2.nodeType) === Node.COMMENT_NODE && node2 instanceof Comment) {
               foundComments.push(node2);
             } else {
@@ -5679,7 +5727,7 @@ class ForDirective {
         lastId = $scopeId;
         start = document.createComment("for:" + $scopeId);
         end = document.createComment("endfor:" + $scopeId);
-        element2 = [start, end];
+        element = [start, end];
       } else {
         start = getComments(this.bvrElement.$$rootElement).find((cmnt) => cmnt.nodeValue === "for:" + lastId);
         end = getComments(this.bvrElement.$$rootElement).find((cmnt) => cmnt.nodeValue === "endfor:" + lastId);
@@ -5689,16 +5737,16 @@ class ForDirective {
       }
       try {
         const fn = Function.apply(null, args);
-        const elems = fn.bind(this.bvrElement)(appendElFromTemplate, this.bvrElement, tEl2, void 0, $scopeId);
+        const elems = fn.bind(this.bvrElement)(appendElFromTemplate, this.bvrElement, tEl, void 0, $scopeId);
         if (first) {
-          element2 = [element2[0], ...elems, element2[1]];
+          element = [element[0], ...elems, element[1]];
         } else {
-          const h = (endElement, element22) => {
-            if (!Array.isArray(element22)) {
-              endElement.before(element22);
+          const h = (endElement, element2) => {
+            if (!Array.isArray(element2)) {
+              endElement.before(element2);
             } else {
-              element22.forEach((el2) => {
-                h(endElement, el2);
+              element2.forEach((el) => {
+                h(endElement, el);
               });
             }
           };
@@ -5709,8 +5757,13 @@ class ForDirective {
         console.error(e);
       }
     };
-    set2();
-    return element2;
+    const state = Function.apply(null, [
+      `{${scope && Object.keys(scope).join(",")}}`,
+      ((_d = tEl.attribs) == null ? void 0 : _d["key"]) ? "const that = this; return " + rhs + '.map((i) => i["' + ((_e = tEl.attribs) == null ? void 0 : _e["key"]) + '"])' : "const that = this; return " + rhs
+    ]).bind(this.bvrElement)(scope);
+    this.latestState = _.cloneDeep(state);
+    set();
+    return element;
   }
 }
 __publicField(ForDirective, "tagName", "for");
@@ -5718,21 +5771,21 @@ class IfDirective {
   constructor(bvrElement) {
     this.bvrElement = bvrElement;
   }
-  render(templateEl2, scope2, parentScopeId) {
+  render(templateEl, scope, parentScopeId) {
     var _a, _b;
-    const tEl2 = templateEl2;
-    let element2 = [];
+    const tEl = templateEl;
+    let element = [];
     const vars = (_b = [
-      ...((_a = tEl2.attribs["exp"].match(/(let|const|var)( |	|\n)+([a-zA-Z]|\$|_)+/g)) == null ? void 0 : _a.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ""))) || [],
-      ...Object.keys(scope2)
+      ...((_a = tEl.attribs["exp"].match(/(let|const|var)( |	|\n)+([a-zA-Z]|\$|_)+/g)) == null ? void 0 : _a.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ""))) || [],
+      ...Object.keys(scope)
     ]) == null ? void 0 : _b.join(",");
-    const exp = tEl2.attribs["exp"].replace(/this(.\w)+/, ($propStr) => {
+    const exp = tEl.attribs["exp"].replace(/this(.\w)+/, ($propStr) => {
       const propTrimmed = $propStr.replace("this.", "");
-      this.bvrElement.addSubscribe(propTrimmed, () => set2(), parentScopeId);
+      this.bvrElement.addSubscribe(propTrimmed, () => set(), parentScopeId);
       return $propStr.replace(/this./, "that.");
     });
     const code = `
-                    const {${scope2 && Object.keys(scope2).join(",")}} = ${JSON.stringify(scope2)}
+                    const {${scope && Object.keys(scope).join(",")}} = ${JSON.stringify(scope)}
                     var that = this;
 
                     if( ${exp} ){
@@ -5745,7 +5798,7 @@ class IfDirective {
                 `;
     const args = ["appendElFromTemplate,those,tEl,elem,scopeId", code];
     let lastId;
-    const set2 = () => {
+    const set = () => {
       var _a2;
       if (lastId) {
         this.bvrElement.removeSubscribeByClass(lastId);
@@ -5754,9 +5807,9 @@ class IfDirective {
         var foundComments = [];
         var elementPath = [context];
         while (elementPath.length > 0) {
-          var el2 = elementPath.pop();
-          for (var i = 0; i < ((el2 == null ? void 0 : el2.childNodes.length) || 0); i++) {
-            var node2 = el2 == null ? void 0 : el2.childNodes[i];
+          var el = elementPath.pop();
+          for (var i = 0; i < ((el == null ? void 0 : el.childNodes.length) || 0); i++) {
+            var node2 = el == null ? void 0 : el.childNodes[i];
             if ((node2 == null ? void 0 : node2.nodeType) === Node.COMMENT_NODE && node2 instanceof Comment) {
               foundComments.push(node2);
             } else {
@@ -5775,7 +5828,7 @@ class IfDirective {
         lastId = $scopeId;
         start = document.createComment("if:" + $scopeId);
         end = document.createComment("endif:" + $scopeId);
-        element2 = [start, end];
+        element = [start, end];
       } else {
         start = getComments(this.bvrElement.$$rootElement).find((cmnt) => cmnt.nodeValue === "if:" + lastId);
         end = getComments(this.bvrElement.$$rootElement).find((cmnt) => cmnt.nodeValue === "endif:" + lastId);
@@ -5785,16 +5838,16 @@ class IfDirective {
       }
       try {
         const fn = Function.apply(null, args);
-        const elems = fn.bind(this.bvrElement)(appendElFromTemplate, this.bvrElement, tEl2, void 0, $scopeId);
+        const elems = fn.bind(this.bvrElement)(appendElFromTemplate, this.bvrElement, tEl, void 0, $scopeId);
         if (first) {
-          element2 = [element2[0], ...elems, element2[1]];
+          element = [element[0], ...elems, element[1]];
         } else {
-          const h = (endElement, element22) => {
-            if (!Array.isArray(element22)) {
-              endElement.before(element22);
+          const h = (endElement, element2) => {
+            if (!Array.isArray(element2)) {
+              endElement.before(element2);
             } else {
-              element22.forEach((el2) => {
-                h(endElement, el2);
+              element2.forEach((el) => {
+                h(endElement, el);
               });
             }
           };
@@ -5803,11 +5856,11 @@ class IfDirective {
         }
       } catch (e) {
         console.error(e);
-        element2 = [];
+        element = [];
       }
     };
-    set2();
-    return element2;
+    set();
+    return element;
   }
 }
 __publicField(IfDirective, "tagName", "if");
@@ -6257,9 +6310,9 @@ function cloneChildren(childs) {
     };
     DomHandler2.prototype.onopentag = function(name, attribs) {
       var type = this.options.xmlMode ? domelementtype_12.ElementType.Tag : void 0;
-      var element2 = new node_1.Element(name, attribs, void 0, type);
-      this.addNode(element2);
-      this.tagStack.push(element2);
+      var element = new node_1.Element(name, attribs, void 0, type);
+      this.addNode(element);
+      this.tagStack.push(element);
     };
     DomHandler2.prototype.ontext = function(data) {
       var normalizeWhitespace = this.options.normalizeWhitespace;
@@ -6341,27 +6394,29 @@ class ComponentDirective {
   constructor(bvrElement) {
     this.bvrElement = bvrElement;
   }
-  render(templateEl2, __, parentScopeId) {
+  render(templateEl, __, parentScopeId) {
     var _a, _b;
     const fn = Function.apply(null, ["cmp", "return new cmp()"]);
-    const cmp = (_a = this.bvrElement.$$elements) == null ? void 0 : _a[templateEl2.name];
+    const cmp = (_a = this.bvrElement.$$elements) == null ? void 0 : _a[templateEl.name];
     const instance = fn.bind(this.bvrElement)(cmp);
     instance.$$element = cmp;
-    instance.$$elementName = templateEl2.name;
+    instance.$$elementName = templateEl.name;
     instance.render();
     instance.$$elements = (_b = this.bvrElement) == null ? void 0 : _b.$$elements;
     instance.props = {};
-    let el2 = instance.$$template;
+    let el = instance.$$template;
     const findSlotsInTemplate = (node2, path) => {
       var _a2;
       if (node2.name === "slot") {
         const slotName = ((_a2 = node2 == null ? void 0 : node2.attribs) == null ? void 0 : _a2["name"]) || "default";
         let filler;
         let nonFillerElements2 = [];
-        templateEl2.children.forEach((child) => {
+        templateEl.children.forEach((child) => {
           var _a3, _b2, _c;
           if (child.type === "tag" && child.name === "filler" && (((_a3 = child.attribs) == null ? void 0 : _a3.slot) ? ((_b2 = child.attribs) == null ? void 0 : _b2.slot) === slotName : slotName === "default") && !child.attribs["set.name"]) {
             filler = child;
+          } else if (child.type === "tag" && child.name === "for") {
+            console.log("for found in slot");
           } else if ((child == null ? void 0 : child.name) !== "filler" && !((_c = child.attribs) == null ? void 0 : _c["set.name"])) {
             if (child.type !== "text" || child.data.trim().replace(/\n/g, "") !== "") {
               nonFillerElements2.push(child);
@@ -6375,7 +6430,8 @@ class ComponentDirective {
           instance.$$slots = __spreadProps(__spreadValues({}, instance.$$slots), {
             [slotName]: {
               templatePath: path,
-              filler
+              filler,
+              scope: void 0
             }
           });
       }
@@ -6384,12 +6440,46 @@ class ComponentDirective {
         findSlotsInTemplate(nodes[i], [...path, i]);
       }
     };
-    findSlotsInTemplate(el2, []);
+    findSlotsInTemplate(el, []);
     const fillers = [];
     const nonFillerElements = [];
-    templateEl2.children.forEach((child) => {
+    const dynamicFillers = [];
+    templateEl.children.forEach((child) => {
+      var _a2, _b2;
       if (child.type === "tag" && child.name === "filler") {
         fillers.push(child);
+      } else if (child.type === "tag" && child.name.toLocaleLowerCase() === "for") {
+        const slots = child.children.filter((child2) => child2.name === "filler");
+        const vars = (_b2 = [
+          ...((_a2 = child.attribs["exp"].match(/(let|const|var)( |	|\n)+([a-zA-Z]|\$|_)+/g)) == null ? void 0 : _a2.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ""))) || []
+        ]) == null ? void 0 : _b2.join(",");
+        console.log(`
+                const elements = []
+                for(${child.attribs["exp"]}){
+                    elements.push(...slots.map((tChild)=>{
+                        console.log('slots8', slots, tChild);
+                        return {elem: tChild, scope: {${vars}}};//appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
+                    }))
+                }
+
+                console.log('elems', elements);
+                return elements;
+            `);
+        const elems = Function.apply(null, [
+          "slots,appendElFromTemplate,those,elem,scopeId",
+          `
+                    const elements = []
+                    for(${child.attribs["exp"]}){
+                        console.log('slots8', slots);
+                        elements.push(...slots.map((tChild)=>{
+                            return {elem: tChild, scope: {${vars}}};//appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
+                        }))
+                    }
+                    return elements;
+                `
+        ]).bind(this.bvrElement)(slots, appendElFromTemplate, this.bvrElement, void 0, void 0);
+        console.log("dyn slots", elems);
+        elems.forEach(({ elem, scope }) => dynamicFillers.push({ elem, scope }));
       } else {
         if (child.type !== "text" || child.data.trim().replace(/\n/g, "") !== "") {
           nonFillerElements.push(child);
@@ -6404,11 +6494,29 @@ class ComponentDirective {
       instance.$$slots = __spreadProps(__spreadValues({}, instance.$$slots), {
         [((_a2 = filler.attribs) == null ? void 0 : _a2.slot) || "default"]: {
           filler,
-          templatePath: []
+          templatePath: [],
+          scope: void 0
         }
       });
     });
-    Object.entries(templateEl2.attribs).forEach(([k, v]) => {
+    dynamicFillers.forEach(({ elem, scope }) => {
+      var _a2;
+      const dynFillerName = (_a2 = elem.attribs) == null ? void 0 : _a2["set.slot"];
+      const fillerName = Function.apply(null, [
+        `{${Object.keys(scope).join(",")}}`,
+        "return " + dynFillerName
+      ]).bind(this.bvrElement)(scope);
+      elem.attribs["set.slot"];
+      instance.$$slots = __spreadProps(__spreadValues({}, instance.$$slots), {
+        [fillerName]: {
+          filler: elem,
+          templatePath: [],
+          scope
+        }
+      });
+    });
+    console.log("slots", instance.$$slots, fillers);
+    Object.entries(templateEl.attribs).forEach(([k, v]) => {
       var _a2, _b2, _c;
       if (k.indexOf("@") === 0) {
         k.replace("@", "");
@@ -6417,48 +6525,48 @@ class ComponentDirective {
           return;
         Function.apply(null, ["$event", code]);
       } else if (k === "$") {
-        const set2 = () => {
+        const set = () => {
           Function.apply(null, ["$", v]).bind(this.bvrElement)(instance);
         };
         (_a2 = v.match(/this(.\w){0,}/g)) == null ? void 0 : _a2.forEach((item) => {
           item = item.slice(5);
-          this.bvrElement.addSubscribe(item, set2, parentScopeId);
+          this.bvrElement.addSubscribe(item, set, parentScopeId);
         });
-        set2();
+        set();
       } else {
         if (k.indexOf("set.") === 0) {
-          const set2 = () => {
+          const set = () => {
             instance.props[k.replace("set.", "")] = Function.apply(null, [
               "",
               "return " + v
             ]).bind(this.bvrElement)();
           };
           (_b2 = v.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _b2.forEach((item) => {
-            this.bvrElement.addSubscribe(item.substring(5), set2, parentScopeId);
+            this.bvrElement.addSubscribe(item.substring(5), set, parentScopeId);
           });
-          set2();
+          set();
         } else if (k.indexOf("bi.") === 0) {
-          const str2 = k.replace("bi.", "");
-          const set2 = () => {
-            instance.props[str2] = Function.apply(null, ["", "return " + v]).bind(this.bvrElement)();
+          const str = k.replace("bi.", "");
+          const set = () => {
+            instance.props[str] = Function.apply(null, ["", "return " + v]).bind(this.bvrElement)();
           };
           (_c = v.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _c.forEach((item) => {
-            this.bvrElement.addSubscribe(item.substring(5), set2, parentScopeId);
+            this.bvrElement.addSubscribe(item.substring(5), set, parentScopeId);
           });
-          set2();
-          instance.addSubscribe("props." + str2, (value) => {
+          set();
+          instance.addSubscribe("props." + str, (value) => {
             if (!_.isEqual(getFromPath(this.bvrElement, v.slice(5)), value)) {
               setByPath(this.bvrElement, v.slice(5), value);
             }
           });
         } else if (k.indexOf("get.") === 0) {
-          const str2 = k.replace("get.", "");
+          const str = k.replace("get.", "");
           if (v.indexOf("=") >= 0) {
             let assignment = {
               rhs: v.slice(v.indexOf("=") + 1).trim(),
               lhs: v.slice(0, v.indexOf("=")).trim()
             };
-            instance.addSubscribe("props." + str2, (v2) => {
+            instance.addSubscribe("props." + str, (v2) => {
               const value = Function.apply(null, [
                 "$",
                 "return " + assignment.rhs
@@ -6468,7 +6576,7 @@ class ComponentDirective {
               }
             });
           } else {
-            instance.addSubscribe("props." + str2, (value) => {
+            instance.addSubscribe("props." + str, (value) => {
               if (!_.isEqual(getFromPath(this.bvrElement, v.slice(5)), value)) {
                 setByPath(this.bvrElement, v.slice(5), value);
               }
@@ -6479,10 +6587,10 @@ class ComponentDirective {
     });
     instance.$$parent = this.bvrElement;
     this.bvrElement.$$elementInstances[instance.$id] = instance;
-    const element2 = document.createElement("div");
-    instance.$$rootElement = element2;
+    const element = document.createElement("div");
+    instance.$$rootElement = element;
     instance.mount();
-    return element2;
+    return element;
   }
 }
 var css = {};
@@ -6491,12 +6599,12 @@ var parse = function(css2, options) {
   options = options || {};
   var lineno = 1;
   var column = 1;
-  function updatePosition(str2) {
-    var lines = str2.match(/\n/g);
+  function updatePosition(str) {
+    var lines = str.match(/\n/g);
     if (lines)
       lineno += lines.length;
-    var i = str2.lastIndexOf("\n");
-    column = ~i ? str2.length - i : column + str2.length;
+    var i = str.lastIndexOf("\n");
+    column = ~i ? str.length - i : column + str.length;
   }
   function position() {
     var start = { line: lineno, column };
@@ -6538,10 +6646,10 @@ var parse = function(css2, options) {
     };
   }
   function open() {
-    return match2(/^{\s*/);
+    return match(/^{\s*/);
   }
   function close() {
-    return match2(/^}/);
+    return match(/^}/);
   }
   function rules() {
     var node2;
@@ -6556,17 +6664,17 @@ var parse = function(css2, options) {
     }
     return rules2;
   }
-  function match2(re) {
+  function match(re) {
     var m = re.exec(css2);
     if (!m)
       return;
-    var str2 = m[0];
-    updatePosition(str2);
-    css2 = css2.slice(str2.length);
+    var str = m[0];
+    updatePosition(str);
+    css2 = css2.slice(str.length);
     return m;
   }
   function whitespace() {
-    match2(/^\s*/);
+    match(/^\s*/);
   }
   function comments(rules2) {
     var c;
@@ -6579,7 +6687,7 @@ var parse = function(css2, options) {
     return rules2;
   }
   function comment() {
-    var pos2 = position();
+    var pos = position();
     if (css2.charAt(0) != "/" || css2.charAt(1) != "*")
       return;
     var i = 2;
@@ -6589,18 +6697,18 @@ var parse = function(css2, options) {
     if (css2.charAt(i - 1) === "") {
       return error("End of comment missing");
     }
-    var str2 = css2.slice(2, i - 2);
+    var str = css2.slice(2, i - 2);
     column += 2;
-    updatePosition(str2);
+    updatePosition(str);
     css2 = css2.slice(i);
     column += 2;
-    return pos2({
+    return pos({
       type: "comment",
-      comment: str2
+      comment: str
     });
   }
   function selector() {
-    var m = match2(/^([^{]+)/);
+    var m = match(/^([^{]+)/);
     if (!m)
       return;
     return trim(m[0]).replace(/\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*\/+/g, "").replace(/"(?:\\"|[^"])*"|'(?:\\'|[^'])*'/g, function(m2) {
@@ -6610,20 +6718,20 @@ var parse = function(css2, options) {
     });
   }
   function declaration() {
-    var pos2 = position();
-    var prop = match2(/^(\*?[-#\/\*\\\w]+(\[[0-9a-z_-]+\])?)\s*/);
+    var pos = position();
+    var prop = match(/^(\*?[-#\/\*\\\w]+(\[[0-9a-z_-]+\])?)\s*/);
     if (!prop)
       return;
     prop = trim(prop[0]);
-    if (!match2(/^:\s*/))
+    if (!match(/^:\s*/))
       return error("property missing ':'");
-    var val = match2(/^((?:'(?:\\'|.)*?'|"(?:\\"|.)*?"|\([^\)]*?\)|[^};])+)/);
-    var ret = pos2({
+    var val = match(/^((?:'(?:\\'|.)*?'|"(?:\\"|.)*?"|\([^\)]*?\)|[^};])+)/);
+    var ret = pos({
       type: "declaration",
       property: prop.replace(commentre, ""),
       value: val ? trim(val[0]).replace(commentre, "") : ""
     });
-    match2(/^[;\s]*/);
+    match(/^[;\s]*/);
     return ret;
   }
   function declarations() {
@@ -6645,26 +6753,26 @@ var parse = function(css2, options) {
   function keyframe() {
     var m;
     var vals = [];
-    var pos2 = position();
-    while (m = match2(/^((\d+\.\d+|\.\d+|\d+)%?|[a-zA-Z]+)\s*/)) {
+    var pos = position();
+    while (m = match(/^((\d+\.\d+|\.\d+|\d+)%?|[a-z]+)\s*/)) {
       vals.push(m[1]);
-      match2(/^,\s*/);
+      match(/^,\s*/);
     }
     if (!vals.length)
       return;
-    return pos2({
+    return pos({
       type: "keyframe",
       values: vals,
       declarations: declarations()
     });
   }
   function atkeyframes() {
-    var pos2 = position();
-    var m = match2(/^@([-\w]+)?keyframes\s*/);
+    var pos = position();
+    var m = match(/^@([-\w]+)?keyframes\s*/);
     if (!m)
       return;
     var vendor = m[1];
-    var m = match2(/^([-\w]+)\s*/);
+    var m = match(/^([-\w]+)\s*/);
     if (!m)
       return error("@keyframes missing name");
     var name = m[1];
@@ -6678,7 +6786,7 @@ var parse = function(css2, options) {
     }
     if (!close())
       return error("@keyframes missing '}'");
-    return pos2({
+    return pos({
       type: "keyframes",
       name,
       vendor,
@@ -6686,8 +6794,8 @@ var parse = function(css2, options) {
     });
   }
   function atsupports() {
-    var pos2 = position();
-    var m = match2(/^@supports *([^{]+)/);
+    var pos = position();
+    var m = match(/^@supports *([^{]+)/);
     if (!m)
       return;
     var supports = trim(m[1]);
@@ -6696,15 +6804,15 @@ var parse = function(css2, options) {
     var style = comments().concat(rules());
     if (!close())
       return error("@supports missing '}'");
-    return pos2({
+    return pos({
       type: "supports",
       supports,
       rules: style
     });
   }
   function athost() {
-    var pos2 = position();
-    var m = match2(/^@host\s*/);
+    var pos = position();
+    var m = match(/^@host\s*/);
     if (!m)
       return;
     if (!open())
@@ -6712,14 +6820,14 @@ var parse = function(css2, options) {
     var style = comments().concat(rules());
     if (!close())
       return error("@host missing '}'");
-    return pos2({
+    return pos({
       type: "host",
       rules: style
     });
   }
   function atmedia() {
-    var pos2 = position();
-    var m = match2(/^@media *([^{]+)/);
+    var pos = position();
+    var m = match(/^@media *([^{]+)/);
     if (!m)
       return;
     var media = trim(m[1]);
@@ -6728,26 +6836,26 @@ var parse = function(css2, options) {
     var style = comments().concat(rules());
     if (!close())
       return error("@media missing '}'");
-    return pos2({
+    return pos({
       type: "media",
       media,
       rules: style
     });
   }
   function atcustommedia() {
-    var pos2 = position();
-    var m = match2(/^@custom-media\s+(--[^\s]+)\s*([^{;]+);/);
+    var pos = position();
+    var m = match(/^@custom-media\s+(--[^\s]+)\s*([^{;]+);/);
     if (!m)
       return;
-    return pos2({
+    return pos({
       type: "custom-media",
       name: trim(m[1]),
       media: trim(m[2])
     });
   }
   function atpage() {
-    var pos2 = position();
-    var m = match2(/^@page */);
+    var pos = position();
+    var m = match(/^@page */);
     if (!m)
       return;
     var sel = selector() || [];
@@ -6761,15 +6869,15 @@ var parse = function(css2, options) {
     }
     if (!close())
       return error("@page missing '}'");
-    return pos2({
+    return pos({
       type: "page",
       selectors: sel,
       declarations: decls
     });
   }
   function atdocument() {
-    var pos2 = position();
-    var m = match2(/^@([-\w]+)?document *([^{]+)/);
+    var pos = position();
+    var m = match(/^@([-\w]+)?document *([^{]+)/);
     if (!m)
       return;
     var vendor = trim(m[1]);
@@ -6779,7 +6887,7 @@ var parse = function(css2, options) {
     var style = comments().concat(rules());
     if (!close())
       return error("@document missing '}'");
-    return pos2({
+    return pos({
       type: "document",
       document: doc,
       vendor,
@@ -6787,8 +6895,8 @@ var parse = function(css2, options) {
     });
   }
   function atfontface() {
-    var pos2 = position();
-    var m = match2(/^@font-face\s*/);
+    var pos = position();
+    var m = match(/^@font-face\s*/);
     if (!m)
       return;
     if (!open())
@@ -6801,7 +6909,7 @@ var parse = function(css2, options) {
     }
     if (!close())
       return error("@font-face missing '}'");
-    return pos2({
+    return pos({
       type: "font-face",
       declarations: decls
     });
@@ -6812,13 +6920,13 @@ var parse = function(css2, options) {
   function _compileAtrule(name) {
     var re = new RegExp("^@" + name + "\\s*([^;]+);");
     return function() {
-      var pos2 = position();
-      var m = match2(re);
+      var pos = position();
+      var m = match(re);
       if (!m)
         return;
       var ret = { type: name };
       ret[name] = m[1].trim();
-      return pos2(ret);
+      return pos(ret);
     };
   }
   function atrule() {
@@ -6827,12 +6935,12 @@ var parse = function(css2, options) {
     return atkeyframes() || atmedia() || atcustommedia() || atsupports() || atimport() || atcharset() || atnamespace() || atdocument() || atpage() || athost() || atfontface();
   }
   function rule() {
-    var pos2 = position();
+    var pos = position();
     var sel = selector();
     if (!sel)
       return error("selector missing");
     comments();
-    return pos2({
+    return pos({
       type: "rule",
       selectors: sel,
       declarations: declarations()
@@ -6840,8 +6948,8 @@ var parse = function(css2, options) {
   }
   return addParent(stylesheet());
 };
-function trim(str2) {
-  return str2 ? str2.replace(/^\s+|\s+$/g, "") : "";
+function trim(str) {
+  return str ? str.replace(/^\s+|\s+$/g, "") : "";
 }
 function addParent(obj, parent) {
   var isNode = obj && typeof obj.type === "string";
@@ -6870,8 +6978,8 @@ var compiler = Compiler$2;
 function Compiler$2(opts) {
   this.options = opts || {};
 }
-Compiler$2.prototype.emit = function(str2) {
-  return str2;
+Compiler$2.prototype.emit = function(str) {
+  return str;
 };
 Compiler$2.prototype.visit = function(node2) {
   return this[node2.type](node2);
@@ -7154,16 +7262,16 @@ var util$5 = {};
   var urlRegexp = /^(?:([\w+\-.]+):)?\/\/(?:(\w+:\w+)@)?([\w.-]*)(?::(\d+))?(.*)$/;
   var dataUrlRegexp = /^data:.+\,.+$/;
   function urlParse(aUrl) {
-    var match2 = aUrl.match(urlRegexp);
-    if (!match2) {
+    var match = aUrl.match(urlRegexp);
+    if (!match) {
       return null;
     }
     return {
-      scheme: match2[1],
-      auth: match2[2],
-      host: match2[3],
-      port: match2[4],
-      path: match2[5]
+      scheme: match[1],
+      auth: match[2],
+      host: match[3],
+      port: match[4],
+      path: match[5]
     };
   }
   exports.urlParse = urlParse;
@@ -7408,8 +7516,8 @@ var util$5 = {};
     return strcmp(mappingA.name, mappingB.name);
   }
   exports.compareByGeneratedPositionsInflated = compareByGeneratedPositionsInflated;
-  function parseSourceMapInput(str2) {
-    return JSON.parse(str2.replace(/^\)]}'[^\n]*\n/, ""));
+  function parseSourceMapInput(str) {
+    return JSON.parse(str.replace(/^\)]}'[^\n]*\n/, ""));
   }
   exports.parseSourceMapInput = parseSourceMapInput;
   function computeSourceURL(sourceRoot, sourceURL, sourceMapURL) {
@@ -7446,11 +7554,11 @@ function ArraySet$2() {
   this._set = hasNativeMap ? new Map() : Object.create(null);
 }
 ArraySet$2.fromArray = function ArraySet_fromArray(aArray, aAllowDuplicates) {
-  var set2 = new ArraySet$2();
+  var set = new ArraySet$2();
   for (var i = 0, len = aArray.length; i < len; i++) {
-    set2.add(aArray[i], aAllowDuplicates);
+    set.add(aArray[i], aAllowDuplicates);
   }
-  return set2;
+  return set;
 };
 ArraySet$2.prototype.size = function ArraySet_size() {
   return hasNativeMap ? this._set.size : Object.getOwnPropertyNames(this._set).length;
@@ -8106,7 +8214,7 @@ BasicSourceMapConsumer.prototype._parseMappings = function SourceMapConsumer_par
   var temp = {};
   var originalMappings = [];
   var generatedMappings = [];
-  var mapping, str2, segment, end, value;
+  var mapping, str, segment, end, value;
   while (index < length) {
     if (aStr.charAt(index) === ";") {
       generatedLine++;
@@ -8122,10 +8230,10 @@ BasicSourceMapConsumer.prototype._parseMappings = function SourceMapConsumer_par
           break;
         }
       }
-      str2 = aStr.slice(index, end);
-      segment = cachedSegments[str2];
+      str = aStr.slice(index, end);
+      segment = cachedSegments[str];
       if (segment) {
-        index += str2.length;
+        index += str.length;
       } else {
         segment = [];
         while (index < end) {
@@ -8140,7 +8248,7 @@ BasicSourceMapConsumer.prototype._parseMappings = function SourceMapConsumer_par
         if (segment.length === 3) {
           throw new Error("Found a source and line, but no column");
         }
-        cachedSegments[str2] = segment;
+        cachedSegments[str] = segment;
       }
       mapping.generatedColumn = previousGeneratedColumn + segment[0];
       previousGeneratedColumn = mapping.generatedColumn;
@@ -8613,11 +8721,11 @@ SourceNode.prototype.walkSourceContents = function SourceNode_walkSourceContents
   }
 };
 SourceNode.prototype.toString = function SourceNode_toString() {
-  var str2 = "";
+  var str = "";
   this.walk(function(chunk) {
-    str2 += chunk;
+    str += chunk;
   });
-  return str2;
+  return str;
 };
 SourceNode.prototype.toStringWithSourceMap = function SourceNode_toStringWithSourceMap(aArgs) {
   var generated = {
@@ -8772,17 +8880,17 @@ function customDecodeURIComponent(input) {
     "%FE%FF": "\uFFFD\uFFFD",
     "%FF%FE": "\uFFFD\uFFFD"
   };
-  var match2 = multiMatcher.exec(input);
-  while (match2) {
+  var match = multiMatcher.exec(input);
+  while (match) {
     try {
-      replaceMap[match2[0]] = decodeURIComponent(match2[0]);
+      replaceMap[match[0]] = decodeURIComponent(match[0]);
     } catch (err) {
-      var result = decode(match2[0]);
-      if (result !== match2[0]) {
-        replaceMap[match2[0]] = result;
+      var result = decode(match[0]);
+      if (result !== match[0]) {
+        replaceMap[match[0]] = result;
       }
     }
-    match2 = multiMatcher.exec(input);
+    match = multiMatcher.exec(input);
   }
   replaceMap["%C2"] = "\uFFFD";
   var entries = Object.keys(replaceMap);
@@ -8813,7 +8921,7 @@ function resolveUrl() {
   });
 }
 function convertWindowsPath(aPath) {
-  return pathLib.sep === "\\" ? aPath.replace(/\\/g, "/").replace(/^[a-zA-Z]:\/?/i, "/") : aPath;
+  return pathLib.sep === "\\" ? aPath.replace(/\\/g, "/").replace(/^[a-z]:\/?/i, "/") : aPath;
 }
 function customDecodeUriComponent(string) {
   return decodeUriComponentLib(string.replace(/\+/g, "%2B"));
@@ -8843,8 +8951,8 @@ function readSync(read, url, data) {
 var innerRegex = /[#@] sourceMappingURL=([^\s'"]*)/;
 var sourceMappingURLRegex = RegExp("(?:/\\*(?:\\s*\r?\n(?://)?)?(?:" + innerRegex.source + ")\\s*\\*/|//(?:" + innerRegex.source + "))\\s*");
 function getSourceMappingUrl(code) {
-  var match2 = code.match(sourceMappingURLRegex);
-  return match2 ? match2[1] || match2[2] || "" : null;
+  var match = code.match(sourceMappingURLRegex);
+  return match ? match[1] || match[2] || "" : null;
 }
 function resolveSourceMap(code, codeUrl, read, callback) {
   var mapData;
@@ -9109,7 +9217,7 @@ var sourceMapResolve = {
   var path = require$$3;
   module.exports = mixin;
   const makeFriendlyPath = function(aPath) {
-    return path.sep === "\\" ? aPath.replace(/\\/g, "/").replace(/^[a-zA-Z]:\/?/i, "/") : aPath;
+    return path.sep === "\\" ? aPath.replace(/\\/g, "/").replace(/^[a-z]:\/?/i, "/") : aPath;
   };
   function mixin(compiler2) {
     compiler2._comment = compiler2.comment;
@@ -9119,16 +9227,16 @@ var sourceMapResolve = {
     for (var k in exports)
       compiler2[k] = exports[k];
   }
-  exports.updatePosition = function(str2) {
-    var lines = str2.match(/\n/g);
+  exports.updatePosition = function(str) {
+    var lines = str.match(/\n/g);
     if (lines)
       this.position.line += lines.length;
-    var i = str2.lastIndexOf("\n");
-    this.position.column = ~i ? str2.length - i : this.position.column + str2.length;
+    var i = str.lastIndexOf("\n");
+    this.position.column = ~i ? str.length - i : this.position.column + str.length;
   };
-  exports.emit = function(str2, pos2) {
-    if (pos2) {
-      var sourceFile = makeFriendlyPath(pos2.source || "source.css");
+  exports.emit = function(str, pos) {
+    if (pos) {
+      var sourceFile = makeFriendlyPath(pos.source || "source.css");
       this.map.addMapping({
         source: sourceFile,
         generated: {
@@ -9136,21 +9244,21 @@ var sourceMapResolve = {
           column: Math.max(this.position.column - 1, 0)
         },
         original: {
-          line: pos2.start.line,
-          column: pos2.start.column - 1
+          line: pos.start.line,
+          column: pos.start.column - 1
         }
       });
-      this.addFile(sourceFile, pos2);
+      this.addFile(sourceFile, pos);
     }
-    this.updatePosition(str2);
-    return str2;
+    this.updatePosition(str);
+    return str;
   };
-  exports.addFile = function(file, pos2) {
-    if (typeof pos2.content !== "string")
+  exports.addFile = function(file, pos) {
+    if (typeof pos.content !== "string")
       return;
     if (Object.prototype.hasOwnProperty.call(this.files, file))
       return;
-    this.files[file] = pos2.content;
+    this.files[file] = pos.content;
   };
   exports.applySourceMaps = function() {
     Object.keys(this.files).forEach(function(file) {
@@ -9195,8 +9303,8 @@ class StyleDirective {
   constructor(bvrElement) {
     this.bvrElement = bvrElement;
   }
-  render(templateEl2, _scope, parentScopeId) {
-    const parsed = css.parse(templateEl2.children[0].data);
+  render(templateEl, _scope, parentScopeId) {
+    const parsed = css.parse(templateEl.children[0].data);
     if (!parsed.stylesheet)
       return [];
     parsed.stylesheet.rules = parsed.stylesheet.rules.map(($rule) => {
@@ -9207,7 +9315,7 @@ class StyleDirective {
             return acm + " > ";
           else {
             const splitted = part.split(":");
-            return acm + (splitted[0] + `[instance_id=${this.bvrElement.$id}]`) + (splitted[1] ? ":" + splitted[1] : "");
+            return acm + (splitted[0] + `[instance_id='${this.bvrElement.$id}']`) + (splitted[1] ? ":" + splitted[1] : "");
           }
         }, "");
         return selector;
@@ -9219,19 +9327,19 @@ class StyleDirective {
     styleElement.innerHTML = cssString;
     const styleVarsElement = document.createElement("style");
     styleElement.innerHTML = cssString;
-    const set2 = () => {
-      styleVarsElement.innerHTML = Object.entries(templateEl2.attribs).reduce((acm, [name, value]) => {
+    const set = () => {
+      styleVarsElement.innerHTML = Object.entries(templateEl.attribs).reduce((acm, [name, value]) => {
         return acm + "--" + name + ":" + Function.apply(null, ["", "return " + value]).bind(this.bvrElement)() + "; \n";
-      }, `[instance_id=${this.bvrElement.$id}] {
+      }, `[instance_id='${this.bvrElement.$id}'] {
 `) + "}";
     };
-    Object.values(templateEl2.attribs).forEach((value) => {
+    Object.values(templateEl.attribs).forEach((value) => {
       var _a;
       (_a = value.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _a.forEach((item) => {
-        this.bvrElement.addSubscribe(item.substring(5), set2, parentScopeId);
+        this.bvrElement.addSubscribe(item.substring(5), set, parentScopeId);
       });
     });
-    set2();
+    set();
     return [styleVarsElement, styleElement];
   }
 }
@@ -9248,8 +9356,8 @@ var ElementType;
   ElementType2["Doctype"] = "doctype";
 })(ElementType || (ElementType = {}));
 function html(template, ...a) {
-  const s = template.reduce((acm, str2, i) => {
-    return acm + str2 + (i < template.length - 1 ? String(a[i]) : "");
+  const s = template.reduce((acm, str, i) => {
+    return acm + str + (i < template.length - 1 ? String(a[i]) : "");
   }, "");
   return s;
 }
@@ -9262,7 +9370,7 @@ function domReady() {
   });
 }
 const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeId) => {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
   let element;
   if (Array.isArray(templateEl) || templateEl.type === ElementType.Root) {
     const iter = templateEl.children || templateEl;
@@ -9280,17 +9388,23 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
   } else if (templateEl.type === ElementType.Tag && templateEl.name === "slot") {
     if ((that == null ? void 0 : that.$$parent) && ((_d = templateEl == null ? void 0 : templateEl.attribs) == null ? void 0 : _d["name"])) {
       const filler = (_f = (_e = that.$$slots) == null ? void 0 : _e[templateEl.attribs.name || "default"]) == null ? void 0 : _f.filler;
-      if (filler)
-        element = appendElFromTemplate(that == null ? void 0 : that.$$parent, filler == null ? void 0 : filler.children, void 0, scope, scopeId) || "";
+      if (filler) {
+        console.log("slot", (_g = that.$$slots) == null ? void 0 : _g[templateEl.attribs.name || "default"]);
+        element = appendElFromTemplate(that == null ? void 0 : that.$$parent, filler == null ? void 0 : filler.children, void 0, ((_i = (_h = that.$$slots) == null ? void 0 : _h[templateEl.attribs.name || "default"]) == null ? void 0 : _i.scope) || scope, scopeId) || "";
+      }
     } else {
       if (templateEl.attribs["set.name"] && (that == null ? void 0 : that.$$parent)) {
+        console.log("set.name", templateEl.attribs["set.name"], scope);
+        Object.values(that.$$slots).forEach((slot) => console.log(slot));
         const slotName = Function.apply(null, [
           "",
           `
                     const {${scope && Object.keys(scope).join(",")}} = ${JSON.stringify(scope)};
                     return ` + templateEl.attribs["set.name"]
         ]).bind(that)();
-        const filler = (_h = (_g = that.$$slots) == null ? void 0 : _g[slotName]) == null ? void 0 : _h.filler;
+        console.log("slotName", slotName, scope);
+        const filler = (_k = (_j = that.$$slots) == null ? void 0 : _j[slotName]) == null ? void 0 : _k.filler;
+        delete filler.attribs["set.name"];
         if (filler)
           element = appendElFromTemplate(that == null ? void 0 : that.$$parent, filler, void 0, scope, scopeId) || "";
       }
@@ -9305,7 +9419,7 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
     });
     if (tEl.attribs)
       Object.entries(tEl.attribs).forEach(([attrName, attrValue]) => {
-        var _a2, _b2, _c2, _d2;
+        var _a2, _b2;
         if (attrName.indexOf("@") === 0) {
           const event = attrName.replace("@", "");
           const code = attrValue;
@@ -9325,121 +9439,78 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
               }
             });
         } else if (attrName === "$") {
-          const set2 = () => {
+          const set = () => {
             Function.apply(null, ["$", attrValue]).bind(that)(element);
           };
           (_a2 = attrValue.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _a2.forEach((item) => {
-            that.addSubscribe(item.substring(5), set2, scopeId);
+            that.addSubscribe(item.substring(5), set, scopeId);
           });
-          set2();
+          set();
         } else {
           if (attrName.indexOf("set.") === 0) {
-            const set2 = () => {
-              element[attrName.replace("set.", "")] = Function.apply(null, [
-                "",
-                "return " + attrValue
-              ]).bind(that)();
+            const set = () => {
+              Function.apply(null, [
+                `$,{${scope && Object.keys(scope).join(",")}}`,
+                `$.${attrName.replace("set.", "")} = ${attrValue}`
+              ]).bind(that)(element, scope);
             };
-            (_b2 = attrValue.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _b2.forEach((item) => {
-              that.addSubscribe(item.substring(5), set2, scopeId);
+            (_b2 = attrValue.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\[[^]]+\])?(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d\)*))(\[[^]]+\])?)*/g)) == null ? void 0 : _b2.forEach((item) => {
+              that.addSubscribe(item.replace(/(\[[^]]+\])/g, ".*").substring(5), set, scopeId);
             });
-            set2();
+            set();
           } else if (attrName.indexOf("get.") === 0) {
-            const str2 = attrName.replace("get.", "");
+            const str = attrName.replace("get.", "");
             if (element instanceof HTMLStyleElement || element instanceof HTMLElement) {
               if (attrValue.indexOf("=") >= 0) {
                 let assignment = {
                   rhs: attrValue.slice(attrValue.indexOf("=") + 1).trim(),
                   lhs: attrValue.slice(0, attrValue.indexOf("=")).trim()
                 };
-                element.addEventListener(str2, ($event) => {
-                  const value = Function.apply(null, [
-                    "$,$event",
-                    "return " + assignment.rhs
-                  ]).bind(that)(element, $event);
-                  if (!_.isEqual(getFromPath(that, assignment.lhs.slice(5)), value)) {
-                    setByPath(that, assignment.lhs.slice(5), value);
-                  }
-                });
+                {
+                  element.addEventListener(str, ($event) => {
+                    const value = Function.apply(null, [
+                      "$,$event",
+                      "return " + assignment.rhs
+                    ]).bind(that)(element, $event);
+                    if (!_.isEqual(getFromPath(that, assignment.lhs.slice(5)), value)) {
+                      Function.apply(null, [
+                        `$,{${scope && Object.keys(scope).join(",")}}`,
+                        assignment.lhs + " = " + assignment.rhs
+                      ]).bind(that)(element, scope);
+                    }
+                  });
+                }
               } else {
-                element.addEventListener(str2, ($event) => {
-                  let value;
-                  if (element instanceof HTMLInputElement && ["text", "tel", "password"].includes(element.type))
-                    value = $event.target.value;
-                  else if (element instanceof HTMLInputElement && ["checkbox"].includes(element.type)) {
-                    value = $event.target.checked;
-                  }
-                  if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
-                    setByPath(that, attrValue.slice(5), value);
-                  }
-                });
+                if (str.indexOf("boundingRect") === 0) {
+                  const setFn = Function.apply(null, [
+                    `$value,{${scope && Object.keys(scope).join(",")}}`,
+                    `
+                                        if(${attrValue}?.height !== $value?.height)
+                                            ${attrValue} = $value.height
+                                        `
+                  ]).bind(that);
+                  new ResizeObserver((entries) => {
+                    for (let entry of entries) {
+                      const cr = entry.contentRect;
+                      setFn(cr.toJSON(), scope);
+                    }
+                  }).observe(element);
+                } else {
+                  element.addEventListener(str, ($event) => {
+                    let value;
+                    if (element instanceof HTMLInputElement && ["text", "tel", "password"].includes(element.type))
+                      value = $event.target.value;
+                    else if (element instanceof HTMLInputElement && ["checkbox"].includes(element.type)) {
+                      value = $event.target.checked;
+                    }
+                    if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
+                      setByPath(that, attrValue.slice(5), value);
+                    }
+                  });
+                }
               }
             }
-          }
-          let childToParent = false;
-          let parentToChild = false;
-          let str = attrName;
-          let pos = attrName.lastIndexOf("}");
-          if (pos > attrName.length - 2) {
-            str = str.slice(0, pos);
-            childToParent = true;
-          }
-          pos = attrName.lastIndexOf("{");
-          if (pos > attrName.length - 3) {
-            str = str.slice(0, pos);
-            parentToChild = true;
-          }
-          try {
-            const ev = eval("scope." + attrValue);
-            if (ev !== void 0) {
-              ;
-              element[str] = ev;
-              return;
-            }
-          } catch (e) {
-            try {
-              const res = new Function("return " + attrValue).bind(that)();
-              element[str] = res;
-            } catch (e2) {
-            }
-          }
-          if (parentToChild) {
-            (_c2 = attrValue.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _c2.forEach((item) => {
-              that.addSubscribe(item.substring(5), (value) => {
-                element.value = value;
-              });
-            });
-            const set2 = () => {
-              element[str] = Function.apply(null, [
-                "",
-                "return " + attrValue
-              ]).bind(that)();
-            };
-            (_d2 = attrValue.match(/this(.\w){0,}/g)) == null ? void 0 : _d2.forEach((item) => {
-              item = item.slice(5);
-              that.addSubscribe(item, set2, scopeId);
-            });
-            set2();
-          }
-          if (childToParent) {
-            if (element instanceof HTMLStyleElement || element instanceof HTMLElement) {
-              element.addEventListener("change", (event) => {
-                var _a3;
-                const value = (_a3 = event.currentTarget) == null ? void 0 : _a3[str];
-                if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
-                  setByPath(that, attrValue.slice(5), value);
-                }
-              });
-              element.addEventListener("input", (event) => {
-                var _a3;
-                const value = (_a3 = event.currentTarget) == null ? void 0 : _a3[str];
-                if (!_.isEqual(getFromPath(that, attrValue.slice(5)), value)) {
-                  setByPath(that, attrValue.slice(5), value);
-                }
-              });
-            }
-          }
-          if (!parentToChild && !childToParent) {
+          } else {
             element.setAttribute(attrName, attrValue);
           }
         }
@@ -9456,32 +9527,28 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
           let rawLength = (_b2 = (_a3 = match.match(/\{\{.+?}}/g)) == null ? void 0 : _a3[0]) == null ? void 0 : _b2.length;
           const scopeStr = match.substr(2, match.length - 4 - (match.length - (rawLength || 0))).trim();
           try {
-            const ev = eval("scope." + scopeStr);
-            if (ev !== void 0) {
-              return ev;
-            }
-          } catch (e) {
-          }
-          try {
-            const res = new Function("return " + scopeStr).bind(that)();
+            const res = Function.apply(null, [
+              `{${scope && Object.keys(scope).join(",")}}`,
+              "return " + scopeStr
+            ]).bind(that)(scope);
             return res;
           } catch (e) {
           }
         })) || "";
     };
-    (_j = (_i = element.textContent) == null ? void 0 : _i.match(/<[\?]js.*/g)) == null ? void 0 : _j.forEach((match2) => {
-      console.log("js block", match2);
+    (_m = (_l = element.textContent) == null ? void 0 : _l.match(/<[\?]js.*/g)) == null ? void 0 : _m.forEach((match) => {
+      console.log("js block", match);
     });
-    (_l = (_k = element.textContent) == null ? void 0 : _k.match(/\{\{.+?}}((\(\d{0,10}\))){0,1}/g)) == null ? void 0 : _l.forEach((match2) => {
+    (_o = (_n = element.textContent) == null ? void 0 : _n.match(/\{\{.+?}}((\(\d{0,10}\))){0,1}/g)) == null ? void 0 : _o.forEach((match) => {
       var _a2, _b2, _c2;
-      const thrMatch = (_a2 = match2.match(/\}\}\(\d{0,10}\)/g)) == null ? void 0 : _a2[0];
+      const thrMatch = (_a2 = match.match(/\}\}\(\d{0,10}\)/g)) == null ? void 0 : _a2[0];
       const throttleStr = (thrMatch == null ? void 0 : thrMatch.slice(3, thrMatch.length - 1)) || "0";
       const throttle = parseInt(throttleStr);
-      const scopeStr2 = match2.slice(2, match2.length - (throttleStr.length + 1)).trim();
-      if ((_b2 = scopeStr2.match(/^(new)[\s]\w+[\s\S]+/)) == null ? void 0 : _b2.length)
+      const scopeStr = match.slice(2, match.length - (throttleStr.length + 1)).trim();
+      if ((_b2 = scopeStr.match(/^(new)[\s]\w+[\s\S]+/)) == null ? void 0 : _b2.length)
         ;
       else {
-        (_c2 = scopeStr2.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _c2.forEach((item) => {
+        (_c2 = scopeStr.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _c2.forEach((item) => {
           that.addSubscribe(item.substring(5), set, scopeId, throttle);
         });
       }
@@ -9495,15 +9562,15 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
       if (!Array.isArray(element2)) {
         parent.append(element2);
       } else {
-        element2.forEach((el2) => {
-          h(parent, el2);
+        element2.forEach((el) => {
+          h(parent, el);
         });
       }
     };
     if (htmlParentEl)
       h(htmlParentEl, element);
   } else {
-    (_m = htmlParentEl == null ? void 0 : htmlParentEl.append) == null ? void 0 : _m.call(htmlParentEl, element);
+    (_p = htmlParentEl == null ? void 0 : htmlParentEl.append) == null ? void 0 : _p.call(htmlParentEl, element);
   }
   return element;
 };

@@ -57,6 +57,7 @@ export default class ComponentDirective {
                         [slotName]: {
                             templatePath: path,
                             filler,
+                            scope: undefined,
                         },
                     }
             }
@@ -137,6 +138,7 @@ export default class ComponentDirective {
                 [filler.attribs?.slot || 'default']: {
                     filler,
                     templatePath: [],
+                    scope: undefined,
                 },
             }
         })

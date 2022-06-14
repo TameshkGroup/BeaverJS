@@ -51,7 +51,7 @@ export default class StyleDirective {
                         Function.apply(null, ['', 'return ' + value]).bind(this.bvrElement)() +
                         '; \n'
                     )
-                }, `[instance_id=${this.bvrElement.$id}] {\n`) + '}'
+                }, `[instance_id='${this.bvrElement.$id}'] {\n`) + '}'
         }
         Object.values(templateEl.attribs).forEach((value) => {
             value

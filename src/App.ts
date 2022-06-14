@@ -43,7 +43,7 @@ export default class App extends BVRElement {
                 <filler slot="content-2"> Forth content </filler>
                 <for exp="let $i of this.arr">
                     <filler set.slot="'content-' + $i"> Dyn Content {{$i}} </filler>
-                    <filler set.slot="'title-' + $i"> Dyn Header {{$i}} </filler>
+                    <filler set.slot="'title-' + $i"> Dyn Header {{$i<<}} </filler>
                 </for>
             </Collapse>
 

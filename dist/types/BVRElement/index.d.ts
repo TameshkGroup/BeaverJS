@@ -26,6 +26,7 @@ export declare const appendElFromTemplate: (that: BVRElement, templateEl: Partia
 declare type Slot = {
     filler?: Partial<Element | DataNode | Document>;
     templatePath: number[];
+    scope: any;
 };
 export default class BVRElement extends Puya {
     static $$includedElems: Record<string, typeof BVRElement>;
