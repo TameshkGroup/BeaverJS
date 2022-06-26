@@ -37,13 +37,13 @@ export default class App extends BVRElement {
             <button @click="this.arr.push(this.inputValue)">add</button>
             <br />
             <Collapse>
-                <filler slot="title-1"> Third </filler>
-                <filler slot="title-2"> Forth </filler>
-                <filler slot="content-1"> Third content </filler>
-                <filler slot="content-2"> Forth content </filler>
-                <for exp="let $i of this.arr">
-                    <filler set.slot="'content-' + $i"> Dyn Content {{$i}} </filler>
-                    <filler set.slot="'title-' + $i"> Dyn Header {{$i<<}} </filler>
+                <filler slot="title-12"> Third </filler>
+                <filler slot="title-13"> Forth </filler>
+                <filler slot="content-12"> Third content </filler>
+                <filler slot="content-13"> Forth content </filler>
+                <for exp="let j of this.arr">
+                    <filler set.slot="'content-' + j"> Dyn Content {{i}} <input set.value="i" @input="console.log('$', $.value)" /> </filler>
+                    <filler set.slot="'title-' + j"> Dyn Header {{i}} </filler>
                 </for>
             </Collapse>
 
