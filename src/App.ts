@@ -1,13 +1,14 @@
 import { BVRElement, html, AsPuya } from '.'
 import _ from 'lodash'
 import Collapse from './components/Collapse'
+import CheckInput from './components/CheckInput'
 
 @AsPuya
 export default class App extends BVRElement {
-    $$elements = { Collapse }
+    $$elements = { Collapse, CheckInput }
     test = 'ok'
     arr = _.range(0, 10)
-    inputValue? = 12
+    inputValue?= 12
     check = false
 
     async mounted() {
@@ -26,6 +27,7 @@ export default class App extends BVRElement {
             <for exp="let $i of this.arr">
                 <div>{{$i}}</div>
             </for>
+            <CheckInput></CheckInput>
             <br />
             <div>{{ this.inputValue }}</div>
             <if exp="this.arr.length > 10"> larger </if>
