@@ -22,6 +22,8 @@ export default class ForDirective {
                 ?.map((v) => v.replace(/(let|const|var)( |	|\n)/g, '')) || []),
             ...Object.keys(scope),
         ]?.join(',')
+
+        console.log('for vars', vars)
         /*  const node = ts.createSourceFile('', tEl.attribs['exp'], ts.ScriptTarget.Latest)
         const vars: string[] = []
         node.forEachChild((child) => {
@@ -86,7 +88,7 @@ export default class ForDirective {
                     const elements = []
                     for( ${exp} ){
                         elements.push(...tEl.children.map((tChild)=>{
-                            return appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
+                            return appendElFromTemplate(those, tChild, elem, {${vars},${Object.keys(scope).join(',')}}, scopeId)
                         }))
                     }
                     return elements;
