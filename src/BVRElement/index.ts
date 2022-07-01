@@ -93,267 +93,275 @@ export const appendElFromTemplate = (
             scope,
             scopeId as string
         )
-    } else if (templateEl.type === ElementType.Style) {
-        element = new StyleDirective(that).render(templateEl as Element, scope, scopeId as string)
-    } else if (templateEl.type === ElementType.Tag && (templateEl as Element).name === 'slot') {
-        if (that?.$$parent && (templateEl as Element)?.attribs?.['name']) {
-            const filler = that.$$slots?.[(templateEl as Element).attribs.name || 'default']?.filler
-            if (filler) {
-                console.log(
-                    'slot',
-                    that.$$slots?.[(templateEl as Element).attribs.name || 'default']
-                )
-                element =
-                    appendElFromTemplate(
-                        that?.$$parent,
-                        (filler as { children: Partial<Element | DataNode | Document>[] })
-                            ?.children,
-                        undefined,
-                        that.$$slots?.[(templateEl as Element).attribs.name || 'default']?.scope ||
-                            scope,
-                        scopeId
-                    ) || ''
-            }
-        } else {
-            if ((templateEl as Element).attribs['set.name'] && that?.$$parent) {
-                console.log('set.name', (templateEl as Element).attribs['set.name'], scope)
-                Object.values(that.$$slots).forEach((slot) => console.log(slot))
-                const slotName = Function.apply(null, [
-                    '',
-                    `
-                    const {${scope && Object.keys(scope).join(',')}} = ${JSON.stringify(scope)};
-                    return ` + (templateEl as Element).attribs['set.name'],
-                ]).bind(that)()
-                console.log('slotName', slotName, scope)
-                const filler = that.$$slots?.[slotName]?.filler
-                delete (filler as Element).attribs['set.name']
-                if (filler)
-                    element =
-                        appendElFromTemplate(
-                            that?.$$parent,
-                            filler as Element,
-                            undefined,
-                            scope,
-                            scopeId
-                        ) || ''
-            }
-            //element = ''
-        }
-        //@ts-ignore
-        if (typeof element === 'undefined') element = ''
-        //element = JSON.stringify(that.$$slots)
-    } else if (templateEl.type === ElementType.Tag && (templateEl as Element).name) {
-        const tEl = templateEl as Element
-        element = document.createElement(tEl.name)
+    } else
+        /** Element is style */
+        if (templateEl.type === ElementType.Style) {
+            element = new StyleDirective(that).render(templateEl as Element, scope, scopeId as string)
+        } else
+            /** Element is slot */
+            if (templateEl.type === ElementType.Tag && (templateEl as Element).name === 'slot') {
+                /** Element is static slot */
+                if (that?.$$parent && (templateEl as Element)?.attribs?.['name']) {
+                    const filler = that.$$slots?.[(templateEl as Element).attribs.name || 'default']?.filler
 
-        tEl.children.forEach((child) => {
-            appendElFromTemplate(that, child, element as HTMLElement, scope, scopeId)
-        })
-        if (tEl.attribs)
-            Object.entries(tEl.attribs).forEach(([attrName, attrValue]) => {
-                if (attrName.indexOf('@') === 0) {
-                    const event = attrName.replace('@', '')
-                    const code = attrValue
-                    if (!code) return
-                    if (element instanceof HTMLStyleElement || element instanceof HTMLElement)
-                        element.addEventListener(event, ($event) => {
-                            const args = [
-                                `$event,$,{${scope && Object.keys(scope).join(',')}}`,
-                                code,
-                            ]
-                            const fn = Function.apply(null, args)
-                            try {
-                                fn.bind(that)($event, element, scope)
-                            } catch (e) {
-                                console.error(e)
-                            }
-                        })
-                } else if (attrName === '$') {
-                    const set = () => {
-                        Function.apply(null, ['$', attrValue]).bind(that)(element)
-                    }
-
-                    attrValue
-                        .match(
-                            /this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g
-                        )
-                        ?.forEach((item) => {
-                            that.addSubscribe(item.substring(5), set, scopeId)
-                        })
-
-                    set()
-                } else {
-                    if (attrName.indexOf('set.') === 0) {
-                        const set = () => {
-                            Function.apply(null, [
-                                `$,{${scope && Object.keys(scope).join(',')}}`,
-                                `$.${attrName.replace('set.', '')} = ${attrValue}`,
-                            ]).bind(that)(element, scope)
-
-                            //setByPath(element as any, attrName.replace('set.', '').split('.'), v)
-                        }
-
-                        attrValue
-                            .match(
-                                /this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\[[^]]+\])?(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d\)*))(\[[^]]+\])?)*/g
-                            )
-                            ?.forEach((item) => {
-                                that.addSubscribe(
-                                    item.replace(/(\[[^]]+\])/g, '.*').substring(5),
-                                    set,
-                                    scopeId
-                                )
-                            })
-
-                        set()
-                    } else if (attrName.indexOf('get.') === 0) {
-                        const str = attrName.replace('get.', '')
-
-                        if (element instanceof HTMLStyleElement || element instanceof HTMLElement) {
-                            if (attrValue.indexOf('=') >= 0) {
-                                let assignment: { rhs: string; lhs: string } = {
-                                    rhs: attrValue.slice(attrValue.indexOf('=') + 1).trim(),
-                                    lhs: attrValue.slice(0, attrValue.indexOf('=')).trim(),
-                                }
+                    if (filler) {
+                        element =
+                            appendElFromTemplate(
+                                that?.$$parent,
+                                (filler as { children: Partial<Element | DataNode | Document>[] })
+                                    ?.children,
+                                undefined,
                                 {
-                                    element.addEventListener(str, ($event) => {
-                                        const value = Function.apply(null, [
-                                            '$,$event',
-                                            'return ' + assignment.rhs,
-                                        ]).bind(that)(element, $event)
+                                    ...that.$$slots?.[(templateEl as Element).attribs.name || 'default']?.scope,
+                                    ...scope
+                                },
+                                scopeId
+                            ) || ''
+                    }
+                } else {
+                    /** Element is dynamic slot */
+                    if ((templateEl as Element).attribs['set.name'] && that?.$$parent) {
+                        const slotName = Function.apply(null, [
+                            `{${scope && Object.keys(scope).join(',')}}`,
+                            `return ` + (templateEl as Element).attribs['set.name'],
+                        ]).bind(that)(scope);
+                        const filler = that.$$slots?.[slotName]?.filler;
 
-                                        //DEEP Equality check
-                                        if (
-                                            !_.isEqual(
-                                                getFromPath(that, assignment.lhs.slice(5)),
-                                                value
-                                            )
-                                        ) {
-                                            Function.apply(null, [
-                                                `$,{${scope && Object.keys(scope).join(',')}}`,
-                                                assignment.lhs + ' = ' + assignment.rhs,
-                                            ]).bind(that)(element, scope)
-                                            //setByPath(that, assignment.lhs.slice(5), value)
-                                        }
-                                    })
-                                }
-                            } else {
-                                if (str.indexOf('boundingRect') === 0) {
-                                    const setFn = Function.apply(null, [
-                                        `$value,{${scope && Object.keys(scope).join(',')}}`,
+                        if (filler)
+                            element =
+                                appendElFromTemplate(
+                                    that?.$$parent,
+                                    filler as Element,
+                                    undefined,
+                                    { ...scope, ...that.$$slots?.[slotName].scope },
+                                    scopeId
+                                ) || ''
+                    }
+                    //element = ''
+                }
+                //@ts-ignore
+                if (typeof element === 'undefined') element = ''
+                //element = JSON.stringify(that.$$slots)
+            } else if (templateEl.type === ElementType.Tag && (templateEl as Element).name) {
+                const tEl = templateEl as Element
+                element = document.createElement(tEl.name)
+
+                tEl.children.forEach((child) => {
+                    appendElFromTemplate(that, child, element as HTMLElement, scope, scopeId)
+                })
+                if (tEl.attribs)
+                    Object.entries(tEl.attribs).forEach(([attrName, attrValue]) => {
+                        if (attrName.indexOf('@') === 0) {
+                            const event = attrName.replace('@', '')
+                            const code = attrValue
+                            if (!code) return
+                            if (element instanceof HTMLStyleElement || element instanceof HTMLElement)
+                                element.addEventListener(event, ($event) => {
+                                    const args = [
+                                        `$event,$,{${scope && Object.keys(scope).join(',')}}`,
+                                        code,
+                                    ]
+                                    const fn = Function.apply(null, args)
+                                    try {
+                                        fn.bind(that)($event, element, scope)
+                                    } catch (e) {
+                                        console.error(e)
+                                    }
+                                })
+                        } else if (attrName === '$') {
+                            const set = () => {
+                                Function.apply(null, ['$', attrValue]).bind(that)(element)
+                            }
+
+                            attrValue
+                                .match(
+                                    /this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g
+                                )
+                                ?.forEach((item) => {
+                                    that.addSubscribe(item.substring(5), set, scopeId)
+                                })
+
+                            set()
+                        } else {
+                            //TODO handle class and style for HTML elements 
+                            //TODO style should support object and string 
+                            if (attrName.indexOf('set.') === 0) {
+                                const set = () => {
+                                    Function.apply(null, [
+                                        `$,{${Object.keys(scope).join(',')}}`,
                                         `
+                                        const $value = ${attrValue};
+                                        $.${attrName.replace('set.', '')} = $value;
+                                        console.log('setting', ($value), "${attrValue}" , '${attrName.replace('set.', '')}');
+                                        $.setAttribute( '${attrName.replace('set.', '')}' , (('${tEl.attribs[attrName.slice(4)]} ' + $value)));
+                                        
+                                        `,
+                                    ]).bind(that)(element, scope)
+
+                                    //setByPath(element as any, attrName.replace('set.', '').split('.'), v)
+                                }
+
+                                attrValue
+                                    .match(
+                                        /this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\[[^]]+\])?(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d\)*))(\[[^]]+\])?)*/g
+                                    )
+                                    ?.forEach((item) => {
+                                        that.addSubscribe(
+                                            item.replace(/(\[[^]]+\])/g, '.*').substring(5),
+                                            set,
+                                            scopeId
+                                        )
+                                    })
+
+                                set()
+                            } else if (attrName.indexOf('get.') === 0) {
+                                const str = attrName.replace('get.', '')
+
+                                if (element instanceof HTMLStyleElement || element instanceof HTMLElement) {
+                                    if (attrValue.indexOf('=') >= 0) {
+                                        let assignment: { rhs: string; lhs: string } = {
+                                            rhs: attrValue.slice(attrValue.indexOf('=') + 1).trim(),
+                                            lhs: attrValue.slice(0, attrValue.indexOf('=')).trim(),
+                                        }
+                                        {
+                                            element.addEventListener(str, ($event) => {
+                                                const value = Function.apply(null, [
+                                                    '$,$event',
+                                                    'return ' + assignment.rhs,
+                                                ]).bind(that)(element, $event)
+
+                                                //DEEP Equality check
+                                                if (
+                                                    !_.isEqual(
+                                                        getFromPath(that, assignment.lhs.slice(5)),
+                                                        value
+                                                    )
+                                                ) {
+                                                    Function.apply(null, [
+                                                        `$,{${scope && Object.keys(scope).join(',')}}`,
+                                                        assignment.lhs + ' = ' + assignment.rhs,
+                                                    ]).bind(that)(element, scope)
+                                                    //setByPath(that, assignment.lhs.slice(5), value)
+                                                }
+                                            })
+                                        }
+                                    } else {
+                                        if (str.indexOf('boundingRect') === 0) {
+                                            const setFn = Function.apply(null, [
+                                                `$value,{${scope && Object.keys(scope).join(',')}}`,
+                                                `
                                         if(${attrValue}?.height !== $value?.height)
                                             ${attrValue} = $value.height
                                         `,
-                                    ]).bind(that)
-                                    new ResizeObserver((entries) => {
-                                        for (let entry of entries) {
-                                            const cr = entry.contentRect
-                                            setFn(cr.toJSON(), scope)
-                                            //setByPath(that, attrValue.slice(5), _.clone(cr))
+                                            ]).bind(that)
+                                            new ResizeObserver((entries) => {
+                                                for (let entry of entries) {
+                                                    const cr = entry.contentRect
+                                                    setFn(cr.toJSON(), scope)
+                                                    //setByPath(that, attrValue.slice(5), _.clone(cr))
+                                                }
+                                            }).observe(element)
+                                            /* setTimeout(() => {
+                                                setByPath(
+                                                    that,
+                                                    attrValue.slice(5),
+                                                    (element as HTMLElement).getClientRects()
+                                                )
+                                            }, 100) */
+                                        } else {
+                                            element.addEventListener(str, ($event) => {
+                                                let value: any
+                                                if (
+                                                    element instanceof HTMLInputElement &&
+                                                    ['text', 'tel', 'password'].includes(element.type)
+                                                )
+                                                    value = ($event.target as HTMLInputElement).value
+                                                else if (
+                                                    element instanceof HTMLInputElement &&
+                                                    ['checkbox'].includes(element.type)
+                                                ) {
+                                                    value = ($event.target as HTMLInputElement).checked
+                                                }
+                                                if (
+                                                    !_.isEqual(getFromPath(that, attrValue.slice(5)), value)
+                                                ) {
+                                                    //DEEP Equality check
+                                                    //that[v.slice(5)] = value;
+                                                    setByPath(that, attrValue.slice(5), value)
+                                                }
+                                            })
                                         }
-                                    }).observe(element)
-                                    /* setTimeout(() => {
-                                        setByPath(
-                                            that,
-                                            attrValue.slice(5),
-                                            (element as HTMLElement).getClientRects()
-                                        )
-                                    }, 100) */
-                                } else {
-                                    element.addEventListener(str, ($event) => {
-                                        let value: any
-                                        if (
-                                            element instanceof HTMLInputElement &&
-                                            ['text', 'tel', 'password'].includes(element.type)
-                                        )
-                                            value = ($event.target as HTMLInputElement).value
-                                        else if (
-                                            element instanceof HTMLInputElement &&
-                                            ['checkbox'].includes(element.type)
-                                        ) {
-                                            value = ($event.target as HTMLInputElement).checked
-                                        }
-                                        if (
-                                            !_.isEqual(getFromPath(that, attrValue.slice(5)), value)
-                                        ) {
-                                            //DEEP Equality check
-                                            //that[v.slice(5)] = value;
-                                            setByPath(that, attrValue.slice(5), value)
-                                        }
-                                    })
+                                    }
                                 }
+                            } else {
+                                ; (element as HTMLElement).setAttribute(attrName, attrValue)
                             }
                         }
-                    } else {
-                        ;(element as HTMLElement).setAttribute(attrName, attrValue)
-                    }
-                }
-                //}
-            })
-        element.setAttribute('instance_id', that.$id)
-    } else if (templateEl.type === ElementType.Text && (templateEl as DataNode).data) {
-        const el = templateEl as DataNode
-        element = document.createTextNode(el.data)
-
-        const set = () => {
-            if (element instanceof Text)
-                element.textContent =
-                    el.data?.replace(/\{\{.+?}}((\(\d{0,10}\))){0,1}/g, (match) => {
-                        let rawLength = match.match(/\{\{.+?}}/g)?.[0]?.length
-
-                        const scopeStr = match
-                            .substr(2, match.length - 4 - (match.length - (rawLength || 0)))
-                            .trim()
-
-                        try {
-                            const res = Function.apply(null, [
-                                `{${scope && Object.keys(scope).join(',')}}`,
-                                'return ' + scopeStr,
-                            ]).bind(that)(scope)
-                            return res
-                        } catch (e) {}
-                        /* try {
-                            const ev = eval(scopeStr)
-                            if (ev !== undefined) return ev
-                        } catch {} */
-                        /* if (scopeStr.slice(0, 5) === 'this.')
-                            return getFromPath(
-                                that,
-                                scopeStr.replace('this.', '')
-                            ) */
-                    }) || ''
-        }
-
-        element.textContent?.match(/<[\?]js.*/g)?.forEach((match) => {
-            console.log('js block', match)
-        })
-
-        element.textContent?.match(/\{\{.+?}}((\(\d{0,10}\))){0,1}/g)?.forEach((match) => {
-            const thrMatch = match.match(/\}\}\(\d{0,10}\)/g)?.[0]
-            const throttleStr = thrMatch?.slice(3, thrMatch.length - 1) || '0'
-            const throttle = parseInt(throttleStr)
-
-            const scopeStr = match.slice(2, match.length - (throttleStr.length + 1)).trim()
-
-            //Check if there is instance of a class in the scope
-            if (scopeStr.match(/^(new)[\s]\w+[\s\S]+/)?.length) {
-            } else {
-                //const m = _.throttle(set, 10)
-                scopeStr
-                    .match(
-                        /this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g
-                    )
-                    ?.forEach((item) => {
-                        that.addSubscribe(item.substring(5), set, scopeId, throttle)
+                        //}
                     })
-            }
-        })
+                element.setAttribute('instance_id', that.$id)
+            } else if (templateEl.type === ElementType.Text && (templateEl as DataNode).data) {
+                const el = templateEl as DataNode
+                element = document.createTextNode(el.data)
 
-        set()
-    } else {
-        element = document.createElement('none')
-    }
+                const set = () => {
+                    if (element instanceof Text)
+                        element.textContent =
+                            el.data?.replace(/\{\{.+?}}((\(\d{0,10}\))){0,1}/g, (match) => {
+                                let rawLength = match.match(/\{\{.+?}}/g)?.[0]?.length
+
+                                const scopeStr = match
+                                    .substr(2, match.length - 4 - (match.length - (rawLength || 0)))
+                                    .trim()
+
+                                try {
+                                    const res = Function.apply(null, [
+                                        `{${scope && Object.keys(scope).join(',')}}`,
+                                        'return ' + scopeStr,
+                                    ]).bind(that)(scope)
+                                    return res
+                                } catch (e) { }
+                                /* try {
+                                    const ev = eval(scopeStr)
+                                    if (ev !== undefined) return ev
+                                } catch {} */
+                                /* if (scopeStr.slice(0, 5) === 'this.')
+                                    return getFromPath(
+                                        that,
+                                        scopeStr.replace('this.', '')
+                                    ) */
+                            }) || ''
+                }
+
+                element.textContent?.match(/<[\?]js.*/g)?.forEach((match) => {
+                    console.log('js block', match)
+                })
+
+                element.textContent?.match(/\{\{.+?}}((\(\d{0,10}\))){0,1}/g)?.forEach((match) => {
+                    const thrMatch = match.match(/\}\}\(\d{0,10}\)/g)?.[0]
+                    const throttleStr = thrMatch?.slice(3, thrMatch.length - 1) || '0'
+                    const throttle = parseInt(throttleStr)
+
+                    const scopeStr = match.slice(2, match.length - (throttleStr.length + 1)).trim()
+
+                    //Check if there is instance of a class in the scope
+                    if (scopeStr.match(/^(new)[\s]\w+[\s\S]+/)?.length) {
+                    } else {
+                        //const m = _.throttle(set, 10)
+                        scopeStr
+                            .match(
+                                /this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g
+                            )
+                            ?.forEach((item) => {
+                                that.addSubscribe(item.substring(5), set, scopeId, throttle)
+                            })
+                    }
+                })
+
+                set()
+            } else {
+                element = document.createElement('none')
+            }
 
     if (Array.isArray(element)) {
         const h = (
@@ -405,9 +413,9 @@ export default class BVRElement extends Puya {
     $$element!: Constructor<BVRElement>
     $$elementName!: string
 
-    template(): Partial<Element> | void {}
+    template(): Partial<Element> | void { }
 
-    mounted() {}
+    mounted() { }
 
     async mount() {
         await domReady()

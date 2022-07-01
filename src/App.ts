@@ -1,13 +1,14 @@
 import { BVRElement, html, AsPuya } from '.'
 import _ from 'lodash'
 import Collapse from './components/Collapse'
+import CheckInput from './components/CheckInput'
 
 @AsPuya
 export default class App extends BVRElement {
-    $$elements = { Collapse }
+    $$elements = { Collapse, CheckInput }
     test = 'ok'
     arr = _.range(0, 10)
-    inputValue? = 12
+    inputValue?= 12
     check = false
 
     async mounted() {
@@ -26,6 +27,7 @@ export default class App extends BVRElement {
             <for exp="let $i of this.arr">
                 <div>{{$i}}</div>
             </for>
+            <CheckInput></CheckInput>
             <br />
             <div>{{ this.inputValue }}</div>
             <if exp="this.arr.length > 10"> larger </if>
@@ -37,13 +39,13 @@ export default class App extends BVRElement {
             <button @click="this.arr.push(this.inputValue)">add</button>
             <br />
             <Collapse>
-                <filler slot="title-1"> Third </filler>
-                <filler slot="title-2"> Forth </filler>
-                <filler slot="content-1"> Third content </filler>
-                <filler slot="content-2"> Forth content </filler>
-                <for exp="let $i of this.arr">
-                    <filler set.slot="'content-' + $i"> Dyn Content {{$i}} </filler>
-                    <filler set.slot="'title-' + $i"> Dyn Header {{$i<<}} </filler>
+                <filler slot="title-12"> Third </filler>
+                <filler slot="title-13"> Forth </filler>
+                <filler slot="content-12"> Third content </filler>
+                <filler slot="content-13"> Forth content </filler>
+                <for exp="let j of this.arr">
+                    <filler set.slot="'content-' + j"> Dyn Content {{i}} <input set.value="i" @input="console.log('$', $.value)" /> </filler>
+                    <filler set.slot="'title-' + j"> Dyn Header {{i}} </filler>
                 </for>
             </Collapse>
 

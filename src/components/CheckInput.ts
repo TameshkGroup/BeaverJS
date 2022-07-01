@@ -1,5 +1,6 @@
 import BVRElement, { html } from '../BVRElement'
 import { AsPuya } from '../Puya'
+import Iconify from '@iconify/iconify';
 
 @AsPuya
 export default class CheckInput extends BVRElement {
@@ -8,7 +9,8 @@ export default class CheckInput extends BVRElement {
     mounted(): void {
         setInterval(() => {
             this.value++
-        }, 1000)
+        }, 1000);
+        console.log('Iconify.listIcons()', Iconify.listIcons())
     }
 
     $$template = html`
@@ -18,13 +20,18 @@ export default class CheckInput extends BVRElement {
         >
         
             <div style="display: flex;">
-                <div style="width: 181px; height: 18px">
-                    <if exp="this.props.value"> checked3 </if>
-                    <if exp="!this.props.value"> unchecked</if>
+                {{this.props.value}}
+                <div set.class="this.props.value?'checked':''" set.style="';opacity: ' + (this.props.value ? '0' : '1')" class="check-box" style="width: 16px; height: 16px">
+                    <i class="iconify" data-icon="ph:check-bold"></i>
                 </div>
                 <div style="flex: 1">{{ this.props.label }}</div>
             </div>
             
         </label>
+        <style>
+            .check-box {
+                border: 1px solid #555
+            }
+        </style>
     `
 }
