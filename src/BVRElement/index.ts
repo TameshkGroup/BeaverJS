@@ -186,17 +186,54 @@ export const appendElFromTemplate = (
                             //TODO handle class and style for HTML elements 
                             //TODO style should support object and string 
                             if (attrName.indexOf('set.') === 0) {
+
+
+
+
+
                                 const set = () => {
-                                    Function.apply(null, [
-                                        `$,{${Object.keys(scope).join(',')}}`,
-                                        `
+                                    const dynAttrName = attrName.slice(4);
+                                    console.log('dynAttrName', dynAttrName);
+
+                                    if (dynAttrName === 'class') {
+
+                                        Function.apply(null, [
+                                            `$,{${Object.keys(scope).join(',')}}`,
+                                            `
+                                        const $value = ${attrValue};
+                                        $.setAttribute( '${dynAttrName}' , (('${tEl.attribs[attrName.slice(4)]} ' + $value)));
+                                        `,
+                                        ]).bind(that)(element, scope)
+
+
+                                    } else if (dynAttrName === 'style') {
+                                        Function.apply(null, [
+                                            `$,{${Object.keys(scope).join(',')}}`,
+                                            `
+                                        const $value = ${attrValue};
+                                        console.log('setting', ($value), "${attrValue}" , '${attrName.replace('set.', '')}');
+                                        $.setAttribute( '${attrName.replace('set.', '')}' , (('${tEl.attribs[attrName.slice(4)]} ' + $value)));
+                                        
+                                        `,
+                                        ]).bind(that)(element, scope)
+
+                                    } else {
+
+
+
+                                        Function.apply(null, [
+                                            `$,{${Object.keys(scope).join(',')}}`,
+                                            `
                                         const $value = ${attrValue};
                                         $.${attrName.replace('set.', '')} = $value;
                                         console.log('setting', ($value), "${attrValue}" , '${attrName.replace('set.', '')}');
                                         $.setAttribute( '${attrName.replace('set.', '')}' , (('${tEl.attribs[attrName.slice(4)]} ' + $value)));
                                         
                                         `,
-                                    ]).bind(that)(element, scope)
+                                        ]).bind(that)(element, scope)
+
+
+                                    }
 
                                     //setByPath(element as any, attrName.replace('set.', '').split('.'), v)
                                 }
