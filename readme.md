@@ -2,7 +2,7 @@
   <img src="https://bitbucket.org/tameshkgroup/beaverjs/raw/0749cc5b50e3fd8b844cab8e30ce8dff5bf21339/images/icon.svg?raw=true" alt="BeaverJS Icon"/>
 </p>
 
-> Don't use this at this time.
+> Don't use the library at this time.
 > Because this framework is in the pre-build phase.
 
 **BeaverJS** is going to be a Web UI Framework to aim the web front-end developers to write web applications easier than when they are using other frameworks like Vue, React, Svelte or Angular.
@@ -14,9 +14,9 @@ BeaverJS brings **easier template structure** as you can see in the following ex
 ```html
 <div>
 	<ExampleElement
-		prop1{}="this.value1"
-		prop2{="this.value2"
-		prop3}="this.value3"
+		bi.prop1="this.value1"
+		set.prop2="this.value2"
+		get.prop3="this.value3"
 		$="$.childElementFn(this.value)"
     />
 </div>
@@ -44,9 +44,9 @@ export default class App extends BVRElement {
 	template: html`
 		<div>
 			<ExampleElement
-				prop1{}="this.value1"
-				prop2{="this.value2"
-				prop3}="this.value3"
+				bi.prop1="this.value1"
+				set.prop2="this.value2"
+				get.prop3="this.value3"
 				$="$.childElementFn(this.value)"
         	/>
         </div>
