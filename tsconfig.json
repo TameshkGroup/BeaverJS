@@ -35,12 +35,8 @@
         "node_modules/**"
     ],
     "include": [
-        "./src/**.ts",
+        "./src/**/**.ts",
         "./src/**.pts",
-        "./src/*.ts",
-        "src/App.ts",
-        "src/main.tsp",
-        "src/samples/Puya.ts",
-        "src/components/CheckInput.ts"
+        "./src/**/*.ts",
     ]
 }
