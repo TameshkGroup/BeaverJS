@@ -3,7 +3,7 @@
 </p>
 
 > Don't use the library at this time.
-> Because this framework is in the pre-build phase.
+> Because this framework is in the development phase.
 
 **BeaverJS** is going to be a Web UI Framework to aim the web front-end developers to write web applications easier than when they are using other frameworks like Vue, React, Svelte or Angular.
 
