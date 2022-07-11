@@ -5660,6 +5660,7 @@ class ForDirective {
       ...((_a = tEl.attribs["exp"].match(/(let|const|var)( |	|\n)+([a-zA-Z]|\$|_)+/g)) == null ? void 0 : _a.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ""))) || [],
       ...Object.keys(scope)
     ]) == null ? void 0 : _b.join(",");
+    console.log("for vars", vars);
     const exp = tEl.attribs["exp"].replaceAll(/((this\.))(?=([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g, "that.");
     (_c = tEl.attribs["exp"].match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*))*/g)) == null ? void 0 : _c.forEach(($var) => {
       this.bvrElement.addSubscribe($var.substring(5), () => {
@@ -5690,7 +5691,7 @@ class ForDirective {
                     const elements = []
                     for( ${exp} ){
                         elements.push(...tEl.children.map((tChild)=>{
-                            return appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
+                            return appendElFromTemplate(those, tChild, elem, {${vars},${Object.keys(scope).join(",")}}, scopeId)
                         }))
                     }
                     return elements;
@@ -6453,33 +6454,21 @@ class ComponentDirective {
         const vars = (_b2 = [
           ...((_a2 = child.attribs["exp"].match(/(let|const|var)( |	|\n)+([a-zA-Z]|\$|_)+/g)) == null ? void 0 : _a2.map((v) => v.replace(/(let|const|var)( |	|\n)/g, ""))) || []
         ]) == null ? void 0 : _b2.join(",");
-        console.log(`
-                const elements = []
-                for(${child.attribs["exp"]}){
-                    elements.push(...slots.map((tChild)=>{
-                        console.log('slots8', slots, tChild);
-                        return {elem: tChild, scope: {${vars}}};//appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
-                    }))
-                }
-
-                console.log('elems', elements);
-                return elements;
-            `);
         const elems = Function.apply(null, [
-          "slots,appendElFromTemplate,those,elem,scopeId",
+          "slots,those",
           `
                     const elements = []
                     for(${child.attribs["exp"]}){
-                        console.log('slots8', slots);
                         elements.push(...slots.map((tChild)=>{
                             return {elem: tChild, scope: {${vars}}};//appendElFromTemplate(those, tChild, elem, {${vars}}, scopeId)
                         }))
                     }
                     return elements;
                 `
-        ]).bind(this.bvrElement)(slots, appendElFromTemplate, this.bvrElement, void 0, void 0);
-        console.log("dyn slots", elems);
-        elems.forEach(({ elem, scope }) => dynamicFillers.push({ elem, scope }));
+        ]).bind(this.bvrElement)(slots, this.bvrElement);
+        elems.forEach(({ elem, scope }) => {
+          dynamicFillers.push({ elem, scope: __spreadValues({}, scope) });
+        });
       } else {
         if (child.type !== "text" || child.data.trim().replace(/\n/g, "") !== "") {
           nonFillerElements.push(child);
@@ -6499,14 +6488,15 @@ class ComponentDirective {
         }
       });
     });
-    dynamicFillers.forEach(({ elem, scope }) => {
+    console.log("$$slots", instance.$$slots);
+    dynamicFillers.forEach((m) => {
       var _a2;
+      const { elem, scope } = m;
       const dynFillerName = (_a2 = elem.attribs) == null ? void 0 : _a2["set.slot"];
       const fillerName = Function.apply(null, [
         `{${Object.keys(scope).join(",")}}`,
-        "return " + dynFillerName
+        `return ${dynFillerName}`
       ]).bind(this.bvrElement)(scope);
-      elem.attribs["set.slot"];
       instance.$$slots = __spreadProps(__spreadValues({}, instance.$$slots), {
         [fillerName]: {
           filler: elem,
@@ -6515,7 +6505,6 @@ class ComponentDirective {
         }
       });
     });
-    console.log("slots", instance.$$slots, fillers);
     Object.entries(templateEl.attribs).forEach(([k, v]) => {
       var _a2, _b2, _c;
       if (k.indexOf("@") === 0) {
@@ -9386,27 +9375,20 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
   } else if (templateEl.type === ElementType.Style) {
     element = new StyleDirective(that).render(templateEl, scope, scopeId);
   } else if (templateEl.type === ElementType.Tag && templateEl.name === "slot") {
-    if ((that == null ? void 0 : that.$$parent) && ((_d = templateEl == null ? void 0 : templateEl.attribs) == null ? void 0 : _d["name"])) {
+    if ((that == null ? void 0 : that.$$parent) && !((_d = templateEl == null ? void 0 : templateEl.attribs) == null ? void 0 : _d["set.name"])) {
       const filler = (_f = (_e = that.$$slots) == null ? void 0 : _e[templateEl.attribs.name || "default"]) == null ? void 0 : _f.filler;
       if (filler) {
-        console.log("slot", (_g = that.$$slots) == null ? void 0 : _g[templateEl.attribs.name || "default"]);
-        element = appendElFromTemplate(that == null ? void 0 : that.$$parent, filler == null ? void 0 : filler.children, void 0, ((_i = (_h = that.$$slots) == null ? void 0 : _h[templateEl.attribs.name || "default"]) == null ? void 0 : _i.scope) || scope, scopeId) || "";
+        element = appendElFromTemplate(that == null ? void 0 : that.$$parent, filler == null ? void 0 : filler.children, void 0, __spreadValues(__spreadValues({}, (_h = (_g = that.$$slots) == null ? void 0 : _g[templateEl.attribs.name || "default"]) == null ? void 0 : _h.scope), scope), scopeId) || "";
       }
     } else {
       if (templateEl.attribs["set.name"] && (that == null ? void 0 : that.$$parent)) {
-        console.log("set.name", templateEl.attribs["set.name"], scope);
-        Object.values(that.$$slots).forEach((slot) => console.log(slot));
         const slotName = Function.apply(null, [
-          "",
-          `
-                    const {${scope && Object.keys(scope).join(",")}} = ${JSON.stringify(scope)};
-                    return ` + templateEl.attribs["set.name"]
-        ]).bind(that)();
-        console.log("slotName", slotName, scope);
-        const filler = (_k = (_j = that.$$slots) == null ? void 0 : _j[slotName]) == null ? void 0 : _k.filler;
-        delete filler.attribs["set.name"];
+          `{${scope && Object.keys(scope).join(",")}}`,
+          `return ` + templateEl.attribs["set.name"]
+        ]).bind(that)(scope);
+        const filler = (_j = (_i = that.$$slots) == null ? void 0 : _i[slotName]) == null ? void 0 : _j.filler;
         if (filler)
-          element = appendElFromTemplate(that == null ? void 0 : that.$$parent, filler, void 0, scope, scopeId) || "";
+          element = appendElFromTemplate(that == null ? void 0 : that.$$parent, filler, void 0, __spreadValues(__spreadValues({}, scope), (_k = that.$$slots) == null ? void 0 : _k[slotName].scope), scopeId) || "";
       }
     }
     if (typeof element === "undefined")
@@ -9449,10 +9431,36 @@ const appendElFromTemplate = (that, templateEl, htmlParentEl, scope = {}, scopeI
         } else {
           if (attrName.indexOf("set.") === 0) {
             const set = () => {
-              Function.apply(null, [
-                `$,{${scope && Object.keys(scope).join(",")}}`,
-                `$.${attrName.replace("set.", "")} = ${attrValue}`
-              ]).bind(that)(element, scope);
+              const dynAttrName = attrName.slice(4);
+              if (dynAttrName === "class") {
+                Function.apply(null, [
+                  `$,{${Object.keys(scope).join(",")}}`,
+                  `
+                                        const $value = ${attrValue};
+                                        $.setAttribute( 'class' , 
+                                            (('${tEl.attribs[attrName.slice(4)]} '
+                                            + $value)));
+                                        `
+                ]).bind(that)(element, scope);
+              } else if (dynAttrName === "style") {
+                Function.apply(null, [
+                  `$,{${Object.keys(scope).join(",")}}`,
+                  `
+                                        const $value = ${attrValue};
+                                        console.log('setting', ($value), "${attrValue}" , '${attrName.replace("set.", "")}');
+                                        $.setAttribute( '${attrName.replace("set.", "")}' , (('${tEl.attribs[attrName.slice(4)]} ' + $value)));
+                                        
+                                        `
+                ]).bind(that)(element, scope);
+              } else {
+                Function.apply(null, [
+                  `$,{${Object.keys(scope).join(",")}}`,
+                  `
+                                        const $value = ${attrValue};
+                                        $.${attrName.replace("set.", "")} = $value;
+                                        `
+                ]).bind(that)(element, scope);
+              }
             };
             (_b2 = attrValue.match(/this\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d)*)(\[[^]]+\])?(\.(([a-zA-Z]|_)+([a-zA-Z]|_|\d\)*))(\[[^]]+\])?)*/g)) == null ? void 0 : _b2.forEach((item) => {
               that.addSubscribe(item.replace(/(\[[^]]+\])/g, ".*").substring(5), set, scopeId);
@@ -9615,6 +9623,11 @@ class BVRElement extends Puya {
   render() {
     this.$$template = this.template() || this.$$template;
     appendElFromTemplate(this, this.$$template, this.$$rootElement, void 0, void 0);
+  }
+  provide(l) {
+    setTimeout(() => {
+      console.log("l", l);
+    }, 2e3);
   }
 }
 __publicField(BVRElement, "$$includedElems", {});

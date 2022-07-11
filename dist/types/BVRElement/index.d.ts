@@ -47,6 +47,7 @@ export default class BVRElement extends Puya {
     $$template: Partial<Element>;
     reRender(): void;
     render(): void;
+    provide(l: any): void;
 }
 export {};
 //# sourceMappingURL=index.d.ts.map

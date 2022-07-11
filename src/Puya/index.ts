@@ -253,7 +253,6 @@ export class Puya {
         klass?: string,
         throttle?: number
     ): string
-
     addSubscribe(
         pathOrFn: string | ((value: Value, path: (string | number | symbol)[]) => void) = '',
         fnOrClass:

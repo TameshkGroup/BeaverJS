@@ -128,6 +128,7 @@ export default class ComponentDirective {
             }
         })
         /* End handle fillers without slot */
+        console.log('$$slots', instance.$$slots)
 
         dynamicFillers.forEach((m) => {
             const { elem, scope } = m;
